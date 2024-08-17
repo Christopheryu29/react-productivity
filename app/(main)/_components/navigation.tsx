@@ -10,6 +10,11 @@ import {
   Trash,
   Calculator,
   Calendar,
+  Wallet,
+  CalendarDays,
+  Brain,
+  Timer,
+  Workflow,
 } from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { ElementRef, useEffect, useRef, useState } from "react";
@@ -171,8 +176,23 @@ export const Navigation: React.FC<NavigationProps> = ({ togglePomodoro }) => {
           />
           <Item
             label="Calendar"
-            icon={Calendar}
+            icon={CalendarDays}
             onClick={() => router.push("/calendar")}
+          />
+          <Item
+            label="Budget Tracker"
+            icon={Wallet}
+            onClick={() => router.push("/budgettracker")}
+          />
+          <Item
+            label="Financial AI"
+            icon={Brain}
+            onClick={() => router.push("/financial")}
+          />
+          <Item
+            label="Predict"
+            icon={Brain}
+            onClick={() => router.push("/predict")}
           />
           <Item
             label="To-do"
@@ -180,10 +200,11 @@ export const Navigation: React.FC<NavigationProps> = ({ togglePomodoro }) => {
             onClick={() => router.push("/todo")}
           />
           <Item
-            label="Pomodoro Timer"
-            icon={PlusCircle}
-            onClick={togglePomodoro}
+            label="Task"
+            icon={Workflow}
+            onClick={() => router.push("/task")}
           />
+          <Item label="Pomodoro Timer" icon={Timer} onClick={togglePomodoro} />
 
           <Item onClick={handleCreate} label="New page" icon={PlusCircle} />
         </div>

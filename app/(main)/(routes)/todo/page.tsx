@@ -1,75 +1,86 @@
+// app/(main)/(routes)/todo/page.tsx
 "use client";
-import React, { useState, useEffect } from "react";
 
-interface TodoItem {
-  id: number;
-  text: string;
-}
+import { useState } from "react";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 
-const TodoList: React.FC = () => {
-  const [todos, setTodos] = useState<TodoItem[]>([]);
-  const [input, setInput] = useState("");
+function TodoApp() {
+  const [newTodo, setNewTodo] = useState("");
 
-  // Load todos from local storage on first render
-  useEffect(() => {
-    const storedTodos = localStorage.getItem("todos");
-    if (storedTodos) {
-      setTodos(JSON.parse(storedTodos));
-    }
-  }, []);
+  const todos = useQuery(api.todo.getTodos);
+  const createTodo = useMutation(api.todo.createTodo);
+  const toggleTodo = useMutation(api.todo.toggleTodo);
+  const deleteTodo = useMutation(api.todo.deleteTodo);
 
-  // Save todos to local storage whenever they change
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      localStorage.setItem("todos", JSON.stringify(todos));
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      // Also save when the component is unmounted
-      localStorage.setItem("todos", JSON.stringify(todos));
-    };
-  }, [todos]);
-
-  const addTodo = () => {
-    if (input) {
-      const newTodo: TodoItem = { id: Date.now(), text: input };
-      setTodos([...todos, newTodo]);
-      setInput(""); // Clear input after adding
+  const handleAddTodo = async () => {
+    if (newTodo.trim() !== "") {
+      await createTodo({ text: newTodo });
+      setNewTodo("");
     }
   };
 
-  const removeTodo = (id: number) => {
-    setTodos(todos.filter((todo) => todo.id !== id));
+  const handleToggleTodo = async (id: string, isCompleted: boolean) => {
+    const todoId = id as unknown as Id<"todos">;
+    await toggleTodo({ id: todoId, isCompleted: !isCompleted });
   };
 
-  const handleKeyPress = (event: React.KeyboardEvent) => {
-    if (event.key === "Enter") {
-      addTodo();
-    }
+  const handleDeleteTodo = async (id: string) => {
+    const todoId = id as unknown as Id<"todos">;
+    await deleteTodo({ id: todoId });
   };
 
   return (
-    <div>
-      <input
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        onKeyPress={handleKeyPress}
-        placeholder="Add a new todo"
-      />
-      <button onClick={addTodo}>Add</button>
-      <ul>
-        {todos.map((todo) => (
-          <li key={todo.id}>
-            {todo.text}
-            <button onClick={() => removeTodo(todo.id)}>Remove</button>
-          </li>
-        ))}
-      </ul>
+    <div className="p-4 min-h-screen">
+      <div className="flex justify-center items-center">
+        <h1 className="text-3xl text-blue-500 mb-4">Todo List</h1>
+      </div>
+
+      <div className="flex gap-2">
+        <input
+          className="flex-1 p-2 text-lg border rounded border-gray-300"
+          placeholder="Add new todo"
+          value={newTodo}
+          onChange={(e) => setNewTodo(e.target.value)}
+        />
+        <button
+          className="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
+          onClick={handleAddTodo}
+        >
+          Add
+        </button>
+      </div>
+      {todos && todos.length > 0 ? (
+        todos.map((todo) => (
+          <div
+            key={todo._id}
+            className="flex items-center my-2 p-2 shadow rounded-md"
+          >
+            <input
+              type="checkbox"
+              checked={todo.isCompleted}
+              onChange={() => handleToggleTodo(todo._id, todo.isCompleted)}
+              className="mr-4"
+            />
+            <span
+              className={`flex-1 ${todo.isCompleted ? "line-through" : ""}`}
+            >
+              {todo.text}
+            </span>
+            <button
+              className="px-3 py-1 text-white bg-red-500 rounded hover:bg-red-600"
+              onClick={() => handleDeleteTodo(todo._id)}
+            >
+              Delete
+            </button>
+          </div>
+        ))
+      ) : (
+        <p className="mt-4">No todos found. Add some!</p>
+      )}
     </div>
   );
-};
+}
 
-export default TodoList;
+export default TodoApp;

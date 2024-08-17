@@ -15,6 +15,11 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as documents from "../documents.js";
+import type * as events from "../events.js";
+import type * as expense from "../expense.js";
+import type * as openai from "../openai.js";
+import type * as tasks from "../tasks.js";
+import type * as todo from "../todo.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -26,6 +31,11 @@ import type * as documents from "../documents.js";
  */
 declare const fullApi: ApiFromModules<{
   documents: typeof documents;
+  events: typeof events;
+  expense: typeof expense;
+  openai: typeof openai;
+  tasks: typeof tasks;
+  todo: typeof todo;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,
