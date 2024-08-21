@@ -6,8 +6,31 @@ import "react-datepicker/dist/react-datepicker.css";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { format, startOfDay, endOfDay, setHours, setMinutes } from "date-fns";
-import styles from "./CalendarPage.module.css";
+import {
+  Box,
+  Button,
+  Checkbox,
+  Flex,
+  FormControl,
+  Heading,
+  Input,
+  Stack,
+  Text,
+  Textarea,
+  useToast,
+  VStack,
+  useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  chakra,
+} from "@chakra-ui/react";
 import { SketchPicker } from "react-color";
+import { ColorResult } from "react-color";
 
 interface Event {
   _id: string;
@@ -25,15 +48,17 @@ const CalendarPage = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [endTime, setEndTime] = useState<Date>(
     new Date(selectedDate.getTime() + 3600000)
-  ); // Set default end time to 1 hour after the selected time
+  );
   const [isAllDay, setIsAllDay] = useState<boolean>(false);
   const [eventTitle, setEventTitle] = useState<string>("");
   const [eventDescription, setEventDescription] = useState<string>("");
   const [eventColor, setEventColor] = useState<string>("#000000");
+  const toast = useToast();
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   useEffect(() => {
     if (!isAllDay) {
-      setEndTime(new Date(selectedDate.getTime() + 3600000)); // Adjust end time when the selected date changes
+      setEndTime(new Date(selectedDate.getTime() + 3600000));
     }
   }, [selectedDate, isAllDay]);
 
@@ -69,7 +94,13 @@ const CalendarPage = () => {
 
   const handleAddEvent = async () => {
     if (!eventTitle || !selectedDate || (!isAllDay && !endTime)) {
-      alert("Please fill in all required fields.");
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields.",
+        status: "error",
+        duration: 2000,
+        isClosable: true,
+      });
       return;
     }
 
@@ -88,85 +119,141 @@ const CalendarPage = () => {
     setIsAllDay(false);
     setSelectedDate(new Date());
     setEndTime(new Date(new Date().getTime() + 3600000));
+    toast({
+      title: "Event added",
+      description: "Your event has been successfully added.",
+      status: "success",
+      duration: 2000,
+      isClosable: true,
+    });
   };
 
+  const ChakraDatePicker = chakra(DatePicker);
+
   return (
-    <div className={styles.container}>
-      <h1 className={styles.header}>Event Calendar</h1>
-      <div className={styles.datePickers}>
-        <DatePicker
-          selected={selectedDate}
-          onChange={handleDateChange}
-          inline
-          showTimeSelect={!isAllDay}
-        />
-        {!isAllDay && (
-          <DatePicker
-            selected={endTime}
-            onChange={handleEndTimeChange}
-            showTimeSelect
+    <Box bg="gray.800" color="white" p="5">
+      <VStack spacing="5">
+        <Heading>Event Calendar</Heading>
+        <Flex direction={{ base: "column", md: "row" }} gap="5">
+          <ChakraDatePicker
+            selected={selectedDate}
+            onChange={handleDateChange}
             inline
-            timeInputLabel="End Time:"
-            minDate={selectedDate}
-            minTime={setHours(setMinutes(new Date(selectedDate), 0), 0)} // Allow selection from the start of the selected date
-            maxTime={setHours(setMinutes(new Date(selectedDate), 45), 23)} // Until the end of the day
+            showTimeSelect={!isAllDay}
+            sx={{
+              ".react-datepicker": {
+                color: "white",
+              },
+              ".react-datepicker__header": {
+                backgroundColor: "gray.700",
+              },
+              ".react-datepicker__day-name, .react-datepicker__day, .react-datepicker__time-name":
+                {
+                  color: "white",
+                },
+              ".react-datepicker__current-month": {
+                color: "white",
+              },
+            }}
           />
-        )}
-      </div>
-      <div className={styles.formContainer}>
-        <input
-          className={styles.input}
-          type="text"
-          placeholder="Event Title"
-          value={eventTitle}
-          onChange={(e) => setEventTitle(e.target.value)}
-        />
-        <textarea
-          className={styles.textarea}
-          placeholder="Description"
-          value={eventDescription}
-          onChange={(e) => setEventDescription(e.target.value)}
-        />
-        <label className={styles.checkboxLabel}>
-          <input
-            type="checkbox"
-            checked={isAllDay}
-            onChange={() => setIsAllDay(!isAllDay)}
+          {!isAllDay && (
+            <ChakraDatePicker
+              selected={endTime}
+              onChange={handleEndTimeChange}
+              showTimeSelect
+              inline
+              timeInputLabel="End Time:"
+              sx={{
+                ".react-datepicker": {
+                  color: "white",
+                },
+                ".react-datepicker__header": {
+                  backgroundColor: "gray.700",
+                },
+                ".react-datepicker__day-name, .react-datepicker__day, .react-datepicker__time-name":
+                  {
+                    color: "white",
+                  },
+                ".react-datepicker__current-month": {
+                  color: "white",
+                },
+              }}
+              minDate={selectedDate}
+              minTime={setHours(setMinutes(new Date(selectedDate), 0), 0)}
+              maxTime={setHours(setMinutes(new Date(selectedDate), 45), 23)}
+            />
+          )}
+        </Flex>
+        <FormControl>
+          <Input
+            placeholder="Event Title"
+            value={eventTitle}
+            onChange={(e) => setEventTitle(e.target.value)}
           />
+        </FormControl>
+        <FormControl>
+          <Textarea
+            placeholder="Description"
+            value={eventDescription}
+            onChange={(e) => setEventDescription(e.target.value)}
+          />
+        </FormControl>
+        <Checkbox isChecked={isAllDay} onChange={() => setIsAllDay(!isAllDay)}>
           All Day Event
-        </label>
-        <SketchPicker
-          color={eventColor}
-          onChangeComplete={(color) => setEventColor(color.hex)}
-        />
-        <button className={styles.button} onClick={handleAddEvent}>
+        </Checkbox>
+        <Button onClick={onOpen} colorScheme="blue">
+          Choose Color
+        </Button>
+        <Modal isOpen={isOpen} onClose={onClose}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Choose Event Color</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <SketchPicker
+                color={eventColor}
+                onChangeComplete={(color: ColorResult) =>
+                  setEventColor(color.hex)
+                }
+              />
+            </ModalBody>
+            <ModalFooter>
+              <Button colorScheme="blue" mr="3" onClick={onClose}>
+                Close
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+        <Button onClick={handleAddEvent} colorScheme="blue">
           Add Event
-        </button>
-      </div>
-      {events && events.length > 0 ? (
-        events.map((event) => (
-          <div
-            key={event._id}
-            className={styles.eventCard}
-            style={{ backgroundColor: event.color || "#fff" }}
-          >
-            <h3>{event.title}</h3>
-            {!event.isAllDay && (
-              <p>
-                Time: {format(new Date(event.startDate), "p")} -{" "}
-                {format(new Date(event.endDate), "p")}
-              </p>
-            )}
-            <p>{event.description || "No description provided."}</p>
-          </div>
-        ))
-      ) : (
-        <p>
-          No events found for{" "}
-          {selectedDate ? format(selectedDate, "PPP") : "this date"}.
-        </p>
-      )}
-    </div>
+        </Button>
+        {events && events.length > 0 ? (
+          events.map((event) => (
+            <Box
+              key={event._id}
+              bg={event.color || "#fff"}
+              p="4"
+              rounded="md"
+              shadow="md"
+            >
+              <Heading size="md">{event.title}</Heading>
+              {!event.isAllDay && (
+                <Text>
+                  Time: {format(new Date(event.startDate), "p")} -{" "}
+                  {format(new Date(event.endDate), "p")}
+                </Text>
+              )}
+              <Text>{event.description || "No description provided."}</Text>
+            </Box>
+          ))
+        ) : (
+          <Text>
+            No events found for{" "}
+            {selectedDate ? format(selectedDate, "PPP") : "this date"}.
+          </Text>
+        )}
+      </VStack>
+    </Box>
   );
 };
 

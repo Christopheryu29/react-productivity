@@ -1,7 +1,5 @@
 "use client";
 import React, { useState, ChangeEvent } from "react";
-import "./app.css";
-import * as math from "mathjs";
 
 function App() {
   const [expression, setExpression] = useState<string>("");
@@ -9,128 +7,196 @@ function App() {
   const [customVariables, setCustomVariables] = useState<
     Record<string, number>
   >({});
-  // Default mode is "rad"
   const [mode, setMode] = useState<"rad" | "deg">("rad");
 
-  function handleChange(e: ChangeEvent<HTMLInputElement>) {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setExpression(e.target.value);
-  }
+  };
 
-  function handleClick(input: string) {
+  const handleClick = (input: string) => {
     setExpression((prevExpression) => prevExpression + input);
-  }
+  };
 
-  function calculate() {
+  // Explicitly define the return type as number
+  const factorial = (n: number): number => {
+    return n <= 1 ? 1 : n * factorial(n - 1);
+  };
+
+  const calculate = () => {
     try {
-      const allVariables: Record<string, any> = {
+      const allVariables = {
         ...customVariables,
         pi: Math.PI,
         e: Math.E,
-        // Add factorial function
-        fact: math.factorial,
-        sin: mode === "rad" ? Math.sin : math.sin,
-        cos: mode === "rad" ? Math.cos : math.cos,
-        tan: mode === "rad" ? Math.tan : math.tan,
-        asin: mode === "rad" ? Math.asin : math.asin,
-        acos: mode === "rad" ? Math.acos : math.acos,
-        atan: mode === "rad" ? Math.atan : math.atan,
+        fact: factorial, // Use the factorial function with a defined return type
+        sin:
+          mode === "rad"
+            ? Math.sin
+            : (x: number) => Math.sin((x * Math.PI) / 180),
+        cos:
+          mode === "rad"
+            ? Math.cos
+            : (x: number) => Math.cos((x * Math.PI) / 180),
+        tan:
+          mode === "rad"
+            ? Math.tan
+            : (x: number) => Math.tan((x * Math.PI) / 180),
       };
 
-      const result = math.evaluate(expression, allVariables);
-      if (typeof result === "number" && !isNaN(result)) {
-        setScreenVal(Number(result).toFixed(4));
-      } else {
-        setScreenVal("Error: Invalid expression");
-      }
+      const result = eval(expression.replaceAll(/(\d+)(!)/g, "fact($1)"));
+      setScreenVal(
+        typeof result === "number" ? result.toFixed(4) : "Invalid input"
+      );
     } catch (error) {
       setScreenVal("Error: Invalid expression");
     }
-  }
+  };
 
-  function clearScreen() {
+  const clearScreen = () => {
     setExpression("");
     setScreenVal("");
-  }
+  };
 
-  function backspace() {
-    const newExpression = expression.slice(0, -1);
-    setExpression(newExpression);
-  }
-
-  function toggleMode() {
-    // Toggle between "rad" and "deg" modes
-    setMode(mode === "rad" ? "deg" : "rad");
-  }
+  const backspace = () => {
+    setExpression(expression.slice(0, -1));
+  };
 
   return (
-    <>
-      <div className="App">
-        <div className="calc-body">
-          <h1>Scientific Calculator</h1>
-          <div className="input-section">
-            <input
-              className="screen"
-              type="text"
-              value={expression}
-              onChange={handleChange}
-            />
-            <div className="output">Output: {screenVal}</div>
-          </div>
-          <div className="button-section">
-            <div className="numeric-pad">
-              {["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].map(
-                (input) => (
-                  <button key={input} onClick={() => handleClick(input)}>
-                    {input}
-                  </button>
-                )
-              )}
-              <button onClick={() => handleClick(".")}>.</button>
-            </div>
-            <div className="operators">
-              {[
-                "+",
-                "-",
-                "*",
-                "/",
-                "^",
-                "sqrt(",
-                "sin(",
-                "cos(",
-                "tan(",
-                "cbrt(",
-                "asin(",
-                "acos(",
-                "atan(",
-                // Add open parenthesis
-                "(",
-                // Add close parenthesis
-                ")",
-              ].map((input) => (
-                <button key={input} onClick={() => handleClick(input)}>
-                  {input}
-                </button>
-              ))}
-
-              <button onClick={() => handleClick("pi")}>Pi</button>
-              <button onClick={() => handleClick("fact(")}>Factorial</button>
-            </div>
-            <div className="control-buttons">
-              <button className="clear-button" onClick={clearScreen}>
-                C
-              </button>
-              <button className="equals-button" onClick={calculate}>
-                =
-              </button>
-              <button className="backspace-button" onClick={backspace}>
-                del
-              </button>
-            </div>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100vh",
+        backgroundColor: "#282c34",
+        color: "white",
+        fontFamily: "Segoe UI, Tahoma, Geneva, Verdana, sans-serif",
+      }}
+    >
+      <div
+        style={{
+          border: "2px solid #ccc",
+          padding: "20px",
+          borderRadius: "10px",
+          backgroundColor: "#333",
+          width: "auto",
+          maxWidth: "600px",
+        }}
+      >
+        <h1>Scientific Calculator</h1>
+        <div style={{ marginBottom: "20px" }}>
+          <input
+            style={{
+              width: "100%",
+              padding: "10px",
+              fontSize: "16px",
+              marginBottom: "10px",
+              color: "black",
+            }} // Set text color to black
+            type="text"
+            value={expression}
+            onChange={handleChange}
+          />
+          <div
+            style={{
+              fontSize: "20px",
+              padding: "10px",
+              backgroundColor: "#222",
+              marginBottom: "20px",
+            }}
+          >
+            Output: {screenVal}
           </div>
         </div>
-        <div className="variables"></div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: "10px",
+          }}
+        >
+          {[
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "0",
+            ".",
+            "+",
+            "-",
+            "*",
+            "/",
+            "^",
+            "sqrt(",
+            "sin(",
+            "cos(",
+            "tan(",
+            "cbrt(",
+            "asin(",
+            "acos(",
+            "atan(",
+            "(",
+            ")",
+            "pi",
+            "fact(",
+          ].map((input) => (
+            <button
+              key={input}
+              onClick={() => handleClick(input)}
+              style={{
+                padding: "10px",
+                borderRadius: "5px",
+                backgroundColor: "#555",
+                color: "white",
+                border: "none",
+                cursor: "pointer",
+              }}
+              onMouseOver={(e) =>
+                (e.currentTarget.style.backgroundColor = "#666")
+              }
+              onMouseOut={(e) =>
+                (e.currentTarget.style.backgroundColor = "#555")
+              }
+            >
+              {input}
+            </button>
+          ))}
+          <button
+            style={{
+              gridColumn: "span 2",
+              padding: "10px",
+              borderRadius: "5px",
+              backgroundColor: "#555",
+              color: "white",
+              border: "none",
+              cursor: "pointer",
+            }}
+            onClick={clearScreen}
+          >
+            Clear
+          </button>
+          <button
+            style={{
+              gridColumn: "span 2",
+              padding: "10px",
+              borderRadius: "5px",
+              backgroundColor: "#555",
+              color: "white",
+              border: "none",
+              cursor: "pointer",
+            }}
+            onClick={calculate}
+          >
+            =
+          </button>
+        </div>
       </div>
-    </>
+    </div>
   );
 }
 

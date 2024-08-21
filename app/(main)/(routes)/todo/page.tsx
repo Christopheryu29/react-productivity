@@ -5,9 +5,21 @@ import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
+import {
+  Box,
+  Button,
+  Checkbox,
+  Flex,
+  Heading,
+  Input,
+  Text,
+  VStack,
+  useToast,
+} from "@chakra-ui/react";
 
 function TodoApp() {
   const [newTodo, setNewTodo] = useState("");
+  const toast = useToast();
 
   const todos = useQuery(api.todo.getTodos);
   const createTodo = useMutation(api.todo.createTodo);
@@ -18,6 +30,12 @@ function TodoApp() {
     if (newTodo.trim() !== "") {
       await createTodo({ text: newTodo });
       setNewTodo("");
+      toast({
+        title: "Todo added.",
+        status: "success",
+        duration: 2000,
+        isClosable: true,
+      });
     }
   };
 
@@ -29,57 +47,71 @@ function TodoApp() {
   const handleDeleteTodo = async (id: string) => {
     const todoId = id as unknown as Id<"todos">;
     await deleteTodo({ id: todoId });
+    toast({
+      title: "Todo deleted.",
+      status: "error",
+      duration: 2000,
+      isClosable: true,
+    });
   };
 
   return (
-    <div className="p-4 min-h-screen">
-      <div className="flex justify-center items-center">
-        <h1 className="text-3xl text-blue-500 mb-4">Todo List</h1>
-      </div>
+    <Flex direction="column" p="4" minH="screen">
+      <Flex justify="center" align="center" mb="4">
+        <Heading color="blue.500">Todo List</Heading>
+      </Flex>
 
-      <div className="flex gap-2">
-        <input
-          className="flex-1 p-2 text-lg border rounded border-gray-300"
+      <Flex gap="2">
+        <Input
+          flex="1"
+          p="2"
           placeholder="Add new todo"
           value={newTodo}
           onChange={(e) => setNewTodo(e.target.value)}
+          size="lg"
+          borderColor="gray.300"
         />
-        <button
-          className="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
-          onClick={handleAddTodo}
-        >
+        <Button colorScheme="blue" px="4" py="2" onClick={handleAddTodo}>
           Add
-        </button>
-      </div>
+        </Button>
+      </Flex>
+
       {todos && todos.length > 0 ? (
-        todos.map((todo) => (
-          <div
-            key={todo._id}
-            className="flex items-center my-2 p-2 shadow rounded-md"
-          >
-            <input
-              type="checkbox"
-              checked={todo.isCompleted}
-              onChange={() => handleToggleTodo(todo._id, todo.isCompleted)}
-              className="mr-4"
-            />
-            <span
-              className={`flex-1 ${todo.isCompleted ? "line-through" : ""}`}
+        <VStack spacing="4" mt="4">
+          {todos.map((todo) => (
+            <Flex
+              key={todo._id}
+              align="center"
+              p="2"
+              shadow="md"
+              rounded="md"
+              w="full"
             >
-              {todo.text}
-            </span>
-            <button
-              className="px-3 py-1 text-white bg-red-500 rounded hover:bg-red-600"
-              onClick={() => handleDeleteTodo(todo._id)}
-            >
-              Delete
-            </button>
-          </div>
-        ))
+              <Checkbox
+                isChecked={todo.isCompleted}
+                onChange={() => handleToggleTodo(todo._id, todo.isCompleted)}
+                mr="4"
+              />
+              <Text
+                color="white"
+                flex="1"
+                as={todo.isCompleted ? "s" : undefined}
+              >
+                {todo.text}
+              </Text>
+              <Button
+                colorScheme="red"
+                onClick={() => handleDeleteTodo(todo._id)}
+              >
+                Delete
+              </Button>
+            </Flex>
+          ))}
+        </VStack>
       ) : (
-        <p className="mt-4">No todos found. Add some!</p>
+        <Text mt="4">No todos found. Add some!</Text>
       )}
-    </div>
+    </Flex>
   );
 }
 

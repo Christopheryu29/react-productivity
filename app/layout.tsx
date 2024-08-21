@@ -39,21 +39,23 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <ConvexClientProvider>
-          <EdgeStoreProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-              storageKey="jotion-theme-2"
-            >
-              <Toaster position="bottom-center" />
-              <ModalProvider />
-              {children}
-            </ThemeProvider>
-          </EdgeStoreProvider>
-        </ConvexClientProvider>
+        <ChakraProvider>
+          <ConvexClientProvider>
+            <EdgeStoreProvider>
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+                disableTransitionOnChange
+                storageKey="jotion-theme-2"
+              >
+                <Toaster position="bottom-center" />
+                <ModalProvider />
+                {children}
+              </ThemeProvider>
+            </EdgeStoreProvider>
+          </ConvexClientProvider>
+        </ChakraProvider>
       </body>
     </html>
   );
