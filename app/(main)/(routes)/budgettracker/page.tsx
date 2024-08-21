@@ -15,6 +15,36 @@ import {
 import "chart.js/auto";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import {
+  Box,
+  Button,
+  FormControl,
+  FormLabel,
+  Input,
+  Select,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Heading,
+  Text,
+  VStack,
+  HStack,
+  useToast,
+  Container,
+  Stat,
+  StatLabel,
+  StatNumber,
+  StatGroup,
+  Divider,
+  Flex,
+  Icon,
+  Badge,
+  useColorModeValue,
+} from "@chakra-ui/react";
+import { FaEdit, FaTrash } from "react-icons/fa";
 
 ChartJS.register(
   CategoryScale,
@@ -53,6 +83,8 @@ const BudgetTrackerPage: React.FC = () => {
   const [editAmount, setEditAmount] = useState<number>(0);
   const [editCategory, setEditCategory] = useState<string>("");
   const [monthlyTotals, setMonthlyTotals] = useState<MonthlyTotals[]>([]);
+  const toast = useToast();
+  const bg = useColorModeValue("gray.50", "gray.800");
 
   const fetchExpenses = useQuery(api.expense.getExpenses);
   const addExpenseMutation = useMutation(api.expense.createExpense);
@@ -112,15 +144,30 @@ const BudgetTrackerPage: React.FC = () => {
         type: newExpenseType,
         date: new Date().toISOString(),
         category:
-          newCategory || (newExpenseType === "income" ? "Salary" : "Food"), // Adjusting default category for simplicity
+          newCategory ||
+          (newExpenseType === "income" ? "Salary" : "Miscellaneous"),
       });
       setNewExpense(0);
       setNewCategory("");
+      toast({
+        title: "Expense Added",
+        description: "Your new expense has been added successfully.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
     }
   };
 
   const deleteExpenseHandler = async (id: number) => {
     await deleteExpenseMutation({ id });
+    toast({
+      title: "Expense Deleted",
+      description: "The expense has been removed.",
+      status: "error",
+      duration: 3000,
+      isClosable: true,
+    });
   };
 
   const startEditing = (
@@ -144,6 +191,13 @@ const BudgetTrackerPage: React.FC = () => {
       setEditingId(null);
       setEditAmount(0);
       setEditCategory("");
+      toast({
+        title: "Expense Updated",
+        description: "The expense has been updated successfully.",
+        status: "info",
+        duration: 3000,
+        isClosable: true,
+      });
     }
   };
 
@@ -167,26 +221,22 @@ const BudgetTrackerPage: React.FC = () => {
     datasets: [
       {
         data: [
-          totalIncome,
-          totalExpenses,
-          totalSavings,
-          monthlyTotals.reduce((acc, mt) => acc + mt.totalSavings, 0),
+          expenses
+            .filter((e) => e.type === "income")
+            .reduce((acc, e) => acc + e.amount, 0),
+          expenses
+            .filter((e) => e.type === "expense")
+            .reduce((acc, e) => acc + e.amount, 0),
+          expenses
+            .filter((e) => e.type === "savings")
+            .reduce((acc, e) => acc + e.amount, 0),
         ],
-        backgroundColor: [
-          "rgba(75, 192, 192, 0.6)",
-          "rgba(255, 99, 132, 0.6)",
-          "rgba(54, 162, 235, 0.6)",
-        ],
-        borderColor: [
-          "rgba(75, 192, 192, 1)",
-          "rgba(255, 99, 132, 1)",
-          "rgba(54, 162, 235, 1)",
-        ],
+        backgroundColor: ["#68D391", "#FC8181", "#63B3ED"],
+        borderColor: ["#2F855A", "#C53030", "#3182CE"],
         borderWidth: 1,
       },
     ],
   };
-
   const chartOptions = {
     responsive: true,
     plugins: {
@@ -213,44 +263,73 @@ const BudgetTrackerPage: React.FC = () => {
       totalExpenses: total.totalExpenses,
       totalSavings: total.totalSavings, // Displaying total savings
     }));
-  return (
-    <div className="p-4 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Your Wallet</h1>
 
-      <div className="mb-6 border-b pb-4">
-        <h2 className="text-xl font-semibold mb-2">
-          Add New{" "}
-          {newExpenseType === "income"
-            ? "Income"
-            : newExpenseType === "savings"
-            ? "Savings"
-            : "Expense"}
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-          <input
+  return (
+    <Container maxW="container.xl" p={4}>
+      <Heading as="h1" size="2xl" textAlign="center" mb={6} color={"white"}>
+        Budget Tracker
+      </Heading>
+      <StatGroup mb={6}>
+        <Stat>
+          <StatLabel color={"white"}>Total Income</StatLabel>
+          <StatNumber color={"white"}>
+            $
+            {expenses
+              .filter((e) => e.type === "income")
+              .reduce((acc, e) => acc + e.amount, 0)}
+          </StatNumber>
+        </Stat>
+        <Stat>
+          <StatLabel color={"white"}>Total Expenses</StatLabel>
+          <StatNumber color={"white"}>
+            $
+            {expenses
+              .filter((e) => e.type === "expense")
+              .reduce((acc, e) => acc + e.amount, 0)}
+          </StatNumber>
+        </Stat>
+        <Stat>
+          <StatLabel color={"white"}>Total Savings</StatLabel>
+          <StatNumber color={"white"}>
+            $
+            {expenses
+              .filter((e) => e.type === "savings")
+              .reduce((acc, e) => acc + e.amount, 0)}
+          </StatNumber>
+        </Stat>
+        <Stat>
+          <StatLabel color={"white"}>Current Balance</StatLabel>
+          <StatNumber color={"white"}>${currentBalance}</StatNumber>
+        </Stat>
+      </StatGroup>
+      <Box boxShadow="md" p={5} rounded="md" bg="white">
+        <Heading size="lg" mb={4}>
+          Add New Expense
+        </Heading>
+        <VStack spacing={4}>
+          <Input
+            placeholder="Amount"
             type="number"
             value={newExpense}
             onChange={(e) => setNewExpense(Number(e.target.value))}
-            placeholder="Amount"
-            className="p-2 border rounded"
           />
-          <select
+          <Select
+            placeholder="Select Type"
             value={newExpenseType}
             onChange={(e) =>
               setNewExpenseType(
                 e.target.value as "income" | "expense" | "savings"
               )
             }
-            className="p-2 border rounded"
           >
             <option value="income">Income</option>
             <option value="expense">Expense</option>
             <option value="savings">Savings</option>
-          </select>
-          <select
+          </Select>
+          <Select
+            placeholder="Select Category"
             value={newCategory}
             onChange={(e) => setNewCategory(e.target.value)}
-            className="p-2 border rounded"
           >
             {newExpenseType === "income" ? (
               <>
@@ -277,154 +356,95 @@ const BudgetTrackerPage: React.FC = () => {
                 <option value="Other">Other</option>
               </>
             )}
-          </select>
-        </div>
-        <button
-          onClick={addExpense}
-          className="p-2 bg-blue-500 text-white rounded w-full"
-        >
-          Add{" "}
-          {newExpenseType === "income"
-            ? "Income"
-            : newExpenseType === "savings"
-            ? "Savings"
-            : "Expense"}
-        </button>
-      </div>
+          </Select>
+          <Button colorScheme="blue" onClick={addExpense}>
+            Add Expense
+          </Button>
+        </VStack>
+      </Box>
+      <Box mt={10} mb={6} width="40%" mx="auto">
+        <Pie data={combinedData} options={chartOptions} />
+      </Box>
 
-      <div className="mb-6 border-b pb-4 chart-container">
-        <h2 className="text-xl font-semibold mb-2">
-          Income, Expenses, and Savings
-        </h2>
-        <div className="chart">
-          <Pie data={combinedData} options={chartOptions} />
-        </div>
-      </div>
-
-      <div className="mb-6 border-b pb-4">
-        <h2 className="text-xl font-semibold mb-2">Summary</h2>
-        <p>Total Income: ${totalIncome}</p>
-        <p>Total Expenses: ${totalExpenses}</p>
-        <p>Total Savings: ${totalSavings}</p>
-        <p>Current Balance: ${currentBalance}</p>
-      </div>
-
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">Expenses</h2>
-        <table className="w-full border">
-          <thead>
-            <tr>
-              <th className="border px-4 py-2">Amount</th>
-              <th className="border px-4 py-2">Type</th>
-              <th className="border px-4 py-2">Category</th>
-              <th className="border px-4 py-2">Date</th>
-              <th className="border px-4 py-2">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {expenses.map((expense) => (
-              <tr key={expense.id}>
-                <td className="border px-4 py-2">${expense.amount}</td>
-                <td className="border px-4 py-2">{expense.type}</td>
-                <td className="border px-4 py-2">{expense.category}</td>
-                <td className="border px-4 py-2">
-                  {new Date(expense.date).toLocaleDateString()}
-                </td>
-                <td className="border px-4 py-2">
-                  <button
-                    onClick={() =>
-                      startEditing(
-                        expense.id,
-                        expense.amount,
-                        expense.type,
-                        expense.category
-                      )
-                    }
-                    className="bg-yellow-500 text-white px-2 py-1 rounded mr-2"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => deleteExpenseHandler(expense.id)}
-                    className="bg-red-500 text-white px-2 py-1 rounded"
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {editingId !== null && (
-        <div className="mb-6 border-b pb-4">
-          <h2 className="text-xl font-semibold mb-2">Edit Expense</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-            <input
-              type="number"
-              value={editAmount}
-              onChange={(e) => setEditAmount(Number(e.target.value))}
-              placeholder="Amount"
-              className="p-2 border rounded"
-            />
-            <select
-              value={editCategory}
-              onChange={(e) => setEditCategory(e.target.value)}
-              className="p-2 border rounded"
-            >
-              {newExpenseType === "income" ? (
-                <>
-                  <option value="Salary">Salary</option>
-                  <option value="Investment">Investment</option>
-                  <option value="Freelancing">Freelancing</option>
-                  <option value="Other">Other</option>
-                </>
-              ) : (
-                <>
-                  <option value="Food">Food</option>
-                  <option value="Shopping">Shopping</option>
-                  <option value="Transport">Transport</option>
-                  <option value="Entertainment">Entertainment</option>
-                  <option value="Mortgage">Mortgage</option>
-                  <option value="Other">Other</option>
-                </>
-              )}
-            </select>
-          </div>
-          <button
-            onClick={editExpense}
-            className="p-2 bg-blue-500 text-white rounded w-full"
-          >
-            Save Changes
-          </button>
-        </div>
-      )}
-
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">Monthly Totals</h2>
-        <table className="w-full border">
-          <thead>
-            <tr>
-              <th className="border px-4 py-2">Month</th>
-              <th className="border px-4 py-2">Total Income</th>
-              <th className="border px-4 py-2">Total Expenses</th>
-              <th className="border px-4 py-2">Total Savings</th>
-            </tr>
-          </thead>
-          <tbody>
-            {calculateMonthlyTotals().map((total, index) => (
-              <tr key={index}>
-                <td className="border px-4 py-2">{total.month}</td>
-                <td className="border px-4 py-2">${total.totalIncome}</td>
-                <td className="border px-4 py-2">${total.totalExpenses}</td>
-                <td className="border px-4 py-2">${total.totalSavings}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+      <Flex direction={["column", "row"]} gap={5}>
+        <Box flex="1" boxShadow="lg" p={5} rounded="md" bg="white">
+          <Heading size="md" mb={4}>
+            Expenses List
+          </Heading>
+          <Table variant="simple">
+            <Thead>
+              <Tr>
+                <Th>Amount</Th>
+                <Th>Type</Th>
+                <Th>Category</Th>
+                <Th>Date</Th>
+                <Th>Actions</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {expenses.map((expense) => (
+                <Tr key={expense.id}>
+                  <Td>${expense.amount}</Td>
+                  <Td>{expense.type}</Td>
+                  <Td>{expense.category}</Td>
+                  <Td>{new Date(expense.date).toLocaleDateString()}</Td>
+                  <Td>
+                    <HStack spacing={2}>
+                      <Button
+                        size="sm"
+                        colorScheme="yellow"
+                        onClick={() =>
+                          startEditing(
+                            expense.id,
+                            expense.amount,
+                            expense.type,
+                            expense.category
+                          )
+                        }
+                      >
+                        <Icon as={FaEdit} />
+                      </Button>
+                      <Button
+                        size="sm"
+                        colorScheme="red"
+                        onClick={() => deleteExpenseHandler(expense.id)}
+                      >
+                        <Icon as={FaTrash} />
+                      </Button>
+                    </HStack>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </Box>
+        <Box flex="1" boxShadow="lg" p={5} rounded="md" bg="white">
+          <Heading size="md" mb={4}>
+            Monthly Summary
+          </Heading>
+          <Table variant="simple">
+            <Thead>
+              <Tr>
+                <Th>Month</Th>
+                <Th>Total Income</Th>
+                <Th>Total Expenses</Th>
+                <Th>Total Savings</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {monthlyTotals.map((total, index) => (
+                <Tr key={index}>
+                  <Td>{total.month}</Td>
+                  <Td>${total.totalIncome}</Td>
+                  <Td>${total.totalExpenses}</Td>
+                  <Td>${total.totalSavings}</Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </Box>
+      </Flex>
+    </Container>
   );
 };
 
