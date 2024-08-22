@@ -57,3 +57,21 @@ export const deleteTask = mutation({
     }
   },
 });
+
+export const updateTask = mutation({
+  args: {
+    id: v.id("task"), // Convex ID for the task
+    title: v.string(), // Updated title
+    status: v.string(),
+    label: v.string(),
+    priority: v.string(),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.patch(args.id, {
+      title: args.title,
+      status: args.status,
+      label: args.label,
+      priority: args.priority,
+    });
+  },
+});
