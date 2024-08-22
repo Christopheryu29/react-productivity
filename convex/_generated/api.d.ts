@@ -18,7 +18,7 @@ import type * as documents from "../documents.js";
 import type * as events from "../events.js";
 import type * as expense from "../expense.js";
 import type * as openai from "../openai.js";
-import type * as tasks from "../tasks.js";
+import type * as task from "../task.js";
 import type * as todo from "../todo.js";
 
 /**
@@ -34,7 +34,7 @@ declare const fullApi: ApiFromModules<{
   events: typeof events;
   expense: typeof expense;
   openai: typeof openai;
-  tasks: typeof tasks;
+  task: typeof task;
   todo: typeof todo;
 }>;
 export declare const api: FilterApi<

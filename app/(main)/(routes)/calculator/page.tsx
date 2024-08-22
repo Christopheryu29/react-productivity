@@ -68,7 +68,6 @@ function App() {
         justifyContent: "center",
         alignItems: "center",
         height: "100vh",
-        backgroundColor: "#282c34",
         color: "white",
         fontFamily: "Segoe UI, Tahoma, Geneva, Verdana, sans-serif",
       }}

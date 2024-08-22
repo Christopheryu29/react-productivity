@@ -45,7 +45,7 @@ export default defineSchema({
     .index("by_type_and_date", ["type", "date"])
     .index("by_category_and_date", ["category", "date"]),
 
-  tasks: defineTable({
+  task: defineTable({
     id: v.string(), // Task ID as a string to match the provided example
     title: v.string(),
     status: v.string(), // 'in progress', 'completed', etc.

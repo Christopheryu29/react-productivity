@@ -22,9 +22,10 @@ import { labels } from "../data/data";
 import { taskSchema } from "../data/schema";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useToast } from "@chakra-ui/react";
 
 interface Task {
-  id: Id<"tasks">;
+  id: Id<"task">; // Convex's Id<"task"> type
   title: string;
   status: string;
   label: string;
@@ -34,16 +35,29 @@ interface Task {
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
 }
-
 export function DataTableRowActions<TData>({
   row,
 }: DataTableRowActionsProps<TData>) {
-  const task = taskSchema.parse(row.original);
-  const deleteTask = useMutation(api.tasks.deleteTask);
+  const task = taskSchema.parse(row.original); // Assuming row.original has 'id'
+  const deleteTask = useMutation(api.task.deleteTask);
+  const toast = useToast();
 
-  const handleDelete = async () => {
-    // Directly use the `id` assuming it is already the correct type (Id<"tasks">)
-    await deleteTask({ id: task.id as Id<"tasks"> }); // Only cast if absolutely necessary
+  // Change the type here to string since you're using 'id' as a string
+  const handleDelete = async (id: string) => {
+    try {
+      // Convex expects 'Id<"task">' so you can cast 'id' here
+      await deleteTask({ id: id as unknown as Id<"task"> });
+      toast({
+        title: "Task deleted.",
+        status: "success",
+        duration: 2000,
+        isClosable: true,
+      });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Failed to delete task:", error.message);
+      }
+    }
   };
 
   return (
@@ -75,7 +89,9 @@ export function DataTableRowActions<TData>({
           </DropdownMenuSubContent>
         </DropdownMenuSub>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleDelete}>
+        <DropdownMenuItem onClick={() => handleDelete(task.id)}>
+          {" "}
+          {/* Use task.id here */}
           Delete
           <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
         </DropdownMenuItem>

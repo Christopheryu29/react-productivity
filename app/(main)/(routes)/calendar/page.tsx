@@ -131,7 +131,7 @@ const CalendarPage = () => {
   const ChakraDatePicker = chakra(DatePicker);
 
   return (
-    <Box bg="gray.800" color="white" p="5">
+    <Box color="white" p="5">
       <VStack spacing="5">
         <Heading>Event Calendar</Heading>
         <Flex direction={{ base: "column", md: "row" }} gap="5">
