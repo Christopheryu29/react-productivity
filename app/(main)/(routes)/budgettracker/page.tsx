@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { Pie } from "react-chartjs-2";
+import { Bar } from "react-chartjs-2";
+import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -11,6 +13,7 @@ import {
   Title,
   Tooltip,
   Legend,
+  BarElement,
   ArcElement,
 } from "chart.js";
 import "chart.js/auto";
@@ -44,6 +47,7 @@ import {
   Icon,
   Badge,
   useColorModeValue,
+  useToken,
 } from "@chakra-ui/react";
 import { FaEdit, FaTrash } from "react-icons/fa";
 
@@ -52,6 +56,7 @@ ChartJS.register(
   LinearScale,
   PointElement,
   LineElement,
+  BarElement,
   Title,
   Tooltip,
   Legend,
@@ -73,6 +78,7 @@ interface MonthlyTotals {
 }
 
 interface CategoryTotals {
+  [key: string]: number;
   housingCost: number;
   foodCost: number;
   transportationCost: number;
@@ -81,6 +87,18 @@ interface CategoryTotals {
   childcareCost: number;
   taxes: number;
 }
+
+interface MonthlyTotalsAggregate {
+  [key: string]: {
+    totalIncome: number;
+    totalExpenses: number;
+  };
+}
+
+interface MonthlySummaryLineChartProps {
+  monthlyTotals: MonthlyTotals[];
+}
+
 const BudgetTrackerPage: React.FC = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [newExpense, setNewExpense] = useState<number>(0);
@@ -115,6 +133,16 @@ const BudgetTrackerPage: React.FC = () => {
   const updateFinancialSummaryMutation = useMutation(
     api.financial.updateFinancialSummary
   );
+
+  const categoryColors = {
+    housing_cost: "#FF6384",
+    food_cost: "#36A2EB",
+    transportation_cost: "#FFCE56",
+    healthcare_cost: "#4BC0C0",
+    other_necessities_cost: "#9966FF",
+    childcare_cost: "#FF9F40",
+    taxes: "#C9CBCF",
+  };
 
   const handleSaveFinancialSummary = async () => {
     const userId = "your-user-id"; // Retrieve this ID dynamically as needed
@@ -345,17 +373,36 @@ const BudgetTrackerPage: React.FC = () => {
     },
   };
 
-  const calculateMonthlyTotals = () =>
-    monthlyTotals.map((total) => ({
-      month: `${new Date(
-        parseInt(total.month.split("-")[1]),
-        parseInt(total.month.split("-")[0]) - 1
-      ).toLocaleString("default", { month: "long" })} ${
-        total.month.split("-")[1]
-      }`,
-      totalIncome: total.totalIncome,
-      totalExpenses: total.totalExpenses,
+  useEffect(() => {
+    console.log("Expenses Updated:", expenses); // Log expenses to see what data you have
+    const newTotals = calculateMonthlyTotals(expenses);
+    console.log("New Monthly Totals:", newTotals); // Check how the totals are being calculated
+    setMonthlyTotals(newTotals);
+  }, [expenses]); // Recalculate whenever expenses update
+
+  const calculateMonthlyTotals = (expenses: Expense[]): MonthlyTotals[] => {
+    const totals = expenses.reduce<MonthlyTotalsAggregate>((acc, curr) => {
+      const monthYear = new Date(curr.date).toLocaleString("default", {
+        month: "short",
+        year: "numeric",
+      });
+      if (!acc[monthYear]) {
+        acc[monthYear] = { totalIncome: 0, totalExpenses: 0 };
+      }
+      if (curr.type === "income") {
+        acc[monthYear].totalIncome += curr.amount;
+      } else {
+        acc[monthYear].totalExpenses += curr.amount;
+      }
+      return acc;
+    }, {});
+
+    return Object.keys(totals).map((month) => ({
+      month,
+      totalIncome: totals[month].totalIncome,
+      totalExpenses: totals[month].totalExpenses,
     }));
+  };
 
   const userId = "your-user-id"; // This should be dynamically obtained from your auth context
 
@@ -430,12 +477,15 @@ const BudgetTrackerPage: React.FC = () => {
 
     // Attempt to add the expense
     try {
-      await addExpenseMutation({
+      const newEntry = {
         amount: newExpense,
         type: newExpenseType,
         date: new Date().toISOString(),
         category: newCategory,
-      });
+      };
+
+      await addExpenseMutation(newEntry);
+
       // Clear the input fields after successful addition
       setNewExpense(0);
       setNewCategory("");
@@ -447,33 +497,15 @@ const BudgetTrackerPage: React.FC = () => {
         isClosable: true,
       });
 
-      // Prepare data for updating financial summary
-      const categoryTotals = getCategoryTotals();
-      const totalExpenses = Object.values(categoryTotals).reduce(
-        (acc, curr) => acc + curr,
-        0
-      );
-      const totalIncome = expenses.reduce(
-        (acc, exp) => acc + (exp.type === "income" ? exp.amount : 0),
-        0
-      );
+      // Update local expense state to include the new expense for accurate recalculations
+      setExpenses((prevExpenses) => [
+        ...prevExpenses,
+        { ...newEntry, id: Date.now() },
+      ]); // Update with actual ID if available
 
-      // Update financial summary
-      await updateFinancialSummaryMutation({
-        userId: "your-user-id", // Make sure this ID is correctly retrieved
-        update: {
-          ...categoryTotals,
-          totalExpenses,
-          medianFamilyIncome: totalIncome,
-        },
-      });
-      toast({
-        title: "Financial Data Updated",
-        description: "Your financial summary has been updated successfully.",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+      // Prepare data and update financial summary immediately
+      const updatedExpenses = [...expenses, { ...newEntry, id: Date.now() }];
+      await handleSaveFinancialSummary();
     } catch (error) {
       console.error(
         "Error during expense addition or financial summary update:",
@@ -488,7 +520,6 @@ const BudgetTrackerPage: React.FC = () => {
       });
     }
   };
-
   const financialData = useQuery(api.financial.getFinancialSummary, { userId });
 
   const formatCategoryName = (key: string): string => {
@@ -502,21 +533,178 @@ const BudgetTrackerPage: React.FC = () => {
     );
   };
 
+  // Assuming we're dealing with MonthlyTotalsAggregate or similar:
+  const handleMonthlyTotals = (expenses: Expense[]) => {
+    const totals: MonthlyTotalsAggregate = {};
+    expenses.forEach((expense) => {
+      const monthYear = new Date(expense.date).toLocaleString("default", {
+        month: "short",
+        year: "numeric",
+      });
+      if (!totals[monthYear]) {
+        totals[monthYear] = { totalIncome: 0, totalExpenses: 0 };
+      }
+      if (expense.type === "income") {
+        totals[monthYear].totalIncome += expense.amount;
+      } else {
+        totals[monthYear].totalExpenses += expense.amount;
+      }
+    });
+    return totals;
+  };
+
+  const displayFormattedMonthlySummary = () => {
+    if (!monthlyTotals.length) {
+      return (
+        <Tr>
+          <>No data available</>
+        </Tr>
+      );
+    }
+    return monthlyTotals.map((total, index) => (
+      <Tr key={index}>
+        <Td>{total.month}</Td>
+        <Td>${total.totalIncome.toFixed(2)}</Td>
+        <Td>${total.totalExpenses.toFixed(2)}</Td>
+      </Tr>
+    ));
+  };
+
+  const ExpenseBreakdownBarChart = ({ expenses }: { expenses: Expense[] }) => {
+    const categoryTotals = expenses.reduce(
+      (acc: { [key: string]: number }, expense: Expense) => {
+        if (expense.type === "expense") {
+          acc[expense.category] = (acc[expense.category] || 0) + expense.amount;
+        }
+        return acc;
+      },
+      {}
+    );
+
+    const data = {
+      labels: Object.keys(categoryTotals),
+      datasets: [
+        {
+          label: "Expenses by Category",
+          data: Object.values(categoryTotals),
+          backgroundColor: [
+            "#FF6384",
+            "#36A2EB",
+            "#FFCE56",
+            "#4BC0C0",
+            "#9966FF",
+            "#FF9F40",
+            "#C9CBCF",
+          ],
+          borderWidth: 1,
+        },
+      ],
+    };
+
+    const options = {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: false, // Set to true if you want to display the legend
+        },
+        tooltip: {
+          callbacks: {
+            label: (context: any) =>
+              `${context.label}: $${context.raw.toFixed(2)}`,
+          },
+        },
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: "Amount ($)",
+          },
+        },
+      },
+    };
+
+    return <Bar data={data} options={options} />;
+  };
+
+  // Use this function in the JSX for the monthly summary table body
+  const MonthlySummaryLineChart = ({
+    monthlyTotals,
+  }: MonthlySummaryLineChartProps) => {
+    const data = {
+      labels: monthlyTotals.map((data) => data.month),
+      datasets: [
+        {
+          label: "Total Income",
+          data: monthlyTotals.map((data) => data.totalIncome),
+          borderColor: "#68D391",
+          backgroundColor: "rgba(104, 211, 145, 0.5)",
+          fill: true,
+        },
+        {
+          label: "Total Expenses",
+          data: monthlyTotals.map((data) => data.totalExpenses),
+          borderColor: "#FC8181",
+          backgroundColor: "rgba(252, 129, 129, 0.5)",
+          fill: true,
+        },
+      ],
+    };
+
+    const options = {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: true,
+        },
+        tooltip: {
+          mode: "index",
+          intersect: false,
+        },
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: "Amount ($)",
+          },
+        },
+      },
+      interaction: {
+        mode: "nearest", // Correctly using a supported mode string literal
+        axis: "x",
+        intersect: false,
+      },
+      elements: {
+        line: {
+          tension: 0.4, // Controls the curve of the lines
+        },
+        point: {
+          radius: 6, // Radius of the point markers
+        },
+      },
+    };
+
+    return <Line data={data} options={options as any} />;
+  };
+
   return (
     <Container maxW="container.xl" p={4}>
       <Heading as="h1" size="2xl" textAlign="center" mb={6} color={"white"}>
         Budget Tracker
       </Heading>
-      <StatGroup mb={6}>
-        <Stat>
+      <StatGroup mb={6} gap={4}>
+        <Stat p={5} shadow="md" rounded="md">
           <StatLabel color={"white"}>Number of Adults</StatLabel>
           <StatNumber color={"white"}>{numAdults}</StatNumber>
         </Stat>
-        <Stat>
+        <Stat p={5} shadow="md" rounded="md">
           <StatLabel color={"white"}>Number of Children</StatLabel>
           <StatNumber color={"white"}>{numChildren}</StatNumber>
         </Stat>
-        <Stat>
+        <Stat p={5} shadow="md" rounded="md">
           <StatLabel color={"white"}>Total Income</StatLabel>
           <StatNumber color={"white"}>
             $
@@ -525,7 +713,7 @@ const BudgetTrackerPage: React.FC = () => {
               .reduce((acc, e) => acc + e.amount, 0)}
           </StatNumber>
         </Stat>
-        <Stat>
+        <Stat p={5} shadow="md" rounded="md">
           <StatLabel color={"white"}>Total Expenses</StatLabel>
           <StatNumber color={"white"}>
             $
@@ -534,7 +722,7 @@ const BudgetTrackerPage: React.FC = () => {
               .reduce((acc, e) => acc + e.amount, 0)}
           </StatNumber>
         </Stat>
-        <Stat>
+        <Stat p={5} shadow="md" rounded="md">
           <StatLabel color={"white"}>Current Balance</StatLabel>
           <StatNumber color={"white"}>${currentBalance}</StatNumber>
         </Stat>
@@ -627,10 +815,39 @@ const BudgetTrackerPage: React.FC = () => {
         </VStack>
       </Box>
 
-      <Box mt={10} mb={6} width="40%" mx="auto">
-        <Pie data={combinedData} options={chartOptions} />
-      </Box>
-      <Box boxShadow="lg" p={5} rounded="md" bg="white">
+      <Flex
+        direction={["column", "row"]}
+        justify="center"
+        align="center"
+        wrap="wrap"
+        gap={5}
+        mt={5}
+      >
+        {/* Pie Chart Box */}
+        <Box
+          boxShadow="md"
+          p={4}
+          justifyContent="center"
+          rounded="md"
+          bg="white"
+          flex="1"
+          maxW={"40%"}
+        >
+          <Pie data={combinedData} options={chartOptions} />
+        </Box>
+
+        {/* Bar Chart Box */}
+        <Box boxShadow="md" p={4} rounded="md" bg="white" flex="1" minW={"40%"}>
+          <ExpenseBreakdownBarChart expenses={expenses} />
+        </Box>
+
+        {/* Line Chart Box */}
+        <Box boxShadow="md" p={4} rounded="md" bg="white" flex="1" minW={"30%"}>
+          <MonthlySummaryLineChart monthlyTotals={monthlyTotals} />
+        </Box>
+      </Flex>
+
+      <Box boxShadow="lg" p={5} rounded="md" bg="white" mt={5}>
         <Heading size="md" mb={4}>
           Financial Summary
         </Heading>
@@ -716,7 +933,7 @@ const BudgetTrackerPage: React.FC = () => {
       </Box>
 
       <Flex direction={["column", "row"]} gap={5} mt={"10"}>
-        <Box flex="1" boxShadow="lg" p={5} rounded="md" bg="white">
+        <Box boxShadow="lg" p={5} rounded="md" bg="white" mt={5}>
           <Heading size="md" mb={4}>
             Expenses List
           </Heading>
@@ -767,7 +984,7 @@ const BudgetTrackerPage: React.FC = () => {
             </Tbody>
           </Table>
         </Box>
-        <Box flex="1" boxShadow="lg" p={5} rounded="md" bg="white">
+        <Box boxShadow="lg" p={5} rounded="md" bg="white" mt={5}>
           <Heading size="md" mb={4}>
             Monthly Summary
           </Heading>
@@ -779,15 +996,7 @@ const BudgetTrackerPage: React.FC = () => {
                 <Th>Total Expenses</Th>
               </Tr>
             </Thead>
-            <Tbody>
-              {monthlyTotals.map((total, index) => (
-                <Tr key={index}>
-                  <Td>{total.month}</Td>
-                  <Td>${total.totalIncome}</Td>
-                  <Td>${total.totalExpenses}</Td>
-                </Tr>
-              ))}
-            </Tbody>
+            <Tbody>{displayFormattedMonthlySummary()}</Tbody>
           </Table>
         </Box>
       </Flex>
