@@ -195,11 +195,6 @@ export const Navigation: React.FC<NavigationProps> = ({ togglePomodoro }) => {
             onClick={() => router.push("/machine")}
           />
           <Item
-            label="Predict"
-            icon={Brain}
-            onClick={() => router.push("/predict")}
-          />
-          <Item
             label="To-do"
             icon={Calendar}
             onClick={() => router.push("/todo")}

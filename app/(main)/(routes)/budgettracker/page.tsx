@@ -73,16 +73,14 @@ interface MonthlyTotals {
 }
 
 interface CategoryTotals {
-  [key: string]: number;
-  housing_cost: number;
-  food_cost: number;
-  transportation_cost: number;
-  healthcare_cost: number;
-  other_necessities_cost: number;
-  childcare_cost: number;
+  housingCost: number;
+  foodCost: number;
+  transportationCost: number;
+  healthcareCost: number;
+  otherNecessitiesCost: number;
+  childcareCost: number;
   taxes: number;
 }
-
 const BudgetTrackerPage: React.FC = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [newExpense, setNewExpense] = useState<number>(0);
@@ -119,7 +117,7 @@ const BudgetTrackerPage: React.FC = () => {
   );
 
   const handleSaveFinancialSummary = async () => {
-    const userId = "your-user-id"; // Make sure this ID is correct and retrieved appropriately
+    const userId = "your-user-id"; // Retrieve this ID dynamically as needed
 
     const categoryTotals = getCategoryTotals();
     const totalExpenses = Object.values(categoryTotals).reduce(
@@ -374,18 +372,40 @@ const BudgetTrackerPage: React.FC = () => {
 
   const getCategoryTotals = (): CategoryTotals => {
     const categoryTotals: CategoryTotals = {
-      housing_cost: 0,
-      food_cost: 0,
-      transportation_cost: 0,
-      healthcare_cost: 0,
-      other_necessities_cost: 0,
-      childcare_cost: 0,
+      housingCost: 0,
+      foodCost: 0,
+      transportationCost: 0,
+      healthcareCost: 0,
+      otherNecessitiesCost: 0,
+      childcareCost: 0,
       taxes: 0,
     };
 
     expenses.forEach((expense) => {
-      if (expense.type === "expense" && expense.category in categoryTotals) {
-        categoryTotals[expense.category] += expense.amount;
+      if (expense.type === "expense") {
+        switch (expense.category) {
+          case "housing_cost":
+            categoryTotals.housingCost += expense.amount;
+            break;
+          case "food_cost":
+            categoryTotals.foodCost += expense.amount;
+            break;
+          case "transportation_cost":
+            categoryTotals.transportationCost += expense.amount;
+            break;
+          case "healthcare_cost":
+            categoryTotals.healthcareCost += expense.amount;
+            break;
+          case "other_necessities_cost":
+            categoryTotals.otherNecessitiesCost += expense.amount;
+            break;
+          case "childcare_cost":
+            categoryTotals.childcareCost += expense.amount;
+            break;
+          case "taxes":
+            categoryTotals.taxes += expense.amount;
+            break;
+        }
       }
     });
 
@@ -468,7 +488,19 @@ const BudgetTrackerPage: React.FC = () => {
       });
     }
   };
+
   const financialData = useQuery(api.financial.getFinancialSummary, { userId });
+
+  const formatCategoryName = (key: string): string => {
+    return (
+      key
+        // Split camelCase with space
+        .replace(/([A-Z])/g, " $1")
+        // Capitalize the first letter of each word
+        .replace(/^./, (str) => str.toUpperCase())
+        .trim()
+    );
+  };
 
   return (
     <Container maxW="container.xl" p={4}>
@@ -673,12 +705,10 @@ const BudgetTrackerPage: React.FC = () => {
           <Tbody>
             {Object.keys(categoryTotals).map((key) => (
               <Tr key={key}>
+                <Td>{formatCategoryName(key)}</Td>
                 <Td>
-                  {key
-                    .replace(/_/g, " ")
-                    .replace(/\b\w/g, (l) => l.toUpperCase())}
+                  ${categoryTotals[key as keyof CategoryTotals].toFixed(2)}
                 </Td>
-                <Td>${categoryTotals[key].toFixed(2)}</Td>
               </Tr>
             ))}
           </Tbody>
