@@ -54,4 +54,24 @@ export default defineSchema({
   })
     .index("by_status", ["status"])
     .index("by_priority", ["priority"]),
+
+  household: defineTable({
+    userId: v.string(), // Unique identifier for the user
+    numAdults: v.number(), // Number of adults
+    numChildren: v.number(), // Number of children
+    lastUpdated: v.string(), // Date when the last update was made
+  }).index("by_user", ["userId"]),
+
+  financial: defineTable({
+    userId: v.string(),
+    housingCost: v.number(),
+    foodCost: v.number(),
+    transportationCost: v.number(),
+    healthcareCost: v.number(),
+    otherNecessitiesCost: v.number(),
+    childcareCost: v.number(),
+    taxes: v.number(),
+    totalExpenses: v.number(),
+    medianFamilyIncome: v.number(), // You can dynamically calculate or update this as needed
+  }).index("by_user", ["userId"]),
 });

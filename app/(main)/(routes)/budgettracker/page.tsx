@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import { Pie } from "react-chartjs-2";
 import {
@@ -60,7 +61,7 @@ ChartJS.register(
 interface Expense {
   id: number;
   amount: number;
-  type: "income" | "expense" | "savings"; // Updated to include "savings"
+  type: "income" | "expense";
   date: string;
   category: string;
 }
@@ -69,15 +70,25 @@ interface MonthlyTotals {
   month: string;
   totalIncome: number;
   totalExpenses: number;
-  totalSavings: number; // Added totalSavings to track savings
+}
+
+interface CategoryTotals {
+  [key: string]: number;
+  housing_cost: number;
+  food_cost: number;
+  transportation_cost: number;
+  healthcare_cost: number;
+  other_necessities_cost: number;
+  childcare_cost: number;
+  taxes: number;
 }
 
 const BudgetTrackerPage: React.FC = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [newExpense, setNewExpense] = useState<number>(0);
-  const [newExpenseType, setNewExpenseType] = useState<
-    "income" | "expense" | "savings"
-  >("expense");
+  const [newExpenseType, setNewExpenseType] = useState<"income" | "expense">(
+    "expense"
+  );
   const [newCategory, setNewCategory] = useState<string>("");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editAmount, setEditAmount] = useState<number>(0);
@@ -86,21 +97,95 @@ const BudgetTrackerPage: React.FC = () => {
   const toast = useToast();
   const bg = useColorModeValue("gray.50", "gray.800");
 
+  const [numAdults, setNumAdults] = useState<number>(0);
+  const [numChildren, setNumChildren] = useState<number>(0);
+
   const fetchExpenses = useQuery(api.expense.getExpenses);
   const addExpenseMutation = useMutation(api.expense.createExpense);
   const deleteExpenseMutation = useMutation(api.expense.deleteExpense);
   const updateExpenseMutation = useMutation(api.expense.updateExpense);
+  // Import the mutation from your generated API
+  const setHouseholdMutation = useMutation(api.household.setHousehold);
+  const [housingCost, setHousingCost] = useState<number>(0);
+  const [foodCost, setFoodCost] = useState<number>(0);
+  const [transportationCost, setTransportationCost] = useState<number>(0);
+  const [healthcareCost, setHealthcareCost] = useState<number>(0);
+  const [otherNecessitiesCost, setOtherNecessitiesCost] = useState<number>(0);
+  const [childcareCost, setChildcareCost] = useState<number>(0);
+  const [taxes, setTaxes] = useState<number>(0);
+  const [medianFamilyIncome, setMedianFamilyIncome] = useState<number>(0);
+  const updateFinancialSummaryMutation = useMutation(
+    api.financial.updateFinancialSummary
+  );
+
+  const handleSaveFinancialSummary = async () => {
+    const userId = "your-user-id"; // Make sure this ID is correct and retrieved appropriately
+
+    const categoryTotals = getCategoryTotals();
+    const totalExpenses = Object.values(categoryTotals).reduce(
+      (acc, curr) => acc + curr,
+      0
+    );
+    const totalIncome = expenses.reduce(
+      (acc, exp) => acc + (exp.type === "income" ? exp.amount : 0),
+      0
+    );
+
+    try {
+      await updateFinancialSummaryMutation({
+        userId,
+        update: {
+          ...categoryTotals,
+          totalExpenses,
+          medianFamilyIncome: totalIncome,
+        },
+      });
+      toast({
+        title: "Financial Data Updated",
+        description: "Your financial summary has been updated successfully.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error("Error updating financial summary:", error);
+      toast({
+        title: "Error Updating Data",
+        description: "There was an error updating your financial summary.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  // Function to handle saving the household data
+  const saveHousehold = async () => {
+    // Placeholder for userId - you might be fetching this from a user context or auth context
+    const userId = "your-user-id"; // Replace this with actual user ID fetching logic
+    await setHouseholdMutation({
+      userId,
+      numAdults,
+      numChildren,
+    });
+    toast({
+      title: "Household Information Saved",
+      description:
+        "The number of adults and children has been updated successfully.",
+      status: "success",
+      duration: 3000,
+      isClosable: true,
+    });
+  };
 
   useEffect(() => {
     if (fetchExpenses) {
       const validatedExpenses = fetchExpenses.map((expense: any) => ({
         ...expense,
         type:
-          expense.type === "income" ||
-          expense.type === "expense" ||
-          expense.type === "savings"
+          expense.type === "income" || expense.type === "expense"
             ? expense.type
-            : "expense", // Ensuring 'savings' is recognized
+            : "expense",
       }));
       setExpenses(validatedExpenses);
     }
@@ -125,28 +210,35 @@ const BudgetTrackerPage: React.FC = () => {
     const totalExpenses = expenses
       .filter((exp) => exp.type === "expense")
       .reduce((acc, exp) => acc + exp.amount, 0);
-    const totalSavings = expenses
-      .filter((exp) => exp.type === "savings")
-      .reduce((acc, exp) => acc + exp.amount, 0); // Calculate total savings
 
     const newMonthlyTotals = [
       ...monthlyTotals,
-      { month: monthYear, totalIncome, totalExpenses, totalSavings },
+      { month: monthYear, totalIncome, totalExpenses },
     ];
     setMonthlyTotals(newMonthlyTotals);
     setExpenses([]);
   };
 
   const addExpense = async () => {
-    if (newExpense > 0) {
+    if (newExpense <= 0 || !newCategory) {
+      toast({
+        title: "Invalid Input",
+        description: "Please enter a valid amount and select a category.",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
+      return false;
+    }
+
+    try {
       await addExpenseMutation({
         amount: newExpense,
         type: newExpenseType,
         date: new Date().toISOString(),
-        category:
-          newCategory ||
-          (newExpenseType === "income" ? "Salary" : "Miscellaneous"),
+        category: newCategory,
       });
+      // Clear fields after adding expense
       setNewExpense(0);
       setNewCategory("");
       toast({
@@ -156,6 +248,17 @@ const BudgetTrackerPage: React.FC = () => {
         duration: 3000,
         isClosable: true,
       });
+      return true; // Indicate successful addition
+    } catch (error) {
+      console.error("Failed to add expense:", error);
+      toast({
+        title: "Error Adding Expense",
+        description: "There was an error adding the expense.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return false; // Indicate failure
     }
   };
 
@@ -173,7 +276,7 @@ const BudgetTrackerPage: React.FC = () => {
   const startEditing = (
     id: number,
     amount: number,
-    type: "income" | "expense" | "savings",
+    type: "income" | "expense",
     category: string
   ) => {
     setEditingId(id);
@@ -209,15 +312,11 @@ const BudgetTrackerPage: React.FC = () => {
     (acc, expense) => (expense.type === "income" ? acc + expense.amount : acc),
     0
   );
-  const totalSavings = expenses.reduce(
-    (acc, expense) => (expense.type === "savings" ? acc + expense.amount : acc),
-    0
-  ); // Added to calculate total savings separately
 
-  const currentBalance = totalIncome - totalExpenses - totalSavings;
+  const currentBalance = totalIncome - totalExpenses;
 
   const combinedData = {
-    labels: ["Income", "Expenses", "Savings"],
+    labels: ["Income", "Expenses"],
     datasets: [
       {
         data: [
@@ -226,9 +325,6 @@ const BudgetTrackerPage: React.FC = () => {
             .reduce((acc, e) => acc + e.amount, 0),
           expenses
             .filter((e) => e.type === "expense")
-            .reduce((acc, e) => acc + e.amount, 0),
-          expenses
-            .filter((e) => e.type === "savings")
             .reduce((acc, e) => acc + e.amount, 0),
         ],
         backgroundColor: ["#68D391", "#FC8181", "#63B3ED"],
@@ -261,8 +357,118 @@ const BudgetTrackerPage: React.FC = () => {
       }`,
       totalIncome: total.totalIncome,
       totalExpenses: total.totalExpenses,
-      totalSavings: total.totalSavings, // Displaying total savings
     }));
+
+  const userId = "your-user-id"; // This should be dynamically obtained from your auth context
+
+  const householdData = useQuery(api.household.getHouseholdByUserId, {
+    userId,
+  });
+
+  useEffect(() => {
+    if (householdData) {
+      setNumAdults(householdData.numAdults);
+      setNumChildren(householdData.numChildren);
+    }
+  }, [householdData]);
+
+  const getCategoryTotals = (): CategoryTotals => {
+    const categoryTotals: CategoryTotals = {
+      housing_cost: 0,
+      food_cost: 0,
+      transportation_cost: 0,
+      healthcare_cost: 0,
+      other_necessities_cost: 0,
+      childcare_cost: 0,
+      taxes: 0,
+    };
+
+    expenses.forEach((expense) => {
+      if (expense.type === "expense" && expense.category in categoryTotals) {
+        categoryTotals[expense.category] += expense.amount;
+      }
+    });
+
+    return categoryTotals;
+  };
+
+  const categoryTotals = getCategoryTotals();
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleAddExpenseAndSaveSummary = async () => {
+    // Validate input first
+    if (newExpense <= 0 || !newCategory) {
+      toast({
+        title: "Invalid Input",
+        description: "Please enter a valid amount and select a category.",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    // Attempt to add the expense
+    try {
+      await addExpenseMutation({
+        amount: newExpense,
+        type: newExpenseType,
+        date: new Date().toISOString(),
+        category: newCategory,
+      });
+      // Clear the input fields after successful addition
+      setNewExpense(0);
+      setNewCategory("");
+      toast({
+        title: "Expense Added",
+        description: "Your new expense has been added successfully.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+
+      // Prepare data for updating financial summary
+      const categoryTotals = getCategoryTotals();
+      const totalExpenses = Object.values(categoryTotals).reduce(
+        (acc, curr) => acc + curr,
+        0
+      );
+      const totalIncome = expenses.reduce(
+        (acc, exp) => acc + (exp.type === "income" ? exp.amount : 0),
+        0
+      );
+
+      // Update financial summary
+      await updateFinancialSummaryMutation({
+        userId: "your-user-id", // Make sure this ID is correctly retrieved
+        update: {
+          ...categoryTotals,
+          totalExpenses,
+          medianFamilyIncome: totalIncome,
+        },
+      });
+      toast({
+        title: "Financial Data Updated",
+        description: "Your financial summary has been updated successfully.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error(
+        "Error during expense addition or financial summary update:",
+        error
+      );
+      toast({
+        title: "Error",
+        description: "There was an error processing your request.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+  const financialData = useQuery(api.financial.getFinancialSummary, { userId });
 
   return (
     <Container maxW="container.xl" p={4}>
@@ -270,6 +476,14 @@ const BudgetTrackerPage: React.FC = () => {
         Budget Tracker
       </Heading>
       <StatGroup mb={6}>
+        <Stat>
+          <StatLabel color={"white"}>Number of Adults</StatLabel>
+          <StatNumber color={"white"}>{numAdults}</StatNumber>
+        </Stat>
+        <Stat>
+          <StatLabel color={"white"}>Number of Children</StatLabel>
+          <StatNumber color={"white"}>{numChildren}</StatNumber>
+        </Stat>
         <Stat>
           <StatLabel color={"white"}>Total Income</StatLabel>
           <StatNumber color={"white"}>
@@ -289,20 +503,39 @@ const BudgetTrackerPage: React.FC = () => {
           </StatNumber>
         </Stat>
         <Stat>
-          <StatLabel color={"white"}>Total Savings</StatLabel>
-          <StatNumber color={"white"}>
-            $
-            {expenses
-              .filter((e) => e.type === "savings")
-              .reduce((acc, e) => acc + e.amount, 0)}
-          </StatNumber>
-        </Stat>
-        <Stat>
           <StatLabel color={"white"}>Current Balance</StatLabel>
           <StatNumber color={"white"}>${currentBalance}</StatNumber>
         </Stat>
       </StatGroup>
+
       <Box boxShadow="md" p={5} rounded="md" bg="white">
+        <VStack spacing={4}>
+          <FormControl>
+            <FormLabel htmlFor="numAdults">Number of Adults</FormLabel>
+            <Input
+              id="numAdults"
+              placeholder="Number of Adults"
+              type="number"
+              size="sm"
+              value={numAdults}
+              onChange={(e) => setNumAdults(Number(e.target.value))}
+            />
+          </FormControl>
+          <FormControl>
+            <FormLabel htmlFor="numChildren">Number of Children</FormLabel>
+            <Input
+              id="numChildren"
+              placeholder="Number of Children"
+              type="number"
+              size="sm"
+              value={numChildren}
+              onChange={(e) => setNumChildren(Number(e.target.value))}
+            />
+          </FormControl>
+          <Button colorScheme="green" onClick={saveHousehold}>
+            Save Household Info
+          </Button>
+        </VStack>
         <Heading size="lg" mb={4}>
           Add New Expense
         </Heading>
@@ -317,14 +550,11 @@ const BudgetTrackerPage: React.FC = () => {
             placeholder="Select Type"
             value={newExpenseType}
             onChange={(e) =>
-              setNewExpenseType(
-                e.target.value as "income" | "expense" | "savings"
-              )
+              setNewExpenseType(e.target.value as "income" | "expense")
             }
           >
             <option value="income">Income</option>
             <option value="expense">Expense</option>
-            <option value="savings">Savings</option>
           </Select>
           <Select
             placeholder="Select Category"
@@ -333,40 +563,129 @@ const BudgetTrackerPage: React.FC = () => {
           >
             {newExpenseType === "income" ? (
               <>
-                <option value="Salary">Salary</option>
-                <option value="Investment">Investment</option>
-                <option value="Freelancing">Freelancing</option>
+                <option value="median_family_income">
+                  Median Family Income
+                </option>
                 <option value="Other">Other</option>
-              </>
-            ) : newExpenseType === "savings" ? (
-              <>
-                <option value="General Savings">General Savings</option>
-                <option value="Retirement Fund">Retirement Fund</option>
-                <option value="Education Fund">Education Fund</option>
-                <option value="Other Savings">Other Savings</option>
               </>
             ) : (
               <>
-                <option value="Food">Food</option>
-                <option value="Shopping">Shopping</option>
-                <option value="Transport">Transport</option>
-                <option value="Entertainment">Entertainment</option>
-                <option value="Mortgage">Mortgage</option>
-                <option value="Debt">Debt</option>
-                <option value="Other">Other</option>
+                <option value="housing_cost">Housing Cost</option>
+                <option value="food_cost">Food Cost</option>
+                <option value="transportation_cost">Transportation Cost</option>
+                <option value="healthcare_cost">Healthcare Cost</option>
+                <option value="other_necessities_cost">
+                  Other Necessities Cost
+                </option>
+                <option value="childcare_cost">Childcare Cost</option>
+                <option value="taxes">Taxes</option>
               </>
             )}
           </Select>
+          <Button colorScheme="blue" onClick={handleAddExpenseAndSaveSummary}>
+            Add Expense and Save Financial Data
+          </Button>
+
           <Button colorScheme="blue" onClick={addExpense}>
-            Add Expense
+            Add
+          </Button>
+          <Button colorScheme="blue" onClick={handleSaveFinancialSummary}>
+            Save Financial Data
           </Button>
         </VStack>
       </Box>
+
       <Box mt={10} mb={6} width="40%" mx="auto">
         <Pie data={combinedData} options={chartOptions} />
       </Box>
+      <Box boxShadow="lg" p={5} rounded="md" bg="white">
+        <Heading size="md" mb={4}>
+          Financial Summary
+        </Heading>
+        <Table variant="simple">
+          <Thead>
+            <Tr>
+              <Th>Category</Th>
+              <Th>Amount ($)</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {financialData && (
+              <>
+                <Tr>
+                  <Td>Housing Cost</Td>
+                  <Td isNumeric>{financialData.housingCost.toFixed(2)}</Td>
+                </Tr>
+                <Tr>
+                  <Td>Food Cost</Td>
+                  <Td isNumeric>{financialData.foodCost.toFixed(2)}</Td>
+                </Tr>
+                <Tr>
+                  <Td>Transportation Cost</Td>
+                  <Td isNumeric>
+                    {financialData.transportationCost.toFixed(2)}
+                  </Td>
+                </Tr>
+                <Tr>
+                  <Td>Healthcare Cost</Td>
+                  <Td isNumeric>{financialData.healthcareCost.toFixed(2)}</Td>
+                </Tr>
+                <Tr>
+                  <Td>Other Necessities Cost</Td>
+                  <Td isNumeric>
+                    {financialData.otherNecessitiesCost.toFixed(2)}
+                  </Td>
+                </Tr>
+                <Tr>
+                  <Td>Childcare Cost</Td>
+                  <Td isNumeric>{financialData.childcareCost.toFixed(2)}</Td>
+                </Tr>
+                <Tr>
+                  <Td>Taxes</Td>
+                  <Td isNumeric>{financialData.taxes.toFixed(2)}</Td>
+                </Tr>
+                <Tr>
+                  <Td>Total Expenses</Td>
+                  <Td isNumeric>{financialData.totalExpenses.toFixed(2)}</Td>
+                </Tr>
+                <Tr>
+                  <Td>Median Family Income</Td>
+                  <Td isNumeric>
+                    {financialData.medianFamilyIncome.toFixed(2)}
+                  </Td>
+                </Tr>
+              </>
+            )}
+          </Tbody>
+        </Table>
+      </Box>
+      <Box flex="1" boxShadow="lg" p={5} rounded="md" bg="white">
+        <Heading size="md" mb={4}>
+          Expense Breakdown by Category
+        </Heading>
+        <Table variant="simple">
+          <Thead>
+            <Tr>
+              <Th>Category</Th>
+              <Th>Total Amount</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {Object.keys(categoryTotals).map((key) => (
+              <Tr key={key}>
+                <Td>
+                  {key
+                    .replace(/_/g, " ")
+                    .replace(/\b\w/g, (l) => l.toUpperCase())}
+                </Td>
+                <Td>${categoryTotals[key].toFixed(2)}</Td>
+              </Tr>
+            ))}
+          </Tbody>
+        </Table>
+      </Box>
 
-      <Flex direction={["column", "row"]} gap={5}>
+      <Flex direction={["column", "row"]} gap={5} mt={"10"}>
         <Box flex="1" boxShadow="lg" p={5} rounded="md" bg="white">
           <Heading size="md" mb={4}>
             Expenses List
@@ -428,7 +747,6 @@ const BudgetTrackerPage: React.FC = () => {
                 <Th>Month</Th>
                 <Th>Total Income</Th>
                 <Th>Total Expenses</Th>
-                <Th>Total Savings</Th>
               </Tr>
             </Thead>
             <Tbody>
@@ -437,7 +755,6 @@ const BudgetTrackerPage: React.FC = () => {
                   <Td>{total.month}</Td>
                   <Td>${total.totalIncome}</Td>
                   <Td>${total.totalExpenses}</Td>
-                  <Td>${total.totalSavings}</Td>
                 </Tr>
               ))}
             </Tbody>
