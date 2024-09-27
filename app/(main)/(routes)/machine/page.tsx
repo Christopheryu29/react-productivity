@@ -136,7 +136,7 @@ const checkDataValidity = (features: number[][], labels: number[]) => {
 };
 
 const loadData = async () => {
-  const response = await fetch("./dataset.csv");
+  const response = await fetch("./dataset_low.csv");
   const csvData = await response.text();
   return parseCsvDataToTensors(csvData);
 };

@@ -104,30 +104,42 @@ const CalendarPage = () => {
       return;
     }
 
-    await addEvent({
+    const event = {
       title: eventTitle,
-      userId: "your-user-id",
-      startDate,
-      endDate,
+      userId: "your-user-id", // Ensure this is set correctly
+      startDate: format(selectedDate, "yyyy-MM-dd'T'HH:mm:ssXXX"), // Ensure startDate is formatted correctly
+      endDate: isAllDay
+        ? endOfDay(selectedDate).toISOString()
+        : endTime.toISOString(), // Ensure endDate is formatted correctly
       description: eventDescription,
       isAllDay,
       color: eventColor,
-    });
+    };
 
-    setEventTitle("");
-    setEventDescription("");
-    setIsAllDay(false);
-    setSelectedDate(new Date());
-    setEndTime(new Date(new Date().getTime() + 3600000));
-    toast({
-      title: "Event added",
-      description: "Your event has been successfully added.",
-      status: "success",
-      duration: 2000,
-      isClosable: true,
-    });
+    try {
+      await addEvent(event);
+      setEventTitle("");
+      setEventDescription("");
+      setIsAllDay(false);
+      setSelectedDate(new Date());
+      setEndTime(new Date(new Date().getTime() + 3600000));
+      toast({
+        title: "Event added",
+        description: "Your event has been successfully added.",
+        status: "success",
+        duration: 2000,
+        isClosable: true,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "There was an error adding the event.",
+        status: "error",
+        duration: 2000,
+        isClosable: true,
+      });
+    }
   };
-
   const ChakraDatePicker = chakra(DatePicker);
 
   return (
