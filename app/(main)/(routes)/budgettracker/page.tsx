@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { Pie } from "react-chartjs-2";
-import { Bar } from "react-chartjs-2";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -50,6 +49,9 @@ import {
   useToken,
 } from "@chakra-ui/react";
 import { FaEdit, FaTrash } from "react-icons/fa";
+import StatCards from "./components/StatCards";
+import ExpenseForm from "./components/ExpenseForm";
+import ExpenseBreakdownBarChart from "./components/charts/ExpenseBreakdownBarChart";
 
 ChartJS.register(
   CategoryScale,
@@ -77,6 +79,18 @@ interface MonthlyTotals {
   totalExpenses: number;
 }
 
+interface WeeklyTotals {
+  week: string;
+  totalIncome: number;
+  totalExpenses: number;
+}
+
+interface YearlyTotals {
+  year: string;
+  totalIncome: number;
+  totalExpenses: number;
+}
+
 interface CategoryTotals {
   [key: string]: number;
   housingCost: number;
@@ -95,8 +109,30 @@ interface MonthlyTotalsAggregate {
   };
 }
 
+interface WeeklyTotalsAggregate {
+  [key: string]: {
+    totalIncome: number;
+    totalExpenses: number;
+  };
+}
+
+interface YearlyTotalsAggregate {
+  [key: string]: {
+    totalIncome: number;
+    totalExpenses: number;
+  };
+}
+
 interface MonthlySummaryLineChartProps {
   monthlyTotals: MonthlyTotals[];
+}
+
+interface WeeklySummaryLineChartProps {
+  weeklyTotals: WeeklyTotals[];
+}
+
+interface YearlySummaryLineChartProps {
+  yearlyTotals: YearlyTotals[];
 }
 
 const BudgetTrackerPage: React.FC = () => {
@@ -110,6 +146,10 @@ const BudgetTrackerPage: React.FC = () => {
   const [editAmount, setEditAmount] = useState<number>(0);
   const [editCategory, setEditCategory] = useState<string>("");
   const [monthlyTotals, setMonthlyTotals] = useState<MonthlyTotals[]>([]);
+
+  const [weeklyTotals, setWeeklyTotals] = useState<WeeklyTotals[]>([]);
+  const [yearlyTotals, setYearlyTotals] = useState<YearlyTotals[]>([]);
+
   const toast = useToast();
   const bg = useColorModeValue("gray.50", "gray.800");
 
@@ -226,6 +266,48 @@ const BudgetTrackerPage: React.FC = () => {
     }
   }, []);
 
+  const getWeekNumber = (date: Date): number => {
+    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+    const pastDaysOfYear =
+      (date.getTime() - firstDayOfYear.getTime()) / 86400000;
+    return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+  };
+
+  useEffect(() => {
+    const now = new Date();
+    const lastMonthlyReset = localStorage.getItem("lastMonthlyReset");
+    const lastWeeklyReset = localStorage.getItem("lastWeeklyReset");
+    const lastYearlyReset = localStorage.getItem("lastYearlyReset");
+
+    // Reset Monthly
+    if (
+      !lastMonthlyReset ||
+      new Date(lastMonthlyReset).getMonth() !== now.getMonth()
+    ) {
+      resetMonthlyTotals();
+      localStorage.setItem("lastMonthlyReset", now.toISOString());
+    }
+
+    // Reset Weekly
+    if (
+      !lastWeeklyReset ||
+      getWeekNumber(new Date(lastWeeklyReset)) !== getWeekNumber(now)
+    ) {
+      resetWeeklyTotals();
+      localStorage.setItem("lastWeeklyReset", now.toISOString());
+    }
+
+    // Reset Yearly
+    if (
+      !lastYearlyReset ||
+      new Date(lastYearlyReset).getFullYear() !== now.getFullYear()
+    ) {
+      resetYearlyTotals();
+      localStorage.setItem("lastYearlyReset", now.toISOString());
+    }
+  }, []);
+
+  // Monthly Reset
   const resetMonthlyTotals = () => {
     const now = new Date();
     const monthYear = `${now.getMonth() + 1}-${now.getFullYear()}`;
@@ -242,6 +324,47 @@ const BudgetTrackerPage: React.FC = () => {
       { month: monthYear, totalIncome, totalExpenses },
     ];
     setMonthlyTotals(newMonthlyTotals);
+    setExpenses([]);
+  };
+
+  // Weekly Reset
+  const resetWeeklyTotals = () => {
+    const now = new Date();
+    const weekYear = `Week-${getWeekNumber(now)}-${now.getFullYear()}`;
+
+    const totalIncome = expenses
+      .filter((exp) => exp.type === "income")
+      .reduce((acc, exp) => acc + exp.amount, 0);
+    const totalExpenses = expenses
+      .filter((exp) => exp.type === "expense")
+      .reduce((acc, exp) => acc + exp.amount, 0);
+
+    const newWeeklyTotals = [
+      ...weeklyTotals,
+      { week: weekYear, totalIncome, totalExpenses },
+    ];
+    setWeeklyTotals(newWeeklyTotals);
+    setExpenses([]);
+  };
+
+  // Yearly Reset
+  const resetYearlyTotals = () => {
+    const now = new Date();
+    const year1 = now.getFullYear(); // This is a number
+    const yearString = year1.toString(); // Convert to string
+
+    const totalIncome = expenses
+      .filter((exp) => exp.type === "income")
+      .reduce((acc, exp) => acc + exp.amount, 0);
+    const totalExpenses = expenses
+      .filter((exp) => exp.type === "expense")
+      .reduce((acc, exp) => acc + exp.amount, 0);
+
+    const newYearlyTotals = [
+      ...yearlyTotals,
+      { year: yearString, totalIncome, totalExpenses },
+    ];
+    setYearlyTotals(newYearlyTotals);
     setExpenses([]);
   };
 
@@ -375,9 +498,20 @@ const BudgetTrackerPage: React.FC = () => {
 
   useEffect(() => {
     console.log("Expenses Updated:", expenses); // Log expenses to see what data you have
-    const newTotals = calculateMonthlyTotals(expenses);
-    console.log("New Monthly Totals:", newTotals); // Check how the totals are being calculated
-    setMonthlyTotals(newTotals);
+
+    // Calculate weekly, monthly, and yearly totals
+    const newWeeklyTotals = calculateWeeklyTotals(expenses);
+    const newMonthlyTotals = calculateMonthlyTotals(expenses);
+    const newYearlyTotals = calculateYearlyTotals(expenses);
+
+    console.log("New Weekly Totals:", newWeeklyTotals); // Check how the weekly totals are being calculated
+    console.log("New Monthly Totals:", newMonthlyTotals); // Check how the monthly totals are being calculated
+    console.log("New Yearly Totals:", newYearlyTotals); // Check how the yearly totals are being calculated
+
+    // Set state for weekly, monthly, and yearly totals
+    setWeeklyTotals(newWeeklyTotals);
+    setMonthlyTotals(newMonthlyTotals);
+    setYearlyTotals(newYearlyTotals);
   }, [expenses]); // Recalculate whenever expenses update
 
   const calculateMonthlyTotals = (expenses: Expense[]): MonthlyTotals[] => {
@@ -401,6 +535,61 @@ const BudgetTrackerPage: React.FC = () => {
       month,
       totalIncome: totals[month].totalIncome,
       totalExpenses: totals[month].totalExpenses,
+    }));
+  };
+
+  const calculateWeeklyTotals = (expenses: Expense[]): WeeklyTotals[] => {
+    const getWeekNumber = (date: Date): string => {
+      const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+      const pastDaysOfYear =
+        (date.getTime() - firstDayOfYear.getTime()) / 86400000;
+      const weekNumber = Math.ceil(
+        (pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7
+      );
+      return `Week ${weekNumber} ${date.getFullYear()}`; // Use week number and year as the key
+    };
+
+    const totals = expenses.reduce<WeeklyTotalsAggregate>((acc, curr) => {
+      const weekYear = getWeekNumber(new Date(curr.date));
+      if (!acc[weekYear]) {
+        acc[weekYear] = { totalIncome: 0, totalExpenses: 0 };
+      }
+      if (curr.type === "income") {
+        acc[weekYear].totalIncome += curr.amount;
+      } else {
+        acc[weekYear].totalExpenses += curr.amount;
+      }
+      return acc;
+    }, {});
+
+    return Object.keys(totals).map((week) => ({
+      week,
+      totalIncome: totals[week].totalIncome,
+      totalExpenses: totals[week].totalExpenses,
+    }));
+  };
+
+  const calculateYearlyTotals = (expenses: Expense[]): YearlyTotals[] => {
+    const totals = expenses.reduce<YearlyTotalsAggregate>((acc, curr) => {
+      const year = new Date(curr.date).getFullYear().toString();
+
+      if (!acc[year]) {
+        acc[year] = { totalIncome: 0, totalExpenses: 0 };
+      }
+
+      if (curr.type === "income") {
+        acc[year].totalIncome += curr.amount;
+      } else {
+        acc[year].totalExpenses += curr.amount;
+      }
+
+      return acc;
+    }, {});
+
+    return Object.keys(totals).map((year) => ({
+      year,
+      totalIncome: totals[year].totalIncome,
+      totalExpenses: totals[year].totalExpenses,
     }));
   };
 
@@ -570,33 +759,59 @@ const BudgetTrackerPage: React.FC = () => {
     ));
   };
 
-  const ExpenseBreakdownBarChart = ({ expenses }: { expenses: Expense[] }) => {
-    const categoryTotals = expenses.reduce(
-      (acc: { [key: string]: number }, expense: Expense) => {
-        if (expense.type === "expense") {
-          acc[expense.category] = (acc[expense.category] || 0) + expense.amount;
-        }
-        return acc;
-      },
-      {}
-    );
+  const displayFormattedWeeklySummary = () => {
+    if (!weeklyTotals.length) {
+      return (
+        <Tr>
+          <Td colSpan={3}>No data available</Td>
+        </Tr>
+      );
+    }
+    return weeklyTotals.map((total, index) => (
+      <Tr key={index}>
+        <Td>{total.week}</Td>
+        <Td>${total.totalIncome.toFixed(2)}</Td>
+        <Td>${total.totalExpenses.toFixed(2)}</Td>
+      </Tr>
+    ));
+  };
 
+  const displayFormattedYearlySummary = () => {
+    if (!yearlyTotals.length) {
+      return (
+        <Tr>
+          <Td colSpan={3}>No data available</Td>
+        </Tr>
+      );
+    }
+    return yearlyTotals.map((total, index) => (
+      <Tr key={index}>
+        <Td>{total.year}</Td>
+        <Td>${total.totalIncome.toFixed(2)}</Td>
+        <Td>${total.totalExpenses.toFixed(2)}</Td>
+      </Tr>
+    ));
+  };
+
+  const WeeklySummaryLineChart = ({
+    weeklyTotals,
+  }: WeeklySummaryLineChartProps) => {
     const data = {
-      labels: Object.keys(categoryTotals),
+      labels: weeklyTotals.map((data) => data.week), // Using the week labels
       datasets: [
         {
-          label: "Expenses by Category",
-          data: Object.values(categoryTotals),
-          backgroundColor: [
-            "#FF6384",
-            "#36A2EB",
-            "#FFCE56",
-            "#4BC0C0",
-            "#9966FF",
-            "#FF9F40",
-            "#C9CBCF",
-          ],
-          borderWidth: 1,
+          label: "Total Income",
+          data: weeklyTotals.map((data) => data.totalIncome),
+          borderColor: "#68D391",
+          backgroundColor: "rgba(104, 211, 145, 0.5)",
+          fill: true,
+        },
+        {
+          label: "Total Expenses",
+          data: weeklyTotals.map((data) => data.totalExpenses),
+          borderColor: "#FC8181",
+          backgroundColor: "rgba(252, 129, 129, 0.5)",
+          fill: true,
         },
       ],
     };
@@ -605,13 +820,11 @@ const BudgetTrackerPage: React.FC = () => {
       responsive: true,
       plugins: {
         legend: {
-          display: false, // Set to true if you want to display the legend
+          display: true,
         },
         tooltip: {
-          callbacks: {
-            label: (context: any) =>
-              `${context.label}: $${context.raw.toFixed(2)}`,
-          },
+          mode: "index",
+          intersect: false,
         },
       },
       scales: {
@@ -623,9 +836,22 @@ const BudgetTrackerPage: React.FC = () => {
           },
         },
       },
+      interaction: {
+        mode: "nearest",
+        axis: "x",
+        intersect: false,
+      },
+      elements: {
+        line: {
+          tension: 0.4,
+        },
+        point: {
+          radius: 6,
+        },
+      },
     };
 
-    return <Bar data={data} options={options} />;
+    return <Line data={data} options={options as any} />;
   };
 
   // Use this function in the JSX for the monthly summary table body
@@ -690,43 +916,94 @@ const BudgetTrackerPage: React.FC = () => {
     return <Line data={data} options={options as any} />;
   };
 
+  const YearlySummaryLineChart = ({
+    yearlyTotals,
+  }: YearlySummaryLineChartProps) => {
+    const data = {
+      labels: yearlyTotals.map((data) => data.year.toString()), // Using the year labels
+      datasets: [
+        {
+          label: "Total Income",
+          data: yearlyTotals.map((data) => data.totalIncome),
+          borderColor: "#68D391",
+          backgroundColor: "rgba(104, 211, 145, 0.5)",
+          fill: true,
+        },
+        {
+          label: "Total Expenses",
+          data: yearlyTotals.map((data) => data.totalExpenses),
+          borderColor: "#FC8181",
+          backgroundColor: "rgba(252, 129, 129, 0.5)",
+          fill: true,
+        },
+      ],
+    };
+
+    const options = {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: true,
+        },
+        tooltip: {
+          mode: "index",
+          intersect: false,
+        },
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: "Amount ($)",
+          },
+        },
+      },
+      interaction: {
+        mode: "nearest",
+        axis: "x",
+        intersect: false,
+      },
+      elements: {
+        line: {
+          tension: 0.4,
+        },
+        point: {
+          radius: 6,
+        },
+      },
+    };
+
+    return <Line data={data} options={options as any} />;
+  };
+
+  const handleAddExpense = (newExpense: {
+    amount: number;
+    type: "income" | "expense";
+    category: string;
+  }) => {
+    setExpenses((prevExpenses) => [
+      ...prevExpenses,
+      {
+        ...newExpense,
+        id: Date.now(), // Add a unique ID
+        date: new Date().toISOString(), // Add the current date
+      },
+    ]);
+  };
+
   return (
     <Container maxW="container.xl" p={4}>
       <Heading as="h1" size="2xl" textAlign="center" mb={6} color={"white"}>
         Budget Tracker
       </Heading>
-      <StatGroup mb={6} gap={4}>
-        <Stat p={5} shadow="md" rounded="md">
-          <StatLabel color={"white"}>Number of Adults</StatLabel>
-          <StatNumber color={"white"}>{numAdults}</StatNumber>
-        </Stat>
-        <Stat p={5} shadow="md" rounded="md">
-          <StatLabel color={"white"}>Number of Children</StatLabel>
-          <StatNumber color={"white"}>{numChildren}</StatNumber>
-        </Stat>
-        <Stat p={5} shadow="md" rounded="md">
-          <StatLabel color={"white"}>Total Income</StatLabel>
-          <StatNumber color={"white"}>
-            $
-            {expenses
-              .filter((e) => e.type === "income")
-              .reduce((acc, e) => acc + e.amount, 0)}
-          </StatNumber>
-        </Stat>
-        <Stat p={5} shadow="md" rounded="md">
-          <StatLabel color={"white"}>Total Expenses</StatLabel>
-          <StatNumber color={"white"}>
-            $
-            {expenses
-              .filter((e) => e.type === "expense")
-              .reduce((acc, e) => acc + e.amount, 0)}
-          </StatNumber>
-        </Stat>
-        <Stat p={5} shadow="md" rounded="md">
-          <StatLabel color={"white"}>Current Balance</StatLabel>
-          <StatNumber color={"white"}>${currentBalance}</StatNumber>
-        </Stat>
-      </StatGroup>
+      <StatCards
+        numAdults={numAdults}
+        numChildren={numChildren}
+        totalIncome={totalIncome}
+        totalExpenses={totalExpenses}
+        currentBalance={currentBalance}
+      />
 
       <Box boxShadow="md" p={5} rounded="md" bg="white">
         <VStack spacing={4}>
@@ -759,6 +1036,9 @@ const BudgetTrackerPage: React.FC = () => {
         <Heading size="lg" mb={4}>
           Add New Expense
         </Heading>
+
+        {/* <ExpenseForm onAddExpense={handleAddExpense} /> */}
+
         <VStack spacing={4}>
           <Input
             placeholder="Amount"
@@ -844,6 +1124,8 @@ const BudgetTrackerPage: React.FC = () => {
         {/* Line Chart Box */}
         <Box boxShadow="md" p={4} rounded="md" bg="white" flex="1" minW={"30%"}>
           <MonthlySummaryLineChart monthlyTotals={monthlyTotals} />
+          <WeeklySummaryLineChart weeklyTotals={weeklyTotals} />
+          <YearlySummaryLineChart yearlyTotals={yearlyTotals} />
         </Box>
       </Flex>
 
@@ -908,6 +1190,7 @@ const BudgetTrackerPage: React.FC = () => {
           </Tbody>
         </Table>
       </Box>
+
       <Box flex="1" boxShadow="lg" p={5} rounded="md" bg="white">
         <Heading size="md" mb={4}>
           Expense Breakdown by Category
@@ -931,6 +1214,83 @@ const BudgetTrackerPage: React.FC = () => {
           </Tbody>
         </Table>
       </Box>
+
+      <VStack spacing={6} align="stretch">
+        {/* Weekly Summary */}
+        <Box boxShadow="lg" p={5} rounded="lg">
+          <Heading size="md" mb={4} color="white">
+            <Badge colorScheme="blue">Weekly Summary</Badge>
+          </Heading>
+          <Table variant="simple">
+            <Thead>
+              <Tr>
+                <Th color="white">Week</Th>
+                <Th color="white">Total Income</Th>
+                <Th color="white">Total Expenses</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {weeklyTotals.map((total, index) => (
+                <Tr key={index}>
+                  <Td color="white">{total.week}</Td>
+                  <Td color="white">${total.totalIncome.toFixed(2)}</Td>
+                  <Td color="white">${total.totalExpenses.toFixed(2)}</Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </Box>
+
+        {/* Monthly Summary */}
+        <Box boxShadow="lg" p={5} rounded="lg">
+          <Heading size="md" mb={4}>
+            <Badge colorScheme="green">Monthly Summary</Badge>
+          </Heading>
+          <Table variant="simple">
+            <Thead>
+              <Tr>
+                <Th color="white">Month</Th>
+                <Th color="white">Total Income</Th>
+                <Th color="white">Total Expenses</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {monthlyTotals.map((total, index) => (
+                <Tr key={index}>
+                  <Td color="white">{total.month}</Td>
+                  <Td color="white">${total.totalIncome.toFixed(2)}</Td>
+                  <Td color="white">${total.totalExpenses.toFixed(2)}</Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </Box>
+
+        {/* Yearly Summary */}
+        <Box boxShadow="lg" p={5} rounded="lg">
+          <Heading size="md" mb={4}>
+            <Badge colorScheme="purple">Yearly Summary</Badge>
+          </Heading>
+          <Table variant="simple">
+            <Thead>
+              <Tr>
+                <Th color="white">Year</Th>
+                <Th color="white">Total Income</Th>
+                <Th color="white">Total Expenses</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {yearlyTotals.map((total, index) => (
+                <Tr key={index}>
+                  <Td color="white">{total.year}</Td>
+                  <Td color="white">${total.totalIncome.toFixed(2)}</Td>
+                  <Td color="white">${total.totalExpenses.toFixed(2)}</Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </Box>
+      </VStack>
 
       <Flex direction={["column", "row"]} gap={5} mt={"10"}>
         <Box boxShadow="lg" p={5} rounded="md" bg="white" mt={5}>
@@ -982,21 +1342,6 @@ const BudgetTrackerPage: React.FC = () => {
                 </Tr>
               ))}
             </Tbody>
-          </Table>
-        </Box>
-        <Box boxShadow="lg" p={5} rounded="md" bg="white" mt={5}>
-          <Heading size="md" mb={4}>
-            Monthly Summary
-          </Heading>
-          <Table variant="simple">
-            <Thead>
-              <Tr>
-                <Th>Month</Th>
-                <Th>Total Income</Th>
-                <Th>Total Expenses</Th>
-              </Tr>
-            </Thead>
-            <Tbody>{displayFormattedMonthlySummary()}</Tbody>
           </Table>
         </Box>
       </Flex>
