@@ -27,7 +27,9 @@ import {
   AccordionPanel,
 } from "@chakra-ui/react";
 import { useAction, useMutation, useQuery } from "convex/react";
+import WeeklySummary from "../budgettracker/components/WeeklySummary";
 import { api } from "@/convex/_generated/api";
+import MonthlySummary from "../budgettracker/components/MonthlySummary";
 
 type Tensor = tf.Tensor;
 type Sequential = tf.Sequential;
@@ -45,6 +47,31 @@ type FinancialData = {
   median_family_income: number;
 };
 
+interface WeeklyTotals {
+  week: string;
+  totalIncome: number;
+  totalExpenses: number;
+  incomeByCategory: Record<string, number>;
+  expensesByCategory: Record<string, number>;
+}
+
+interface WeeklyTotalsAggregate {
+  [week: string]: {
+    totalIncome: number;
+    totalExpenses: number;
+    incomeByCategory: Record<string, number>;
+    expensesByCategory: Record<string, number>;
+  };
+}
+
+interface MonthlyTotals {
+  month: string;
+  totalIncome: number;
+  totalExpenses: number;
+  incomeByCategory: Record<string, number>;
+  expensesByCategory: Record<string, number>;
+}
+
 interface Expense {
   id: number;
   amount: number;
@@ -57,6 +84,15 @@ interface MonthlyTotals {
   month: string;
   totalIncome: number;
   totalExpenses: number;
+}
+
+interface MonthlyTotalsAggregate {
+  [month: string]: {
+    totalIncome: number;
+    totalExpenses: number;
+    incomeByCategory: Record<string, number>;
+    expensesByCategory: Record<string, number>;
+  };
 }
 
 interface CategoryTotals {
@@ -200,8 +236,86 @@ const handlePredictClick = async (
 
   return predictionValues[0];
 };
+const calculateWeeklyTotals = (expenses: Expense[]): WeeklyTotals[] => {
+  const getWeekNumber = (date: Date): string => {
+    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+    const pastDaysOfYear =
+      (date.getTime() - firstDayOfYear.getTime()) / 86400000;
+    const weekNumber = Math.ceil(
+      (pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7
+    );
+    return `Week ${weekNumber} ${date.getFullYear()}`;
+  };
+
+  const totals = expenses.reduce<WeeklyTotalsAggregate>((acc, curr) => {
+    const weekYear = getWeekNumber(new Date(curr.date));
+    if (!acc[weekYear]) {
+      acc[weekYear] = {
+        totalIncome: 0,
+        totalExpenses: 0,
+        incomeByCategory: {},
+        expensesByCategory: {},
+      };
+    }
+    if (curr.type === "income") {
+      acc[weekYear].totalIncome += curr.amount;
+      acc[weekYear].incomeByCategory[curr.category] =
+        (acc[weekYear].incomeByCategory[curr.category] || 0) + curr.amount;
+    } else {
+      acc[weekYear].totalExpenses += curr.amount;
+      acc[weekYear].expensesByCategory[curr.category] =
+        (acc[weekYear].expensesByCategory[curr.category] || 0) + curr.amount;
+    }
+    return acc;
+  }, {});
+
+  return Object.keys(totals).map((week) => ({
+    week,
+    totalIncome: totals[week].totalIncome,
+    totalExpenses: totals[week].totalExpenses,
+    incomeByCategory: totals[week].incomeByCategory,
+    expensesByCategory: totals[week].expensesByCategory,
+  }));
+};
+
+const calculateMonthlyTotals = (expenses: Expense[]): MonthlyTotals[] => {
+  const totals = expenses.reduce((acc: any, curr: Expense) => {
+    const monthYear = new Date(curr.date).toLocaleString("default", {
+      month: "short",
+      year: "numeric",
+    });
+    if (!acc[monthYear]) {
+      acc[monthYear] = {
+        totalIncome: 0,
+        totalExpenses: 0,
+        incomeByCategory: {},
+        expensesByCategory: {},
+      };
+    }
+    if (curr.type === "income") {
+      acc[monthYear].totalIncome += curr.amount;
+      acc[monthYear].incomeByCategory[curr.category] =
+        (acc[monthYear].incomeByCategory[curr.category] || 0) + curr.amount;
+    } else {
+      acc[monthYear].totalExpenses += curr.amount;
+      acc[monthYear].expensesByCategory[curr.category] =
+        (acc[monthYear].expensesByCategory[curr.category] || 0) + curr.amount;
+    }
+    return acc;
+  }, {});
+
+  return Object.keys(totals).map((month) => ({
+    month,
+    totalIncome: totals[month].totalIncome,
+    totalExpenses: totals[month].totalExpenses,
+    incomeByCategory: totals[month].incomeByCategory,
+    expensesByCategory: totals[month].expensesByCategory,
+  }));
+};
 
 const FinancialHealthComponent = () => {
+  const fetchExpenses = useQuery(api.expense.getExpenses);
+
   const [model, setModel] = useState<Sequential | null>(null);
   const toast = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -213,6 +327,9 @@ const FinancialHealthComponent = () => {
   const householdData = useQuery(api.household.getHouseholdByUserId, {
     userId,
   });
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [weeklyTotals, setWeeklyTotals] = useState<WeeklyTotals[]>([]);
+  const [monthlyTotals, setMonthlyTotals] = useState<MonthlyTotals[]>([]);
 
   useEffect(() => {
     if (householdData) {
@@ -220,6 +337,26 @@ const FinancialHealthComponent = () => {
       // Here you can set state or perform actions based on the household data
     }
   }, [householdData]);
+  useEffect(() => {
+    if (fetchExpenses) {
+      const validatedExpenses = fetchExpenses.map((expense: any) => ({
+        ...expense,
+        type:
+          expense.type === "income" || expense.type === "expense"
+            ? expense.type
+            : "expense",
+      }));
+      setExpenses(validatedExpenses);
+    }
+  }, [fetchExpenses]);
+
+  // Calculate weekly totals whenever expenses are updated
+  useEffect(() => {
+    if (expenses.length > 0) {
+      setWeeklyTotals(calculateWeeklyTotals(expenses));
+      setMonthlyTotals(calculateMonthlyTotals(expenses)); // Calculate and set monthly totals
+    }
+  }, [expenses]);
 
   useEffect(() => {
     loadData().then(({ inputs, labels }) => {
@@ -492,6 +629,8 @@ const FinancialHealthComponent = () => {
             </Text>
           )}
         </Box>
+        <WeeklySummary weeklyTotals={weeklyTotals} />
+        <MonthlySummary monthlyTotals={monthlyTotals} />
 
         <Box p={5} shadow="md" borderWidth="1px" bg="white" borderRadius="md">
           <Heading size="md" mb={4} color={"gray.800"}>

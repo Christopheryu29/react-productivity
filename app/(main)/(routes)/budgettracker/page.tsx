@@ -52,6 +52,8 @@ import { FaEdit, FaTrash } from "react-icons/fa";
 import StatCards from "./components/StatCards";
 import ExpenseForm from "./components/ExpenseForm";
 import ExpenseBreakdownBarChart from "./components/charts/ExpenseBreakdownBarChart";
+import WeeklySummary from "./components/WeeklySummary";
+import MonthlySummary from "./components/MonthlySummary";
 
 ChartJS.register(
   CategoryScale,
@@ -77,12 +79,16 @@ interface MonthlyTotals {
   month: string;
   totalIncome: number;
   totalExpenses: number;
+  incomeByCategory: Record<string, number>;
+  expensesByCategory: Record<string, number>;
 }
 
 interface WeeklyTotals {
   week: string;
   totalIncome: number;
   totalExpenses: number;
+  incomeByCategory: Record<string, number>;
+  expensesByCategory: Record<string, number>;
 }
 
 interface YearlyTotals {
@@ -106,6 +112,8 @@ interface MonthlyTotalsAggregate {
   [key: string]: {
     totalIncome: number;
     totalExpenses: number;
+    incomeByCategory: Record<string, number>;
+    expensesByCategory: Record<string, number>;
   };
 }
 
@@ -113,6 +121,8 @@ interface WeeklyTotalsAggregate {
   [key: string]: {
     totalIncome: number;
     totalExpenses: number;
+    incomeByCategory: Record<string, number>;
+    expensesByCategory: Record<string, number>;
   };
 }
 
@@ -162,14 +172,6 @@ const BudgetTrackerPage: React.FC = () => {
   const updateExpenseMutation = useMutation(api.expense.updateExpense);
   // Import the mutation from your generated API
   const setHouseholdMutation = useMutation(api.household.setHousehold);
-  const [housingCost, setHousingCost] = useState<number>(0);
-  const [foodCost, setFoodCost] = useState<number>(0);
-  const [transportationCost, setTransportationCost] = useState<number>(0);
-  const [healthcareCost, setHealthcareCost] = useState<number>(0);
-  const [otherNecessitiesCost, setOtherNecessitiesCost] = useState<number>(0);
-  const [childcareCost, setChildcareCost] = useState<number>(0);
-  const [taxes, setTaxes] = useState<number>(0);
-  const [medianFamilyIncome, setMedianFamilyIncome] = useState<number>(0);
   const updateFinancialSummaryMutation = useMutation(
     api.financial.updateFinancialSummary
   );
@@ -319,14 +321,23 @@ const BudgetTrackerPage: React.FC = () => {
       .filter((exp) => exp.type === "expense")
       .reduce((acc, exp) => acc + exp.amount, 0);
 
+    // Add incomeByCategory and expensesByCategory as empty objects
     const newMonthlyTotals = [
       ...monthlyTotals,
-      { month: monthYear, totalIncome, totalExpenses },
+      {
+        month: monthYear,
+        totalIncome,
+        totalExpenses,
+        incomeByCategory: {}, // Include these properties
+        expensesByCategory: {}, // Include these properties
+      },
     ];
+
     setMonthlyTotals(newMonthlyTotals);
     setExpenses([]);
   };
 
+  // Weekly Reset
   // Weekly Reset
   const resetWeeklyTotals = () => {
     const now = new Date();
@@ -339,11 +350,16 @@ const BudgetTrackerPage: React.FC = () => {
       .filter((exp) => exp.type === "expense")
       .reduce((acc, exp) => acc + exp.amount, 0);
 
-    const newWeeklyTotals = [
-      ...weeklyTotals,
-      { week: weekYear, totalIncome, totalExpenses },
-    ];
-    setWeeklyTotals(newWeeklyTotals);
+    // Make sure to include incomeByCategory and expensesByCategory as empty objects
+    const newWeeklyTotals: WeeklyTotals = {
+      week: weekYear,
+      totalIncome,
+      totalExpenses,
+      incomeByCategory: {}, // Include these properties to match WeeklyTotals type
+      expensesByCategory: {}, // Include these properties to match WeeklyTotals type
+    };
+
+    setWeeklyTotals([...weeklyTotals, newWeeklyTotals]);
     setExpenses([]);
   };
 
@@ -521,12 +537,21 @@ const BudgetTrackerPage: React.FC = () => {
         year: "numeric",
       });
       if (!acc[monthYear]) {
-        acc[monthYear] = { totalIncome: 0, totalExpenses: 0 };
+        acc[monthYear] = {
+          totalIncome: 0,
+          totalExpenses: 0,
+          incomeByCategory: {},
+          expensesByCategory: {},
+        };
       }
       if (curr.type === "income") {
         acc[monthYear].totalIncome += curr.amount;
+        acc[monthYear].incomeByCategory[curr.category] =
+          (acc[monthYear].incomeByCategory[curr.category] || 0) + curr.amount;
       } else {
         acc[monthYear].totalExpenses += curr.amount;
+        acc[monthYear].expensesByCategory[curr.category] =
+          (acc[monthYear].expensesByCategory[curr.category] || 0) + curr.amount;
       }
       return acc;
     }, {});
@@ -535,6 +560,8 @@ const BudgetTrackerPage: React.FC = () => {
       month,
       totalIncome: totals[month].totalIncome,
       totalExpenses: totals[month].totalExpenses,
+      incomeByCategory: totals[month].incomeByCategory,
+      expensesByCategory: totals[month].expensesByCategory,
     }));
   };
 
@@ -552,12 +579,21 @@ const BudgetTrackerPage: React.FC = () => {
     const totals = expenses.reduce<WeeklyTotalsAggregate>((acc, curr) => {
       const weekYear = getWeekNumber(new Date(curr.date));
       if (!acc[weekYear]) {
-        acc[weekYear] = { totalIncome: 0, totalExpenses: 0 };
+        acc[weekYear] = {
+          totalIncome: 0,
+          totalExpenses: 0,
+          incomeByCategory: {},
+          expensesByCategory: {},
+        };
       }
       if (curr.type === "income") {
         acc[weekYear].totalIncome += curr.amount;
+        acc[weekYear].incomeByCategory[curr.category] =
+          (acc[weekYear].incomeByCategory[curr.category] || 0) + curr.amount;
       } else {
         acc[weekYear].totalExpenses += curr.amount;
+        acc[weekYear].expensesByCategory[curr.category] =
+          (acc[weekYear].expensesByCategory[curr.category] || 0) + curr.amount;
       }
       return acc;
     }, {});
@@ -566,6 +602,8 @@ const BudgetTrackerPage: React.FC = () => {
       week,
       totalIncome: totals[week].totalIncome,
       totalExpenses: totals[week].totalExpenses,
+      incomeByCategory: totals[week].incomeByCategory,
+      expensesByCategory: totals[week].expensesByCategory,
     }));
   };
 
@@ -720,77 +758,6 @@ const BudgetTrackerPage: React.FC = () => {
         .replace(/^./, (str) => str.toUpperCase())
         .trim()
     );
-  };
-
-  // Assuming we're dealing with MonthlyTotalsAggregate or similar:
-  const handleMonthlyTotals = (expenses: Expense[]) => {
-    const totals: MonthlyTotalsAggregate = {};
-    expenses.forEach((expense) => {
-      const monthYear = new Date(expense.date).toLocaleString("default", {
-        month: "short",
-        year: "numeric",
-      });
-      if (!totals[monthYear]) {
-        totals[monthYear] = { totalIncome: 0, totalExpenses: 0 };
-      }
-      if (expense.type === "income") {
-        totals[monthYear].totalIncome += expense.amount;
-      } else {
-        totals[monthYear].totalExpenses += expense.amount;
-      }
-    });
-    return totals;
-  };
-
-  const displayFormattedMonthlySummary = () => {
-    if (!monthlyTotals.length) {
-      return (
-        <Tr>
-          <>No data available</>
-        </Tr>
-      );
-    }
-    return monthlyTotals.map((total, index) => (
-      <Tr key={index}>
-        <Td>{total.month}</Td>
-        <Td>${total.totalIncome.toFixed(2)}</Td>
-        <Td>${total.totalExpenses.toFixed(2)}</Td>
-      </Tr>
-    ));
-  };
-
-  const displayFormattedWeeklySummary = () => {
-    if (!weeklyTotals.length) {
-      return (
-        <Tr>
-          <Td colSpan={3}>No data available</Td>
-        </Tr>
-      );
-    }
-    return weeklyTotals.map((total, index) => (
-      <Tr key={index}>
-        <Td>{total.week}</Td>
-        <Td>${total.totalIncome.toFixed(2)}</Td>
-        <Td>${total.totalExpenses.toFixed(2)}</Td>
-      </Tr>
-    ));
-  };
-
-  const displayFormattedYearlySummary = () => {
-    if (!yearlyTotals.length) {
-      return (
-        <Tr>
-          <Td colSpan={3}>No data available</Td>
-        </Tr>
-      );
-    }
-    return yearlyTotals.map((total, index) => (
-      <Tr key={index}>
-        <Td>{total.year}</Td>
-        <Td>${total.totalIncome.toFixed(2)}</Td>
-        <Td>${total.totalExpenses.toFixed(2)}</Td>
-      </Tr>
-    ));
   };
 
   const WeeklySummaryLineChart = ({
@@ -1217,54 +1184,8 @@ const BudgetTrackerPage: React.FC = () => {
 
       <VStack spacing={6} align="stretch">
         {/* Weekly Summary */}
-        <Box boxShadow="lg" p={5} rounded="lg">
-          <Heading size="md" mb={4} color="white">
-            <Badge colorScheme="blue">Weekly Summary</Badge>
-          </Heading>
-          <Table variant="simple">
-            <Thead>
-              <Tr>
-                <Th color="white">Week</Th>
-                <Th color="white">Total Income</Th>
-                <Th color="white">Total Expenses</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {weeklyTotals.map((total, index) => (
-                <Tr key={index}>
-                  <Td color="white">{total.week}</Td>
-                  <Td color="white">${total.totalIncome.toFixed(2)}</Td>
-                  <Td color="white">${total.totalExpenses.toFixed(2)}</Td>
-                </Tr>
-              ))}
-            </Tbody>
-          </Table>
-        </Box>
-
-        {/* Monthly Summary */}
-        <Box boxShadow="lg" p={5} rounded="lg">
-          <Heading size="md" mb={4}>
-            <Badge colorScheme="green">Monthly Summary</Badge>
-          </Heading>
-          <Table variant="simple">
-            <Thead>
-              <Tr>
-                <Th color="white">Month</Th>
-                <Th color="white">Total Income</Th>
-                <Th color="white">Total Expenses</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {monthlyTotals.map((total, index) => (
-                <Tr key={index}>
-                  <Td color="white">{total.month}</Td>
-                  <Td color="white">${total.totalIncome.toFixed(2)}</Td>
-                  <Td color="white">${total.totalExpenses.toFixed(2)}</Td>
-                </Tr>
-              ))}
-            </Tbody>
-          </Table>
-        </Box>
+        <WeeklySummary weeklyTotals={weeklyTotals} />
+        <MonthlySummary monthlyTotals={monthlyTotals} />
 
         {/* Yearly Summary */}
         <Box boxShadow="lg" p={5} rounded="lg">
