@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Table,
@@ -32,6 +32,14 @@ const getMaxExpenseCategory = (expensesByCategory: Record<string, number>) => {
 };
 
 const MonthlySummary: React.FC<MonthlySummaryProps> = ({ monthlyTotals }) => {
+  // State to manage which month is expanded
+  const [expandedMonth, setExpandedMonth] = useState<string | null>(null);
+
+  // Toggle the expansion of a row
+  const toggleExpand = (month: string) => {
+    setExpandedMonth(expandedMonth === month ? null : month);
+  };
+
   return (
     <Box boxShadow="lg" p={5} rounded="lg">
       <Heading size="md" mb={4} color="white">
@@ -52,89 +60,101 @@ const MonthlySummary: React.FC<MonthlySummaryProps> = ({ monthlyTotals }) => {
               total.expensesByCategory
             );
 
+            // Check if this row is expanded
+            const isExpanded = expandedMonth === total.month;
+
             return (
               <React.Fragment key={index}>
-                <Tr>
+                <Tr
+                  onClick={() => toggleExpand(total.month)}
+                  cursor="pointer"
+                  _hover={{ bg: "gray.700" }}
+                >
                   <Td color="white">{total.month}</Td>
                   <Td color="white">${total.totalIncome.toFixed(2)}</Td>
                   <Td color="white">${total.totalExpenses.toFixed(2)}</Td>
                 </Tr>
-                {/* Display the most significant expense */}
-                <Tr>
-                  <Td colSpan={3} color="white">
-                    <Text fontWeight="bold" color="red.500">
-                      Highest Expense: {maxCategory} - ${maxAmount.toFixed(2)}
-                    </Text>
-                  </Td>
-                </Tr>
-                {/* Income by Category */}
-                <Tr>
-                  <Td colSpan={3} color="white">
-                    <Box
-                      mt={2}
-                      p={4}
-                      rounded="md"
-                      border="1px solid"
-                      borderColor="gray.600"
-                    >
-                      <Heading size="sm" color="white" mb={2}>
-                        Income Breakdown
-                      </Heading>
-                      <Table size="sm">
-                        <Thead>
-                          <Tr>
-                            <Th color="white">Category</Th>
-                            <Th color="white">Amount ($)</Th>
-                          </Tr>
-                        </Thead>
-                        <Tbody>
-                          {Object.entries(total.incomeByCategory).map(
-                            ([category, amount], i) => (
-                              <Tr key={i}>
-                                <Td color="white">{category}</Td>
-                                <Td color="white">${amount.toFixed(2)}</Td>
+                {isExpanded && (
+                  <>
+                    {/* Display the most significant expense */}
+                    <Tr>
+                      <Td colSpan={3} color="white">
+                        <Text fontWeight="bold" color="red.500">
+                          Highest Expense: {maxCategory} - $
+                          {maxAmount.toFixed(2)}
+                        </Text>
+                      </Td>
+                    </Tr>
+                    {/* Income by Category */}
+                    <Tr>
+                      <Td colSpan={3} color="white">
+                        <Box
+                          mt={2}
+                          p={4}
+                          rounded="md"
+                          border="1px solid"
+                          borderColor="green.500"
+                        >
+                          <Heading size="sm" color="white" mb={2}>
+                            Income Breakdown
+                          </Heading>
+                          <Table size="sm">
+                            <Thead>
+                              <Tr>
+                                <Th color="white">Category</Th>
+                                <Th color="white">Amount ($)</Th>
                               </Tr>
-                            )
-                          )}
-                        </Tbody>
-                      </Table>
-                    </Box>
-                  </Td>
-                </Tr>
-                {/* Expenses by Category */}
-                <Tr>
-                  <Td colSpan={3} color="white">
-                    <Box
-                      mt={2}
-                      p={4}
-                      rounded="md"
-                      border="1px solid"
-                      borderColor="gray.600"
-                    >
-                      <Heading size="sm" color="white" mb={2}>
-                        Expenses Breakdown
-                      </Heading>
-                      <Table size="sm">
-                        <Thead>
-                          <Tr>
-                            <Th color="white">Category</Th>
-                            <Th color="white">Amount ($)</Th>
-                          </Tr>
-                        </Thead>
-                        <Tbody>
-                          {Object.entries(total.expensesByCategory).map(
-                            ([category, amount], i) => (
-                              <Tr key={i}>
-                                <Td color="white">{category}</Td>
-                                <Td color="white">${amount.toFixed(2)}</Td>
+                            </Thead>
+                            <Tbody>
+                              {Object.entries(total.incomeByCategory).map(
+                                ([category, amount], i) => (
+                                  <Tr key={i}>
+                                    <Td color="white">{category}</Td>
+                                    <Td color="white">${amount.toFixed(2)}</Td>
+                                  </Tr>
+                                )
+                              )}
+                            </Tbody>
+                          </Table>
+                        </Box>
+                      </Td>
+                    </Tr>
+                    {/* Expenses by Category */}
+                    <Tr>
+                      <Td colSpan={3} color="white">
+                        <Box
+                          mt={2}
+                          p={4}
+                          rounded="md"
+                          border="1px solid"
+                          borderColor="red.500"
+                        >
+                          <Heading size="sm" color="white" mb={2}>
+                            Expenses Breakdown
+                          </Heading>
+                          <Table size="sm">
+                            <Thead>
+                              <Tr>
+                                <Th color="white">Category</Th>
+                                <Th color="white">Amount ($)</Th>
                               </Tr>
-                            )
-                          )}
-                        </Tbody>
-                      </Table>
-                    </Box>
-                  </Td>
-                </Tr>
+                            </Thead>
+                            <Tbody>
+                              {Object.entries(total.expensesByCategory).map(
+                                ([category, amount], i) => (
+                                  <Tr key={i}>
+                                    <Td color="white">{category}</Td>
+                                    <Td color="white">${amount.toFixed(2)}</Td>
+                                  </Tr>
+                                )
+                              )}
+                            </Tbody>
+                          </Table>
+                        </Box>
+                      </Td>
+                    </Tr>
+                  </>
+                )}
               </React.Fragment>
             );
           })}

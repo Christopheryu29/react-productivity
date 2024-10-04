@@ -23,12 +23,12 @@ import {
   AccordionPanel,
 } from "@chakra-ui/react";
 import { useAction, useMutation, useQuery } from "convex/react";
-import WeeklySummary from "../budgettracker/components/WeeklySummary";
-import MonthlySummary from "../budgettracker/components/MonthlySummary";
+import WeeklySummary from "../../budgettracker/components/WeeklySummary";
+import MonthlySummary from "../../budgettracker/components/MonthlySummary";
 import { api } from "@/convex/_generated/api";
-import PredictionButton from "./components/PredictionButton";
-import FinancialHealthHeader from "./components/FinancialHealthHeader";
-import ExpenseHighlights from "./components/ExpenseHighlights";
+import PredictionButton from "./PredictionButton";
+import FinancialHealthHeader from "./FinancialHealthHeader";
+import ExpenseHighlights from "./ExpenseHighlights";
 
 type Tensor = tf.Tensor;
 type Sequential = tf.Sequential;
