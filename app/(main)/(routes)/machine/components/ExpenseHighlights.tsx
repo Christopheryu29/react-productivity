@@ -1,35 +1,34 @@
+"use client";
 import React from "react";
 import {
   Box,
   Heading,
   Text,
   VStack,
-  Divider,
   Badge,
+  Divider,
   HStack,
   Icon,
 } from "@chakra-ui/react";
-import {
-  FaExclamationTriangle,
-  FaInfoCircle,
-  FaArrowDown,
-} from "react-icons/fa"; // Import FontAwesome icons
+import { MdWarning, MdCheckCircle, MdInfoOutline } from "react-icons/md";
+
+interface WeeklyTotals {
+  week: string;
+  totalIncome: number;
+  totalExpenses: number;
+  expensesByCategory: Record<string, number>;
+}
+
+interface MonthlyTotals {
+  month: string;
+  totalIncome: number;
+  totalExpenses: number;
+  expensesByCategory: Record<string, number>;
+}
 
 interface ExpenseHighlightsProps {
-  maxExpenseWeek: {
-    week: string;
-    totalIncome: number;
-    totalExpenses: number;
-    expensesByCategory: Record<string, number>;
-  };
-  maxExpenseMonth: {
-    month: string;
-    totalIncome: number;
-    totalExpenses: number;
-    expensesByCategory: Record<string, number>;
-  };
-  weeklyExpenseSuggestion: string;
-  monthlyExpenseSuggestion: string;
+  allWeeks: WeeklyTotals[];
+  allMonths: MonthlyTotals[];
   weeklyThresholds: Record<string, number>;
   thresholds: Record<string, number>;
   getCategoryWarnings: (
@@ -39,26 +38,28 @@ interface ExpenseHighlightsProps {
   ) => string[];
 }
 
+const calculateExpensePercentage = (expenses: number, income: number) => {
+  return ((expenses / income) * 100).toFixed(1);
+};
+
+// Determine color scheme based on spending percentage
+const getColorScheme = (expensePercentage: number) => {
+  if (expensePercentage <= 70) {
+    return { bg: "green.50", text: "green.800", badge: "green" };
+  } else if (expensePercentage <= 90) {
+    return { bg: "yellow.50", text: "yellow.800", badge: "yellow" };
+  } else {
+    return { bg: "red.50", text: "red.800", badge: "red" };
+  }
+};
+
 const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
-  maxExpenseWeek,
-  maxExpenseMonth,
-  weeklyExpenseSuggestion,
-  monthlyExpenseSuggestion,
+  allWeeks,
+  allMonths,
   weeklyThresholds,
   thresholds,
   getCategoryWarnings,
 }) => {
-  // Calculate if weekly or monthly expenses exceed income
-  const weeklyWarning =
-    maxExpenseWeek.totalExpenses > maxExpenseWeek.totalIncome;
-  const monthlyWarning =
-    maxExpenseMonth.totalExpenses > maxExpenseMonth.totalIncome;
-
-  // Calculate percentage expenses relative to income
-  const calculateExpensePercentage = (expenses: number, income: number) => {
-    return ((expenses / income) * 100).toFixed(1);
-  };
-
   return (
     <Box
       boxShadow="2xl"
@@ -68,143 +69,143 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
       mt={4}
     >
       <Heading size="lg" mb={6} color="teal.700">
-        <Icon as={FaInfoCircle} boxSize={5} mr={2} /> Expense Highlights
+        Expense Highlights
       </Heading>
 
-      {/* Weekly Expenses Section */}
-      <VStack align="start" spacing={4} w="100%">
-        <Box
-          w="100%"
-          boxShadow="md"
-          p={4}
-          bg="white"
-          rounded="md"
-          border="1px"
-          borderColor="teal.100"
-        >
-          <HStack justify="space-between">
-            <Heading size="md" color="teal.800">
-              <Icon
-                as={FaExclamationTriangle}
-                color="orange.400"
-                boxSize={4}
-                mr={2}
-              />
-              {maxExpenseWeek.week}
-            </Heading>
-            <Badge colorScheme={weeklyWarning ? "red" : "green"}>
-              {weeklyWarning ? "Overspending Alert" : "Within Budget"}
-            </Badge>
-          </HStack>
-          <Text mt={2} color={weeklyWarning ? "red.600" : "gray.700"}>
-            Total Expenses: ${maxExpenseWeek.totalExpenses.toFixed(2)} (
-            <Badge colorScheme={weeklyWarning ? "red" : "blue"}>
-              {calculateExpensePercentage(
-                maxExpenseWeek.totalExpenses,
-                maxExpenseWeek.totalIncome
-              )}
-              % of Income
-            </Badge>
-            )
-          </Text>
-          <Text color="gray.600">
-            Total Income:{" "}
-            <Badge colorScheme="blue">
-              ${maxExpenseWeek.totalIncome.toFixed(2)}
-            </Badge>
-          </Text>
+      <VStack align="start" spacing={6} w="100%">
+        {/* Loop through all weeks */}
+        {allWeeks.map((week, index) => {
+          const expensePercentage = parseFloat(
+            calculateExpensePercentage(week.totalExpenses, week.totalIncome)
+          );
+          const colorScheme = getColorScheme(expensePercentage);
+          return (
+            <Box
+              key={index}
+              w="100%"
+              boxShadow="md"
+              p={4}
+              bg={colorScheme.bg}
+              rounded="md"
+              border="1px"
+              borderColor={`${colorScheme.badge}.200`}
+            >
+              <HStack justify="space-between">
+                <Heading size="md" color={colorScheme.text}>
+                  {week.week}
+                </Heading>
+                <Badge colorScheme={colorScheme.badge}>
+                  <Icon
+                    as={
+                      expensePercentage > 90
+                        ? MdWarning
+                        : expensePercentage > 70
+                        ? MdInfoOutline
+                        : MdCheckCircle
+                    }
+                    mr={1}
+                  />
+                  {expensePercentage > 90
+                    ? "Overspending Alert"
+                    : expensePercentage > 70
+                    ? "High Spending"
+                    : "Well-Managed"}
+                </Badge>
+              </HStack>
+              <Text mt={2} color={`${colorScheme.text}.600`}>
+                Total Expenses: ${week.totalExpenses.toFixed(2)} (
+                <Badge colorScheme={colorScheme.badge}>
+                  {expensePercentage}% of Income
+                </Badge>
+                )
+              </Text>
+              <Text color="gray.600">
+                Total Income:{" "}
+                <Badge colorScheme="blue">${week.totalIncome.toFixed(2)}</Badge>
+              </Text>
 
-          {weeklyExpenseSuggestion && (
-            <Text color="orange.700" mt={3}>
-              <Icon as={FaArrowDown} boxSize={4} mr={2} />
-              Weekly Suggestion: {weeklyExpenseSuggestion}
-            </Text>
-          )}
-
-          {getCategoryWarnings(
-            maxExpenseWeek.expensesByCategory,
-            maxExpenseWeek.totalIncome,
-            weeklyThresholds
-          ).map((warning, index) => (
-            <Text key={index} color="orange.600" mt={1}>
-              <Icon
-                as={FaExclamationTriangle}
-                color="orange.400"
-                boxSize={4}
-                mr={2}
-              />
-              {warning}
-            </Text>
-          ))}
-        </Box>
+              {/* Display weekly warnings */}
+              {getCategoryWarnings(
+                week.expensesByCategory,
+                week.totalIncome,
+                weeklyThresholds
+              ).map((warning, index) => (
+                <Text key={index} color="orange.600" mt={1}>
+                  {warning}
+                </Text>
+              ))}
+            </Box>
+          );
+        })}
 
         <Divider orientation="horizontal" />
 
-        {/* Monthly Expenses Section */}
-        <Box
-          w="100%"
-          boxShadow="md"
-          p={4}
-          bg="white"
-          rounded="md"
-          border="1px"
-          borderColor="teal.100"
-        >
-          <HStack justify="space-between">
-            <Heading size="md" color="teal.800">
-              <Icon
-                as={FaExclamationTriangle}
-                color="orange.400"
-                boxSize={4}
-                mr={2}
-              />
-              {maxExpenseMonth.month}
-            </Heading>
-            <Badge colorScheme={monthlyWarning ? "red" : "green"}>
-              {monthlyWarning ? "Overspending Alert" : "Within Budget"}
-            </Badge>
-          </HStack>
-          <Text mt={2} color={monthlyWarning ? "red.600" : "gray.700"}>
-            Total Expenses: ${maxExpenseMonth.totalExpenses.toFixed(2)} (
-            <Badge colorScheme={monthlyWarning ? "red" : "blue"}>
-              {calculateExpensePercentage(
-                maxExpenseMonth.totalExpenses,
-                maxExpenseMonth.totalIncome
-              )}
-              % of Income
-            </Badge>
-            )
-          </Text>
-          <Text color="gray.600">
-            Total Income:{" "}
-            <Badge colorScheme="blue">
-              ${maxExpenseMonth.totalIncome.toFixed(2)}
-            </Badge>
-          </Text>
+        {/* Loop through all months */}
+        {allMonths.map((month, index) => {
+          const expensePercentage = parseFloat(
+            calculateExpensePercentage(month.totalExpenses, month.totalIncome)
+          );
+          const colorScheme = getColorScheme(expensePercentage);
+          return (
+            <Box
+              key={index}
+              w="100%"
+              boxShadow="md"
+              p={4}
+              bg={colorScheme.bg}
+              rounded="md"
+              border="1px"
+              borderColor={`${colorScheme.badge}.200`}
+            >
+              <HStack justify="space-between">
+                <Heading size="md" color={colorScheme.text}>
+                  Month {month.month}
+                </Heading>
+                <Badge colorScheme={colorScheme.badge}>
+                  <Icon
+                    as={
+                      expensePercentage > 90
+                        ? MdWarning
+                        : expensePercentage > 70
+                        ? MdInfoOutline
+                        : MdCheckCircle
+                    }
+                    mr={1}
+                  />
+                  {expensePercentage > 90
+                    ? "Overspending Alert"
+                    : expensePercentage > 70
+                    ? "High Spending"
+                    : "Well-Managed"}
+                </Badge>
+              </HStack>
+              <Text mt={2} color={`${colorScheme.text}.600`}>
+                Total Expenses: ${month.totalExpenses.toFixed(2)} (
+                <Badge colorScheme={colorScheme.badge}>
+                  {expensePercentage}% of Income
+                </Badge>
+                )
+              </Text>
+              <Text color="gray.600">
+                Total Income:{" "}
+                <Badge colorScheme="blue">
+                  ${month.totalIncome.toFixed(2)}
+                </Badge>
+              </Text>
 
-          {monthlyExpenseSuggestion && (
-            <Text color="orange.700" mt={3}>
-              <Icon as={FaArrowDown} boxSize={4} mr={2} />
-              Monthly Suggestion: {monthlyExpenseSuggestion}
-            </Text>
-          )}
-
-          {getCategoryWarnings(
-            maxExpenseMonth.expensesByCategory,
-            maxExpenseMonth.totalIncome,
-            thresholds
-          ).map((warning, index) => (
-            <Text key={index} color="orange.600" mt={1}>
-              <Icon
-                as={FaExclamationTriangle}
-                color="orange.400"
-                boxSize={4}
-                mr={2}
-              />
-              {warning}
-            </Text>
-          ))}
-        </Box>
+              {/* Display monthly warnings */}
+              {getCategoryWarnings(
+                month.expensesByCategory,
+                month.totalIncome,
+                thresholds
+              ).map((warning, index) => (
+                <Text key={index} color="orange.600" mt={1}>
+                  {warning}
+                </Text>
+              ))}
+            </Box>
+          );
+        })}
       </VStack>
 
       <Text color="teal.600" mt={6} fontSize="md">

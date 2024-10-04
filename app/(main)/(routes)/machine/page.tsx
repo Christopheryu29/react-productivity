@@ -551,16 +551,49 @@ const FinancialHealthComponent = () => {
     setIsLoading(false);
   };
 
-  // Ensure week and month have default values if undefined
-  const maxExpenseWeekProps = {
-    ...maxExpenseWeek,
-    week: maxExpenseWeek.week || "", // Set to empty string if undefined
+  const weeklyThresholds = {
+    food: 0.0375, // Divided by 4 for weekly percentages
+    transportation: 0.0375,
+    other_necessities: 0.025,
   };
 
-  const maxExpenseMonthProps = {
-    ...maxExpenseMonth,
-    month: maxExpenseMonth.month || "", // Set to empty string if undefined
+  const thresholds = {
+    housing: 0.3,
+    food: 0.15,
+    transportation: 0.15,
+    healthcare: 0.1,
+    other_necessities: 0.1,
+    childcare: 0.1,
+    taxes: 0.25,
   };
+
+  useEffect(() => {
+    if (fetchExpenses) {
+      const validatedExpenses = fetchExpenses.map((expense: any) => ({
+        ...expense,
+        type:
+          expense.type === "income" || expense.type === "expense"
+            ? expense.type
+            : "expense",
+      }));
+      setExpenses(validatedExpenses);
+    }
+  }, [fetchExpenses]);
+
+  useEffect(() => {
+    if (expenses.length > 0) {
+      setWeeklyTotals(calculateWeeklyTotals(expenses));
+      setMonthlyTotals(calculateMonthlyTotals(expenses));
+    }
+  }, [expenses]);
+
+  // Filter problematic weeks and months where expenses exceed income
+  const problematicWeeks = weeklyTotals.filter(
+    (week) => week.totalExpenses > week.totalIncome
+  );
+  const problematicMonths = monthlyTotals.filter(
+    (month) => month.totalExpenses > month.totalIncome
+  );
 
   const getCategoryWarnings = (
     expensesByCategory: Record<string, number>,
@@ -574,13 +607,13 @@ const FinancialHealthComponent = () => {
           return `Your ${category} expenses are ${(
             (amount / income) *
             100
-          ).toFixed(1)}% of your income, exceeding the recommended ${
+          ).toFixed(1)}% of your income, exceeding the recommended ${(
             threshold * 100
-          }%.`;
+          ).toFixed(1)}%.`;
         }
         return null;
       })
-      .filter((warning): warning is string => Boolean(warning)); // Ensure only strings are returned
+      .filter((warning): warning is string => Boolean(warning));
   };
 
   return (
@@ -590,12 +623,9 @@ const FinancialHealthComponent = () => {
 
         <WeeklySummary weeklyTotals={weeklyTotals} />
         <MonthlySummary monthlyTotals={monthlyTotals} />
-
         <ExpenseHighlights
-          maxExpenseWeek={maxExpenseWeekProps}
-          maxExpenseMonth={maxExpenseMonthProps}
-          weeklyExpenseSuggestion={weeklyExpenseSuggestion}
-          monthlyExpenseSuggestion={monthlyExpenseSuggestion}
+          allWeeks={weeklyTotals}
+          allMonths={monthlyTotals}
           weeklyThresholds={weeklyThresholds}
           thresholds={thresholds}
           getCategoryWarnings={getCategoryWarnings}
