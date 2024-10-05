@@ -29,6 +29,7 @@ import { api } from "@/convex/_generated/api";
 import PredictionButton from "./components/PredictionButton";
 import FinancialHealthHeader from "./components/FinancialHealthHeader";
 import ExpenseHighlights from "./components/ExpenseHighlights";
+import YearlySummary from "../budgettracker/components/YearlySummary";
 
 type Tensor = tf.Tensor;
 type Sequential = tf.Sequential;
@@ -62,6 +63,14 @@ interface MonthlyTotals {
   expensesByCategory: Record<string, number>;
 }
 
+interface YearlyTotals {
+  year: string;
+  totalIncome: number;
+  totalExpenses: number;
+  incomeByCategory: Record<string, number>;
+  expensesByCategory: Record<string, number>;
+}
+
 interface Expense {
   id: number;
   amount: number;
@@ -69,6 +78,33 @@ interface Expense {
   date: string;
   category: string;
 }
+
+const calculateYearlyTotals = (expenses: Expense[]): YearlyTotals[] => {
+  const totals = expenses.reduce<Record<string, YearlyTotals>>((acc, curr) => {
+    const year = new Date(curr.date).getFullYear().toString();
+    if (!acc[year]) {
+      acc[year] = {
+        year,
+        totalIncome: 0,
+        totalExpenses: 0,
+        incomeByCategory: {},
+        expensesByCategory: {},
+      };
+    }
+    if (curr.type === "income") {
+      acc[year].totalIncome += curr.amount;
+      acc[year].incomeByCategory[curr.category] =
+        (acc[year].incomeByCategory[curr.category] || 0) + curr.amount;
+    } else {
+      acc[year].totalExpenses += curr.amount;
+      acc[year].expensesByCategory[curr.category] =
+        (acc[year].expensesByCategory[curr.category] || 0) + curr.amount;
+    }
+    return acc;
+  }, {});
+
+  return Object.values(totals);
+};
 
 const normalizeTensor = (tensor: Tensor): Tensor => {
   const min = tensor.min();
@@ -276,41 +312,11 @@ const thresholds = {
   taxes: 0.25, // Taxes are generally a fixed percentage but can be adjusted
 };
 
-// Weekly Thresholds (as a simplified percentage of the total)
-const weeklyThresholds = {
-  food: thresholds.food / 4, // Divided by 4 for a rough weekly percentage
-  transportation: thresholds.transportation / 4,
-  other_necessities: thresholds.other_necessities / 4,
-};
-
-// Function to compare actual spending with thresholds
-const getCategoryWarnings = (
-  expensesByCategory: Record<string, number>,
-  income: number,
-  thresholds: Record<string, number>
-) => {
-  return Object.entries(expensesByCategory)
-    .map(([category, amount]) => {
-      const threshold = thresholds[category];
-      if (threshold && amount > threshold * income) {
-        return `Your ${category} expenses are ${(
-          (amount / income) *
-          100
-        ).toFixed(1)}% of your income, exceeding the recommended ${
-          threshold * 100
-        }%.`;
-      }
-      return null;
-    })
-    .filter(Boolean);
-};
-
 const FinancialHealthComponent = () => {
   const fetchExpenses = useQuery(api.expense.getExpenses);
   const toast = useToast();
-  const setHouseholdMutation = useMutation(api.household.setHousehold);
   const userId = "your-user-id"; // Replace with actual userId
-  const financialData = useQuery(api.financial.getFinancialSummary, { userId });
+
   const householdData = useQuery(api.household.getHouseholdByUserId, {
     userId,
   });
@@ -473,10 +479,10 @@ const FinancialHealthComponent = () => {
       return;
     }
 
-    if (!financialData || !householdData) {
+    if (!yearlyTotals || yearlyTotals.length === 0 || !householdData) {
       toast({
         title: "Data Error",
-        description: "Financial or household data is not loaded.",
+        description: "Yearly financial data or household data is not loaded.",
         status: "error",
         duration: 5000,
         isClosable: true,
@@ -487,18 +493,23 @@ const FinancialHealthComponent = () => {
     setIsLoading(true);
 
     try {
+      const currentYearData = yearlyTotals[0];
       const data = {
         numAdults: householdData.numAdults,
         numChildren: householdData.numChildren,
-        housing_cost: financialData.housingCost,
-        food_cost: financialData.foodCost,
-        transportation_cost: financialData.transportationCost,
-        healthcare_cost: financialData.healthcareCost,
-        other_necessities_cost: financialData.otherNecessitiesCost,
-        childcare_cost: financialData.childcareCost || 0, // Assuming it could be undefined/null
-        taxes: financialData.taxes,
-        total_cost: financialData.totalExpenses,
-        median_family_income: financialData.medianFamilyIncome,
+        housing_cost: currentYearData.expensesByCategory["housing_cost"] || 0,
+        food_cost: currentYearData.expensesByCategory["food_cost"] || 0,
+        transportation_cost:
+          currentYearData.expensesByCategory["transportation_cost"] || 0,
+        healthcare_cost:
+          currentYearData.expensesByCategory["healthcare_cost"] || 0,
+        other_necessities_cost:
+          currentYearData.expensesByCategory["other_necessities_cost"] || 0,
+        childcare_cost:
+          currentYearData.expensesByCategory["childcare_cost"] || 0,
+        taxes: currentYearData.expensesByCategory["taxes"] || 0,
+        total_cost: currentYearData.totalExpenses,
+        median_family_income: currentYearData.totalIncome,
       };
 
       const healthScore = calculateFinancialHealth(data);
@@ -509,33 +520,41 @@ const FinancialHealthComponent = () => {
       );
 
       const adviceQuery = `
-      Given our household's financial details—${
-        householdData.numAdults
-      } adults and ${
-        householdData.numChildren
-      } children—with a housing cost of $${data.housing_cost.toFixed(
+      Given our household's financial details for ${
+        currentYearData.year
+      }, with a housing cost of $${data.housing_cost.toFixed(
         2
       )}, food cost of $${data.food_cost.toFixed(2)}, 
       transportation cost of $${data.transportation_cost.toFixed(
         2
       )}, healthcare cost of $${data.healthcare_cost.toFixed(2)}, 
-      costs for other necessities at $${data.other_necessities_cost.toFixed(
+      other necessities at $${data.other_necessities_cost.toFixed(
         2
       )}, childcare expenses of $${data.childcare_cost.toFixed(2)}, 
       and taxes of $${data.taxes.toFixed(
         2
       )}, totaling $${data.total_cost.toFixed(
         2
-      )} in expenses against a median family income of $${data.median_family_income.toFixed(
+      )} in expenses against a total income of $${data.median_family_income.toFixed(
         2
-      )}—
-      how can we optimize our budget to improve our financial health status from '${healthScore}'? 
-      What specific strategies would you recommend for reducing expenses and enhancing savings, particularly in areas where we are overspending? 
-      Additionally, are there adjustments we should consider in our investment strategy to secure our long-term financial stability?
+      )}. How can we optimize our budget to improve our financial health?
     `;
 
       const adviceResult = await getAdvice({ query: adviceQuery });
-      setFinancialAdvice(adviceResult || "No advice available at this moment.");
+
+      // Check if `adviceResult` is `null` or empty
+      if (!adviceResult) {
+        setFinancialAdvice("No advice available at this moment.");
+        return;
+      }
+
+      // Process the response to remove '**' and format lines
+      const formattedAdvice = adviceResult
+        .split("\n")
+        .map((line) => line.replace(/\*\*/g, "").trim())
+        .filter((line) => line.length > 0);
+
+      setFinancialAdvice(formattedAdvice.join("\n"));
     } catch (error) {
       console.error("Error during prediction:", error);
       toast({
@@ -587,14 +606,6 @@ const FinancialHealthComponent = () => {
     }
   }, [expenses]);
 
-  // Filter problematic weeks and months where expenses exceed income
-  const problematicWeeks = weeklyTotals.filter(
-    (week) => week.totalExpenses > week.totalIncome
-  );
-  const problematicMonths = monthlyTotals.filter(
-    (month) => month.totalExpenses > month.totalIncome
-  );
-
   const getCategoryWarnings = (
     expensesByCategory: Record<string, number>,
     income: number,
@@ -616,93 +627,23 @@ const FinancialHealthComponent = () => {
       .filter((warning): warning is string => Boolean(warning));
   };
 
+  const [yearlyTotals, setYearlyTotals] = useState<YearlyTotals[]>([]);
+
+  useEffect(() => {
+    if (expenses.length > 0) {
+      // Calculate yearly totals from `expenses`
+      const yearlyData = calculateYearlyTotals(expenses);
+      setYearlyTotals(yearlyData);
+    }
+  }, [expenses]);
+
   return (
     <ChakraProvider>
       <VStack spacing={8} align="stretch" p={4}>
         <FinancialHealthHeader isLoading={isLoading} model={model} />
-
         <WeeklySummary weeklyTotals={weeklyTotals} />
         <MonthlySummary monthlyTotals={monthlyTotals} />
-        <ExpenseHighlights
-          allWeeks={weeklyTotals}
-          allMonths={monthlyTotals}
-          weeklyThresholds={weeklyThresholds}
-          thresholds={thresholds}
-          getCategoryWarnings={getCategoryWarnings}
-        />
-
-        {/*Yang dibawah ini nanti hapus aja boxnya */}
-        {/* Highlight the periods with the highest expenses */}
-        <Box boxShadow="lg" p={5} rounded="md" bg="white" mt={4}>
-          <Heading size="md" mb={4} color={"gray.800"}>
-            Expense Highlights
-          </Heading>
-          {maxExpenseWeek && (
-            <Text color={"red.500"} mb={2}>
-              The week with the highest expenses is{" "}
-              <strong>{maxExpenseWeek.week}</strong>
-              with a total expense of ${maxExpenseWeek.totalExpenses.toFixed(2)}
-              .
-            </Text>
-          )}
-          {maxExpenseMonth && (
-            <Text color={"red.500"} mb={2}>
-              The month with the highest expenses is{" "}
-              <strong>{maxExpenseMonth.month}</strong>
-              with a total expense of $
-              {maxExpenseMonth.totalExpenses.toFixed(2)}.
-            </Text>
-          )}
-          <Text color={"gray.800"}>
-            Consider reviewing your spending habits during these periods to
-            identify areas for improvement.
-          </Text>
-          {weeklyExpenseSuggestion && (
-            <Text color={"gray.800"} mt={2}>
-              Weekly Suggestion: {weeklyExpenseSuggestion}
-            </Text>
-          )}
-          {monthlyExpenseSuggestion && (
-            <Text color={"gray.800"} mt={2}>
-              Monthly Suggestion: {monthlyExpenseSuggestion}
-            </Text>
-          )}
-          {/* Display warnings based on thresholds */}
-          {maxExpenseWeek.totalIncome && (
-            <>
-              <Text fontWeight="bold" mt={4} color="teal.600">
-                Weekly Warnings for <strong>{maxExpenseWeek.week}</strong>:
-              </Text>
-              {getCategoryWarnings(
-                maxExpenseWeek.expensesByCategory,
-                maxExpenseWeek.totalIncome,
-                weeklyThresholds
-              ).map((warning, index) => (
-                <Text key={index} color="orange.600">
-                  {warning}
-                </Text>
-              ))}
-            </>
-          )}
-          {maxExpenseMonth.totalIncome && (
-            <>
-              <Text fontWeight="bold" mt={4} color="teal.600">
-                Monthly Warnings for <strong>{maxExpenseMonth.month}</strong>:
-              </Text>
-              {getCategoryWarnings(
-                maxExpenseMonth.expensesByCategory,
-                maxExpenseMonth.totalIncome,
-                thresholds
-              ).map((warning, index) => (
-                <Text key={index} color="orange.600">
-                  {warning}
-                </Text>
-              ))}
-            </>
-          )}
-        </Box>
-
-        {/* Sampe sini*/}
+        <YearlySummary yearlyTotals={yearlyTotals} />
         <PredictionButton
           isLoading={isLoading}
           onClickPredict={onClickPredict}
@@ -742,12 +683,20 @@ const FinancialHealthComponent = () => {
                   </AccordionButton>
                 </h2>
                 <AccordionPanel pb={4} color={"gray.800"}>
-                  {financialAdvice}
+                  <Text whiteSpace="pre-wrap">{financialAdvice}</Text>
                 </AccordionPanel>
               </AccordionItem>
             </Accordion>
           </Box>
         )}
+        <ExpenseHighlights
+          allWeeks={weeklyTotals}
+          allMonths={monthlyTotals}
+          allYears={yearlyTotals} // Add this line to pass the yearly data
+          weeklyThresholds={weeklyThresholds}
+          thresholds={thresholds}
+          getCategoryWarnings={getCategoryWarnings}
+        />
       </VStack>
     </ChakraProvider>
   );

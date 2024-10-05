@@ -19,7 +19,7 @@ const PredictionButton: React.FC<PredictionButtonProps> = ({
     onClick={onClickPredict}
     isDisabled={!model}
   >
-    Check Financial Health
+    Check Simple Overview Yearly Financial Health
   </Button>
 );
 

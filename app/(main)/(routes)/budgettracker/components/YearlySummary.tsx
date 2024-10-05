@@ -1,29 +1,29 @@
 import React, { useState } from "react";
 import {
-  Box,
   Table,
   Thead,
   Tbody,
   Tr,
   Th,
   Td,
+  Box,
   Heading,
   Badge,
   Text,
 } from "@chakra-ui/react";
-import { MonthlySummaryLineChart } from "./charts/LineChart";
+import { YearlySummaryLineChart } from "./charts/LineChart";
 import { Bar, Pie } from "react-chartjs-2";
 
-interface MonthlyTotals {
-  month: string;
+interface YearlyTotals {
+  year: string;
   totalIncome: number;
   totalExpenses: number;
-  incomeByCategory: Record<string, number>;
-  expensesByCategory: Record<string, number>;
+  incomeByCategory: Record<string, number>; // Add this field
+  expensesByCategory: Record<string, number>; // Add this field
 }
 
-interface MonthlySummaryProps {
-  monthlyTotals: MonthlyTotals[];
+interface YearlySummaryProps {
+  yearlyTotals: YearlyTotals[];
 }
 const getMaxExpenseCategory = (expensesByCategory: Record<string, number>) => {
   return Object.entries(expensesByCategory).reduce(
@@ -32,73 +32,51 @@ const getMaxExpenseCategory = (expensesByCategory: Record<string, number>) => {
   );
 };
 
-// Helper function to convert month strings into a comparable date object
-const parseMonthString = (monthString: string) => {
-  const [month, year] = monthString.split(" ");
-  const monthMap: Record<string, number> = {
-    Jan: 0,
-    Feb: 1,
-    Mar: 2,
-    Apr: 3,
-    May: 4,
-    Jun: 5,
-    Jul: 6,
-    Aug: 7,
-    Sep: 8,
-    Oct: 9,
-    Nov: 10,
-    Dec: 11,
-  };
-  return new Date(parseInt(year), monthMap[month]);
-};
-
-const MonthlySummary: React.FC<MonthlySummaryProps> = ({ monthlyTotals }) => {
-  // State to manage which month is expanded
-  const [expandedMonth, setExpandedMonth] = useState<string | null>(null);
+const YearlySummary: React.FC<YearlySummaryProps> = ({ yearlyTotals }) => {
+  // State to manage which year is expanded
+  const [expandedYear, setExpandedYear] = useState<string | null>(null);
 
   // Toggle the expansion of a row
-  const toggleExpand = (month: string) => {
-    setExpandedMonth(expandedMonth === month ? null : month);
+  const toggleExpand = (year: string) => {
+    setExpandedYear(expandedYear === year ? null : year);
   };
 
-  // Sort monthlyTotals by the parsed date
-  const sortedMonthlyTotals = [...monthlyTotals].sort((a, b) => {
-    return (
-      parseMonthString(a.month).getTime() - parseMonthString(b.month).getTime()
-    );
-  });
+  // Sort yearlyTotals by the year in ascending order
+  const sortedYearlyTotals = [...yearlyTotals].sort((a, b) =>
+    a.year.localeCompare(b.year)
+  );
 
   return (
     <Box boxShadow="lg" p={5} rounded="lg">
       <Heading size="md" mb={4} color="white">
-        <Badge colorScheme="green">Monthly Summary</Badge>
+        <Badge colorScheme="purple">Yearly Summary</Badge>
       </Heading>
 
-      {/* Line Chart for Monthly Trends */}
+      {/* Line Chart for Yearly Trends */}
       <Box mb={6} mt={6}>
         <Heading size="sm" color="white" mb={2}>
-          Monthly Income vs Expenses (Line Chart)
+          Yearly Income vs Expenses (Line Chart)
         </Heading>
-        <MonthlySummaryLineChart monthlyTotals={sortedMonthlyTotals} />
+        <YearlySummaryLineChart yearlyTotals={sortedYearlyTotals} />
       </Box>
 
       <Table variant="simple">
         <Thead>
           <Tr>
-            <Th color="white">Month</Th>
+            <Th color="white">Year</Th>
             <Th color="white">Total Income</Th>
             <Th color="white">Total Expenses</Th>
           </Tr>
         </Thead>
         <Tbody>
-          {sortedMonthlyTotals.map((total, index) => {
+          {sortedYearlyTotals.map((total, index) => {
             // Find the category with the highest expense
             const [maxCategory, maxAmount] = getMaxExpenseCategory(
               total.expensesByCategory
             );
 
             // Check if this row is expanded
-            const isExpanded = expandedMonth === total.month;
+            const isExpanded = expandedYear === total.year;
 
             // Prepare data for charts
             const pieData = {
@@ -140,11 +118,11 @@ const MonthlySummary: React.FC<MonthlySummaryProps> = ({ monthlyTotals }) => {
             return (
               <React.Fragment key={index}>
                 <Tr
-                  onClick={() => toggleExpand(total.month)}
+                  onClick={() => toggleExpand(total.year)}
                   cursor="pointer"
                   _hover={{ bg: "gray.700" }}
                 >
-                  <Td color="white">{total.month}</Td>
+                  <Td color="white">{total.year}</Td>
                   <Td color="white">${total.totalIncome.toFixed(2)}</Td>
                   <Td color="white">${total.totalExpenses.toFixed(2)}</Td>
                 </Tr>
@@ -260,4 +238,4 @@ const MonthlySummary: React.FC<MonthlySummaryProps> = ({ monthlyTotals }) => {
   );
 };
 
-export default MonthlySummary;
+export default YearlySummary;
