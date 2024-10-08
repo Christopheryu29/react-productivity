@@ -14,7 +14,6 @@ import {
   useColorModeValue,
   Stack,
   useBreakpointValue,
-  useColorMode,
 } from "@chakra-ui/react";
 import { api } from "@/convex/_generated/api";
 import { MdWarning, MdCheckCircle, MdInfoOutline } from "react-icons/md";
@@ -46,7 +45,7 @@ interface YearlyTotals {
 interface ExpenseHighlightsProps {
   allWeeks: WeeklyTotals[];
   allMonths: MonthlyTotals[];
-  allYears: YearlyTotals[]; // Add this line
+  allYears: YearlyTotals[];
   weeklyThresholds: Record<string, number>;
   thresholds: Record<string, number>;
   getCategoryWarnings: (
@@ -112,6 +111,7 @@ const evaluateExpenses = (data: {
     }
   });
 
+  // Provide overall expense feedback
   if (total_expense_percentage > 80) {
     suggestions.push(
       "Your overall expenses exceed 80% of your income. Aim to reduce your costs or increase your income to improve your financial health."
@@ -128,7 +128,7 @@ const evaluateExpenses = (data: {
 const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
   allWeeks,
   allMonths,
-  allYears, // Add this line to destructure `allYears`
+  allYears,
   weeklyThresholds,
   thresholds,
   getCategoryWarnings,
@@ -147,8 +147,35 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
   );
   const adviceBg = useColorModeValue("white", "gray.700");
 
-  // Generate Evaluation Summaries
-  const weeklyEvaluations = allWeeks.map((week) =>
+  // Color mode for light/dark theme
+  const bgColor = useColorModeValue("white", "gray.800");
+  const borderColor = useColorModeValue("teal.100", "teal.700");
+
+  // Sort weeks by year and week number
+  const sortedWeeks = [...allWeeks].sort((a, b) => {
+    // Extract week number and year from `week` strings like "Week 35 2024"
+    const weekA = parseInt(a.week.match(/Week (\d+)/)?.[1] || "0", 10);
+    const yearA = parseInt(a.week.match(/(\d{4})/)?.[1] || "0", 10);
+    const weekB = parseInt(b.week.match(/Week (\d+)/)?.[1] || "0", 10);
+    const yearB = parseInt(b.week.match(/(\d{4})/)?.[1] || "0", 10);
+
+    // Sort by year first, then by week number
+    if (yearA === yearB) {
+      return weekA - weekB;
+    }
+    return yearA - yearB;
+  });
+
+  const sortedMonths = [...allMonths].sort(
+    (a, b) => new Date(a.month).getTime() - new Date(b.month).getTime()
+  );
+
+  const sortedYears = [...allYears].sort(
+    (a, b) => Number(a.year) - Number(b.year)
+  );
+
+  // Generate Evaluation Summaries based on sorted data
+  const weeklyEvaluations = sortedWeeks.map((week) =>
     evaluateExpenses({
       totalIncome: week.totalIncome,
       totalExpenses: week.totalExpenses,
@@ -157,7 +184,7 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
     })
   );
 
-  const monthlyEvaluations = allMonths.map((month) =>
+  const monthlyEvaluations = sortedMonths.map((month) =>
     evaluateExpenses({
       totalIncome: month.totalIncome,
       totalExpenses: month.totalExpenses,
@@ -166,7 +193,7 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
     })
   );
 
-  const yearlyEvaluations = allYears.map((year) =>
+  const yearlyEvaluations = sortedYears.map((year) =>
     evaluateExpenses({
       totalIncome: year.totalIncome,
       totalExpenses: year.totalExpenses,
@@ -175,7 +202,6 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
     })
   );
 
-  // Function to generate the query to be sent to OpenAI
   const generateFinancialQuery = () => {
     let query =
       "You are an expert financial advisor. Please review the following financial data and provide actionable advice for improving financial health by reducing high expenses and increasing savings. Focus on areas with the highest expenses and deviations from ideal spending habits.\n\n";
@@ -258,31 +284,6 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
     }
   };
 
-  // Color mode for light/dark theme
-  const bgColor = useColorModeValue("white", "gray.800");
-  const borderColor = useColorModeValue("teal.100", "teal.700");
-  // Sort weeks, months, and years
-  const sortedWeeks = [...allWeeks].sort((a, b) => {
-    // Extract week number and year from `week` strings like "Week 1 2024"
-    const weekA = parseInt(a.week.match(/Week (\d+)/)?.[1] || "0");
-    const yearA = parseInt(a.week.match(/(\d{4})/)?.[1] || "0");
-    const weekB = parseInt(b.week.match(/Week (\d+)/)?.[1] || "0");
-    const yearB = parseInt(b.week.match(/(\d{4})/)?.[1] || "0");
-
-    // Sort by year first, then by week number
-    if (yearA === yearB) {
-      return weekA - weekB;
-    }
-    return yearA - yearB;
-  });
-
-  const sortedMonths = [...allMonths].sort(
-    (a, b) => new Date(a.month).getTime() - new Date(b.month).getTime()
-  );
-  const sortedYears = [...allYears].sort(
-    (a, b) => Number(a.year) - Number(b.year)
-  );
-
   return (
     <Box
       boxShadow="2xl"
@@ -303,7 +304,7 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
       </HStack>
 
       <VStack align="start" spacing={8} w="100%">
-        {/* Loop through all weeks */}
+        {/* Loop through sorted weeks */}
         {sortedWeeks.map((week, index) => {
           const expensePercentage = parseFloat(
             calculateExpensePercentage(week.totalExpenses, week.totalIncome)
@@ -382,7 +383,7 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
 
         <Divider orientation="horizontal" borderColor="teal.300" my={4} />
 
-        {/* Loop through all months */}
+        {/* Loop through sorted months */}
         {sortedMonths.map((month, index) => {
           const expensePercentage = parseFloat(
             calculateExpensePercentage(month.totalExpenses, month.totalIncome)
@@ -462,7 +463,7 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
 
       <Divider orientation="horizontal" borderColor="teal.300" my={4} />
 
-      {/* Loop through all years */}
+      {/* Loop through sorted years */}
       {sortedYears.map((year, index) => {
         const expensePercentage = parseFloat(
           calculateExpensePercentage(year.totalExpenses, year.totalIncome)

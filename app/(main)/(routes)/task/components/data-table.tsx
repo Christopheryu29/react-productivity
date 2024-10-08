@@ -68,9 +68,9 @@ export function DataTable<TData, TValue>({
   });
 
   return (
-    <div className="space-y-4">
+    <div>
       <DataTableToolbar table={table} />
-      <div className="rounded-md border">
+      <div className="rounded-md border max-h-[70vh] overflow-auto">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -120,7 +120,12 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} />
+      {/* Conditionally render pagination */}
+      {table.getRowModel().rows?.length > 0 && (
+        <div className="p-0 m-0">
+          <DataTablePagination table={table} />
+        </div>
+      )}
     </div>
   );
 }

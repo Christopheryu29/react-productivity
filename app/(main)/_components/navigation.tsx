@@ -15,6 +15,7 @@ import {
   Brain,
   Timer,
   Workflow,
+  Home,
 } from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { ElementRef, useEffect, useRef, useState } from "react";
@@ -169,6 +170,7 @@ export const Navigation: React.FC<NavigationProps> = ({ togglePomodoro }) => {
           <UserItem />
           <Item label="Search" icon={Search} isSearch onClick={search.onOpen} />
           <Item label="Settings" icon={Settings} onClick={settings.onOpen} />
+          <Item label="Home" icon={Home} onClick={() => router.push("/home")} />
           <Item
             label="Calculator"
             icon={Calculator}
@@ -183,11 +185,6 @@ export const Navigation: React.FC<NavigationProps> = ({ togglePomodoro }) => {
             label="Budget Tracker"
             icon={Wallet}
             onClick={() => router.push("/budgettracker")}
-          />
-          <Item
-            label="Financial AI"
-            icon={Brain}
-            onClick={() => router.push("/financial")}
           />
           <Item
             label="Machine"

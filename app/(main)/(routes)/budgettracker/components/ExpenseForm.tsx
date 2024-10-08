@@ -13,21 +13,16 @@ import {
 } from "@chakra-ui/react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css"; // Import the date picker styles
 
 interface ExpenseFormProps {
   onAddExpense: (newExpense: {
     amount: number;
     type: "income" | "expense";
     category: string;
+    date: string;
   }) => void;
-}
-
-interface Expense {
-  id: number;
-  amount: number;
-  type: "income" | "expense";
-  date: string;
-  category: string;
 }
 
 const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
@@ -36,15 +31,17 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
     "expense"
   );
   const [newCategory, setNewCategory] = useState<string>("");
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date()); // Default to the current date
 
   const addExpenseMutation = useMutation(api.expense.createExpense);
   const toast = useToast();
 
   const handleAddExpense = async () => {
-    if (newExpense <= 0 || !newCategory) {
+    if (newExpense <= 0 || !newCategory || !selectedDate) {
       toast({
         title: "Invalid Input",
-        description: "Please enter a valid amount and select a category.",
+        description:
+          "Please enter a valid amount, select a category, and pick a date.",
         status: "warning",
         duration: 3000,
         isClosable: true,
@@ -57,7 +54,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
         amount: newExpense,
         type: newExpenseType,
         category: newCategory,
-        date: new Date().toISOString(),
+        date: selectedDate.toISOString(), // Store date as ISO string
       };
 
       await addExpenseMutation(newEntry);
@@ -65,6 +62,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
 
       setNewExpense(0);
       setNewCategory("");
+      setSelectedDate(new Date()); // Reset the date picker
       toast({
         title: "Expense Added",
         description: "Your new expense has been added successfully.",
@@ -96,6 +94,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
           onChange={(e) => setNewExpense(Number(e.target.value))}
         />
       </FormControl>
+
       <FormControl>
         <FormLabel htmlFor="type">Type</FormLabel>
         <Select
@@ -110,6 +109,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
           <option value="expense">Expense</option>
         </Select>
       </FormControl>
+
       <FormControl>
         <FormLabel htmlFor="category">Category</FormLabel>
         <Select
@@ -138,6 +138,20 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
           )}
         </Select>
       </FormControl>
+
+      <FormControl>
+        <FormLabel htmlFor="date">
+          Selected Date {/* Add margin-right to the FormLabel */}
+        </FormLabel>
+        <DatePicker
+          selected={selectedDate}
+          onChange={(date: Date | null) => setSelectedDate(date)}
+          dateFormat="yyyy-MM-dd" // Format the date
+          showPopperArrow={false} // Optional: Hide the arrow of the popper
+          className="chakra-datepicker" // You can add Chakra styling by adding a custom class
+        />
+      </FormControl>
+
       <Button colorScheme="blue" onClick={handleAddExpense}>
         Add Expense
       </Button>

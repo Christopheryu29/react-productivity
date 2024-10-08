@@ -17,9 +17,27 @@ import {
   Heading,
   Flex,
   useColorModeValue,
-  VStack,
 } from "@chakra-ui/react";
-import { FaEdit, FaTrash, FaMoneyBillWave, FaWallet } from "react-icons/fa";
+import {
+  FaEdit,
+  FaTrash,
+  FaMoneyBillWave,
+  FaWallet,
+  FaChevronLeft,
+  FaChevronRight,
+} from "react-icons/fa";
+import {
+  addWeeks,
+  subWeeks,
+  startOfWeek,
+  endOfWeek,
+  addMonths,
+  subMonths,
+  startOfMonth,
+  endOfMonth,
+  isSameWeek,
+  isSameMonth,
+} from "date-fns";
 
 interface Expense {
   id: number;
@@ -47,67 +65,104 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
   onDelete,
 }) => {
   const [filter, setFilter] = useState<"all" | "weekly" | "monthly">("all");
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+
+  // Move useColorModeValue to the top level of the component
+  const bgColor = useColorModeValue("white", "gray.900");
+  const textColor = useColorModeValue("black", "white");
+  const tableBgColor = useColorModeValue("gray.50", "gray.800");
+  const headerBgColor = useColorModeValue("black", "white");
+  const headerTextColor = useColorModeValue("white", "black");
+  const rowHoverColor = useColorModeValue("gray.100", "gray.700");
 
   // Handle filtering and sorting of expenses
   const filterExpenses = (expenses: Expense[]) => {
-    const now = new Date();
-
-    let filteredExpenses = expenses;
-
     if (filter === "weekly") {
-      const oneWeekAgo = new Date(now);
-      oneWeekAgo.setDate(now.getDate() - 7);
-      filteredExpenses = expenses.filter(
-        (expense) => new Date(expense.date) >= oneWeekAgo
+      const startOfThisWeek = startOfWeek(currentDate);
+      const endOfThisWeek = endOfWeek(currentDate);
+      return expenses.filter(
+        (expense) =>
+          new Date(expense.date) >= startOfThisWeek &&
+          new Date(expense.date) <= endOfThisWeek
       );
     }
 
     if (filter === "monthly") {
-      const oneMonthAgo = new Date(now);
-      oneMonthAgo.setMonth(now.getMonth() - 1);
-      filteredExpenses = expenses.filter(
-        (expense) => new Date(expense.date) >= oneMonthAgo
+      const startOfThisMonth = startOfMonth(currentDate);
+      const endOfThisMonth = endOfMonth(currentDate);
+      return expenses.filter(
+        (expense) =>
+          new Date(expense.date) >= startOfThisMonth &&
+          new Date(expense.date) <= endOfThisMonth
       );
     }
 
     // Sort expenses by date from earliest to latest
-    return filteredExpenses.sort(
+    return expenses.sort(
       (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
     );
   };
 
+  const handlePreviousPeriod = () => {
+    if (filter === "weekly") {
+      setCurrentDate((prev) => subWeeks(prev, 1));
+    } else if (filter === "monthly") {
+      setCurrentDate((prev) => subMonths(prev, 1));
+    }
+  };
+
+  const handleNextPeriod = () => {
+    if (filter === "weekly") {
+      setCurrentDate((prev) => addWeeks(prev, 1));
+    } else if (filter === "monthly") {
+      setCurrentDate((prev) => addMonths(prev, 1));
+    }
+  };
+
   return (
     <Box
-      boxShadow="2xl"
+      boxShadow="lg"
       p={5}
       rounded="lg"
-      bg={useColorModeValue("white", "gray.800")}
       maxW={{ base: "100%", md: "80%" }}
       mx="auto"
+      bg={bgColor}
+      color={textColor}
     >
-      {/* Header with Filters */}
+      {/* Header with Filters and Navigation */}
       <Flex justify="space-between" align="center" mb={4}>
-        <Heading size="lg" color="teal.600" fontWeight="bold">
+        <Heading size="lg" fontWeight="bold" letterSpacing="wide">
           Expenses Overview
         </Heading>
-        <Select
-          w={{ base: "100%", md: "auto" }}
-          size="sm"
-          maxW="200px"
-          value={filter}
-          onChange={(e) =>
-            setFilter(e.target.value as "all" | "weekly" | "monthly")
-          }
-          bg="teal.50"
-          color="teal.600"
-          border="1px"
-          borderColor="teal.200"
-          _hover={{ bg: "teal.100" }}
-        >
-          <option value="all">All Expenses</option>
-          <option value="weekly">Weekly</option>
-          <option value="monthly">Monthly</option>
-        </Select>
+
+        <HStack spacing={3}>
+          <Button size="sm" onClick={handlePreviousPeriod}>
+            <FaChevronLeft />
+          </Button>
+
+          <Select
+            w={{ base: "100%", md: "auto" }}
+            size="sm"
+            maxW="200px"
+            value={filter}
+            onChange={(e) =>
+              setFilter(e.target.value as "all" | "weekly" | "monthly")
+            }
+            bg="white"
+            color="black"
+            border="1px"
+            borderColor="gray.300"
+            _hover={{ borderColor: "gray.500" }}
+          >
+            <option value="all">All Expenses</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+          </Select>
+
+          <Button size="sm" onClick={handleNextPeriod}>
+            <FaChevronRight />
+          </Button>
+        </HStack>
       </Flex>
 
       {/* Table with improved styles */}
@@ -115,22 +170,25 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
         <Table
           variant="simple"
           size="sm"
-          bg={useColorModeValue("white", "gray.700")}
+          rounded="md"
+          boxShadow="md"
+          bg={tableBgColor}
         >
           <Thead>
-            <Tr>
-              <Th color="teal.600">Amount</Th>
-              <Th color="teal.600">Type</Th>
-              <Th color="teal.600">Category</Th>
-              <Th color="teal.600">Date</Th>
-              <Th color="teal.600">Actions</Th>
+            <Tr bg={headerBgColor}>
+              <Th color={headerTextColor}>Amount</Th>
+              <Th color={headerTextColor}>Type</Th>
+              <Th color={headerTextColor}>Category</Th>
+              <Th color={headerTextColor}>Date</Th>
+              <Th color={headerTextColor}>Actions</Th>
             </Tr>
           </Thead>
           <Tbody>
-            {filterExpenses(expenses).map((expense, index) => (
+            {filterExpenses(expenses).map((expense) => (
               <Tr
                 key={expense.id}
                 transition="background-color 0.2s ease-in-out"
+                _hover={{ bg: rowHoverColor }}
                 rounded="md"
               >
                 {/* Amount */}
@@ -142,7 +200,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
                     <Text
                       fontWeight="bold"
                       color={
-                        expense.type === "income" ? "green.600" : "red.600"
+                        expense.type === "income" ? "green.500" : "red.500"
                       }
                       fontSize="md"
                     >
@@ -165,8 +223,8 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
                     <Badge
                       colorScheme={expense.type === "income" ? "green" : "red"}
                       variant="solid"
-                      rounded="md"
-                      px={2}
+                      rounded="full"
+                      px={3}
                       py={1}
                     >
                       {expense.type.charAt(0).toUpperCase() +
@@ -178,10 +236,10 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
                 {/* Category */}
                 <Td>
                   <Badge
-                    colorScheme="blue"
-                    variant="outline"
+                    colorScheme="blackAlpha"
+                    variant="subtle"
                     rounded="full"
-                    px={2}
+                    px={3}
                     py={1}
                     fontSize="sm"
                   >
@@ -206,7 +264,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
                     <Tooltip label="Edit" aria-label="Edit">
                       <Button
                         size="sm"
-                        colorScheme="yellow"
+                        colorScheme="blue"
                         onClick={() =>
                           onEdit(
                             expense.id,
@@ -217,7 +275,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
                           )
                         }
                         variant="ghost"
-                        _hover={{ bg: "yellow.100" }}
+                        _hover={{ bg: "blue.100", transform: "scale(1.05)" }}
                         leftIcon={<FaEdit />}
                       >
                         Edit
@@ -229,7 +287,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
                         colorScheme="red"
                         onClick={() => onDelete(expense.id)}
                         variant="ghost"
-                        _hover={{ bg: "red.100" }}
+                        _hover={{ bg: "red.100", transform: "scale(1.05)" }}
                         leftIcon={<FaTrash />}
                       >
                         Delete

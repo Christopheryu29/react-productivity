@@ -30,6 +30,7 @@ export default defineSchema({
     isAllDay: v.boolean(),
     completed: v.boolean(),
     color: v.optional(v.string()),
+    recurringDay: v.optional(v.string()),
   })
     .index("by_user", ["userId"])
     .index("by_date_range", ["startDate", "endDate"])

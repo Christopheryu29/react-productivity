@@ -11,10 +11,20 @@ export const addEvent = mutation({
     description: v.optional(v.string()),
     isAllDay: v.boolean(),
     color: v.optional(v.string()),
+    recurringDay: v.optional(v.string()), // Accept the recurringDay argument
   },
   handler: async (
     ctx,
-    { title, userId, startDate, endDate, description, isAllDay, color }
+    {
+      title,
+      userId,
+      startDate,
+      endDate,
+      description,
+      isAllDay,
+      color,
+      recurringDay,
+    }
   ) => {
     return await ctx.db.insert("events", {
       title,
@@ -25,6 +35,7 @@ export const addEvent = mutation({
       isAllDay,
       color,
       completed: false, // Assumes a 'completed' field is present
+      recurringDay, // Store the recurringDay in the event
     });
   },
 });
