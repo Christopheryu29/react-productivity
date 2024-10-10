@@ -45,11 +45,7 @@ export const Heading = () => {
         </Box>
       )}
       {isAuthenticated && !isLoading && (
-        <Button
-          as={Link}
-          href="/documents"
-          rightIcon={<ArrowRight size="1em" />}
-        >
+        <Button as={Link} href="/home" rightIcon={<ArrowRight size="1em" />}>
           Enter Jotion
         </Button>
       )}

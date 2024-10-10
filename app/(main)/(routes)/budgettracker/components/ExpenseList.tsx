@@ -19,12 +19,12 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 import {
-  FaEdit,
   FaTrash,
   FaMoneyBillWave,
   FaWallet,
   FaChevronLeft,
   FaChevronRight,
+  FaEdit,
 } from "react-icons/fa";
 import {
   addWeeks,
@@ -35,15 +35,16 @@ import {
   subMonths,
   startOfMonth,
   endOfMonth,
-  isSameWeek,
-  isSameMonth,
+  startOfDay,
+  endOfDay,
+  parseISO,
 } from "date-fns";
 
 interface Expense {
   id: number;
   amount: number;
   type: "income" | "expense";
-  date: string;
+  date: string; // ISO 8601 formatted date string
   category: string;
 }
 
@@ -67,7 +68,6 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
   const [filter, setFilter] = useState<"all" | "weekly" | "monthly">("all");
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
 
-  // Move useColorModeValue to the top level of the component
   const bgColor = useColorModeValue("white", "gray.900");
   const textColor = useColorModeValue("black", "white");
   const tableBgColor = useColorModeValue("gray.50", "gray.800");
@@ -75,30 +75,28 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
   const headerTextColor = useColorModeValue("white", "black");
   const rowHoverColor = useColorModeValue("gray.100", "gray.700");
 
-  // Handle filtering and sorting of expenses
+  // Filter and sort expenses based on the selected filter (weekly, monthly, or all)
   const filterExpenses = (expenses: Expense[]) => {
-    if (filter === "weekly") {
-      const startOfThisWeek = startOfWeek(currentDate);
-      const endOfThisWeek = endOfWeek(currentDate);
-      return expenses.filter(
-        (expense) =>
-          new Date(expense.date) >= startOfThisWeek &&
-          new Date(expense.date) <= endOfThisWeek
-      );
-    }
+    const filteredExpenses = expenses.filter((expense) => {
+      const expenseDate = parseISO(expense.date); // Parse the ISO string to Date object
 
-    if (filter === "monthly") {
-      const startOfThisMonth = startOfMonth(currentDate);
-      const endOfThisMonth = endOfMonth(currentDate);
-      return expenses.filter(
-        (expense) =>
-          new Date(expense.date) >= startOfThisMonth &&
-          new Date(expense.date) <= endOfThisMonth
-      );
-    }
+      if (filter === "weekly") {
+        const startOfThisWeek = startOfDay(startOfWeek(currentDate));
+        const endOfThisWeek = endOfDay(endOfWeek(currentDate));
+        return expenseDate >= startOfThisWeek && expenseDate <= endOfThisWeek;
+      }
 
-    // Sort expenses by date from earliest to latest
-    return expenses.sort(
+      if (filter === "monthly") {
+        const startOfThisMonth = startOfDay(startOfMonth(currentDate));
+        const endOfThisMonth = endOfDay(endOfMonth(currentDate));
+        return expenseDate >= startOfThisMonth && expenseDate <= endOfThisMonth;
+      }
+
+      return true; // Return all expenses for "all" filter
+    });
+
+    // Sort expenses by date (earliest first)
+    return filteredExpenses.sort(
       (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
     );
   };
@@ -117,6 +115,21 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
     } else if (filter === "monthly") {
       setCurrentDate((prev) => addMonths(prev, 1));
     }
+  };
+
+  const formatPeriod = () => {
+    if (filter === "weekly") {
+      const startOfThisWeek = startOfWeek(currentDate);
+      const endOfThisWeek = endOfWeek(currentDate);
+      return `${startOfThisWeek.toLocaleDateString()} - ${endOfThisWeek.toLocaleDateString()}`;
+    } else if (filter === "monthly") {
+      const startOfThisMonth = startOfMonth(currentDate);
+      return `${startOfThisMonth.toLocaleDateString(undefined, {
+        month: "long",
+        year: "numeric",
+      })}`;
+    }
+    return ""; // No specific period formatting for "all"
   };
 
   return (
@@ -164,6 +177,13 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
           </Button>
         </HStack>
       </Flex>
+
+      {/* Display Current Period */}
+      {filter !== "all" && (
+        <Text fontWeight="bold" textAlign="center" mb={4}>
+          {formatPeriod()}
+        </Text>
+      )}
 
       {/* Table with improved styles */}
       <Box overflowX="auto">
@@ -261,6 +281,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
                 {/* Actions */}
                 <Td>
                   <HStack spacing={3}>
+                    {/*
                     <Tooltip label="Edit" aria-label="Edit">
                       <Button
                         size="sm"
@@ -281,6 +302,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
                         Edit
                       </Button>
                     </Tooltip>
+                    */}
                     <Tooltip label="Delete" aria-label="Delete">
                       <Button
                         size="sm"

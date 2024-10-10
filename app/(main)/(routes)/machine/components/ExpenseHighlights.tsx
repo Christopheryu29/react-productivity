@@ -19,6 +19,7 @@ import { api } from "@/convex/_generated/api";
 import { MdWarning, MdCheckCircle, MdInfoOutline } from "react-icons/md";
 import { FaLightbulb } from "react-icons/fa"; // Icon for financial advice
 import { AiOutlineDollar } from "react-icons/ai"; // Icon for totals
+import CriticalPeriods from "./CriticalPeriods";
 
 // Define interfaces for WeeklyTotals and MonthlyTotals
 interface WeeklyTotals {
@@ -202,6 +203,17 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
     })
   );
 
+  const criticalPeriods = [
+    ...weeklyEvaluations,
+    ...monthlyEvaluations,
+    ...yearlyEvaluations,
+  ]
+    .flat()
+    .filter(
+      (evaluation) =>
+        evaluation.includes("exceed") || evaluation.includes("high spending")
+    );
+
   const generateFinancialQuery = () => {
     let query =
       "You are an expert financial advisor. Please review the following financial data and provide actionable advice for improving financial health by reducing high expenses and increasing savings. Focus on areas with the highest expenses and deviations from ideal spending habits.\n\n";
@@ -284,6 +296,25 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
     }
   };
 
+  const criticalWeeks = sortedWeeks.filter((_, index) =>
+    weeklyEvaluations[index].some(
+      (evaluation) =>
+        evaluation.includes("exceed") || evaluation.includes("high spending")
+    )
+  );
+  const criticalMonths = sortedMonths.filter((_, index) =>
+    monthlyEvaluations[index].some(
+      (evaluation) =>
+        evaluation.includes("exceed") || evaluation.includes("high spending")
+    )
+  );
+  const criticalYears = sortedYears.filter((_, index) =>
+    yearlyEvaluations[index].some(
+      (evaluation) =>
+        evaluation.includes("exceed") || evaluation.includes("high spending")
+    )
+  );
+
   return (
     <Box
       boxShadow="2xl"
@@ -296,6 +327,13 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
       transition="all 0.3s"
       _hover={{ boxShadow: "lg", transform: "scale(1.02)" }}
     >
+      <CriticalPeriods
+        criticalWeeks={criticalWeeks}
+        criticalMonths={criticalMonths}
+        criticalYears={criticalYears}
+      />
+
+      <Divider orientation="horizontal" borderColor="teal.300" my={4} />
       <HStack spacing={3} mb={6}>
         <Icon as={AiOutlineDollar} color="teal.600" boxSize={8} />
         <Heading size={headingSize} color="teal.700">
