@@ -1,8 +1,8 @@
 export default {
   providers: [
     {
-      domain: "https://wired-moray-44.clerk.accounts.dev",
+      domain: "https://healthy-piglet-77.clerk.accounts.dev",
       applicationID: "convex",
-    }
-  ]
-}
+    },
+  ],
+};

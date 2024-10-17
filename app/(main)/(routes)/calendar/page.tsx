@@ -203,18 +203,29 @@ const CalendarPage = () => {
   );
 
   return (
-    <Box color="white" p="5" maxW="900px" mx="auto" mt="10">
-      <VStack spacing="5" align="stretch">
-        <Heading textAlign="center" size="2xl" mb="5" color="teal.400">
+    <Box
+      color="white"
+      p={{ base: "3", md: "5" }}
+      maxW="900px"
+      mx="auto"
+      mt="10"
+    >
+      <VStack spacing={{ base: "3", md: "5" }} align="stretch">
+        <Heading
+          textAlign="center"
+          size={{ base: "lg", md: "2xl" }}
+          mb={{ base: "3", md: "5" }}
+          color="teal.400"
+        >
           Event Calendar
         </Heading>
 
-        {/* Align Select Date, Start Time, and End Time Horizontally */}
         <Flex
-          direction={{ base: "row", md: "row" }}
+          direction={{ base: "column", md: "row" }}
           justifyContent="center"
           align="center"
-          gap="10"
+          gap="5" // Adjust the gap if needed to make the spacing better
+          wrap="wrap" // Ensure it wraps properly when there's not enough space
         >
           <Box>
             <Heading size="md" textAlign="center" mb="3" color="teal.300">
@@ -246,9 +257,17 @@ const CalendarPage = () => {
             />
           </Box>
 
-          {/* Time Pickers */}
-          <Flex direction="row" gap="5">
-            <Box textAlign="center">
+          <Flex
+            direction={{ base: "row", md: "row" }} // Force horizontal alignment on all screen sizes
+            gap="5" // You can adjust the gap as needed for better spacing
+            justifyContent="space-between" // Spread the items across the available space
+            wrap="wrap" // Ensure wrapping occurs if there's not enough space
+          >
+            <Box
+              textAlign="center"
+              flex="1" // Ensure both boxes have equal width
+              minW="140px" // Set a minimum width for mobile screens
+            >
               <Heading size="md" mb="2" color="teal.300">
                 Start Time
               </Heading>
@@ -277,7 +296,11 @@ const CalendarPage = () => {
               />
             </Box>
 
-            <Box textAlign="center">
+            <Box
+              textAlign="center"
+              flex="1" // Ensure both boxes have equal width
+              minW="140px" // Set a minimum width for mobile screens
+            >
               <Heading size="md" mb="2" color="teal.300">
                 End Time
               </Heading>
@@ -308,7 +331,6 @@ const CalendarPage = () => {
           </Flex>
         </Flex>
 
-        {/* Event Form */}
         <VStack spacing="4">
           <FormControl>
             <Input
@@ -354,7 +376,6 @@ const CalendarPage = () => {
           Choose Color
         </Button>
 
-        {/* Color Picker Modal */}
         <Modal isOpen={isColorPickerOpen} onClose={onCloseColorPicker}>
           <ModalOverlay />
           <ModalContent bg="gray.800">
@@ -386,20 +407,18 @@ const CalendarPage = () => {
           Add Event
         </Button>
 
-        {/* Schedule */}
         <Heading size="lg" mt="5" textAlign="center" color="teal.400">
           Schedule for {format(selectedDate, "PPP")}
         </Heading>
         <TodayEventCount selectedDate={selectedDate} />
 
-        {/* Dynamically Display Only Relevant Hours */}
         <Grid
-          templateRows={`repeat(${displayHours.length * 2}, 1fr)`}
+          templateRows={`repeat(${displayHours.length * 2}, 1fr)`} // Double the rows for 30-min intervals
           templateColumns="1fr"
           gap={2}
           w="100%"
           maxW="800px"
-          p={5}
+          p={{ base: 3, md: 5 }}
           borderRadius="lg"
           boxShadow="2xl"
           bg="gray.700"

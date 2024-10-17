@@ -571,14 +571,17 @@ const FinancialHealthComponent = () => {
   };
 
   const weeklyThresholds = {
-    food: 0.0375, // Divided by 4 for weekly percentages
-    transportation: 0.0375,
-    other_necessities: 0.025,
+    food_cost: 0.15,
+    housing_cost: 0.3,
+    transportation_cost: 0.15,
+    healthcare_cost: 0.1,
+    other_necessities_cost: 0.1,
+    taxes: 0.25,
   };
 
   const thresholds = {
     housing: 0.3,
-    food: 0.15,
+    food_cost: 0.15,
     transportation: 0.15,
     healthcare: 0.1,
     other_necessities: 0.1,
@@ -610,21 +613,29 @@ const FinancialHealthComponent = () => {
     expensesByCategory: Record<string, number>,
     income: number,
     thresholds: Record<string, number>
-  ): string[] => {
-    return Object.entries(expensesByCategory)
-      .map(([category, amount]) => {
-        const threshold = thresholds[category];
-        if (threshold && amount > threshold * income) {
-          return `Your ${category} expenses are ${(
-            (amount / income) *
-            100
-          ).toFixed(1)}% of your income, exceeding the recommended ${(
-            threshold * 100
-          ).toFixed(1)}%.`;
-        }
-        return null;
-      })
-      .filter((warning): warning is string => Boolean(warning));
+  ) => {
+    const warnings: string[] = [];
+
+    Object.entries(expensesByCategory).forEach(([category, amount]) => {
+      const recommendedPercentage =
+        thresholds[category as keyof typeof thresholds];
+      const actualPercentage = (amount / income) * 100;
+
+      if (
+        recommendedPercentage &&
+        actualPercentage > recommendedPercentage * 100
+      ) {
+        warnings.push(
+          `Your ${category} expenses are ${actualPercentage.toFixed(
+            1
+          )}% of your income, exceeding the recommended ${(
+            recommendedPercentage * 100
+          ).toFixed(1)}%. Consider reducing your ${category} expenses.`
+        );
+      }
+    });
+
+    return warnings;
   };
 
   const [yearlyTotals, setYearlyTotals] = useState<YearlyTotals[]>([]);

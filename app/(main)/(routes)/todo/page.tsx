@@ -15,7 +15,12 @@ import {
   Text,
   VStack,
   useToast,
+  IconButton,
+  Divider,
+  ScaleFade,
+  useColorModeValue,
 } from "@chakra-ui/react";
+import { DeleteIcon, AddIcon } from "@chakra-ui/icons";
 
 function TodoApp() {
   const [newTodo, setNewTodo] = useState("");
@@ -55,62 +60,111 @@ function TodoApp() {
     });
   };
 
+  const cardBg = useColorModeValue("gray.800", "gray.900");
+  const textColor = useColorModeValue("white", "whiteAlpha.900");
+  const placeholderColor = useColorModeValue(
+    "whiteAlpha.600",
+    "whiteAlpha.600"
+  );
+
   return (
-    <Flex direction="column" p="4" minH="screen">
-      <Flex justify="center" align="center" mb="4">
-        <Heading color="blue.500">Todo List</Heading>
+    <Flex direction="column" p="6" minH="100vh" align="center">
+      <Flex justify="center" align="center" mb="6">
+        <Heading size="2xl" color="blue.300">
+          Todo List
+        </Heading>
       </Flex>
 
-      <Flex gap="2">
+      <Flex gap="2" w="full" maxW="lg" mb="6">
         <Input
           flex="1"
-          p="2"
-          placeholder="Add new todo"
+          p="4"
+          placeholder="Add a new task..."
           value={newTodo}
           onChange={(e) => setNewTodo(e.target.value)}
           size="lg"
-          borderColor="gray.300"
+          borderColor="gray.600"
+          rounded="lg"
+          shadow="sm"
+          bg={cardBg}
+          color={textColor}
+          _placeholder={{ color: placeholderColor }}
         />
-        <Button colorScheme="blue" px="4" py="2" onClick={handleAddTodo}>
-          Add
-        </Button>
+        <IconButton
+          icon={<AddIcon />}
+          colorScheme="blue"
+          size="lg"
+          onClick={handleAddTodo}
+          aria-label="Add todo"
+          variant="solid"
+          boxShadow="lg"
+          _hover={{
+            transform: "scale(1.05)",
+            bg: "blue.400",
+          }}
+          transition="all 0.2s"
+        />
       </Flex>
 
       {todos && todos.length > 0 ? (
-        <VStack spacing="4" mt="4">
+        <VStack spacing="4" w="full" maxW="lg">
           {todos.map((todo) => (
-            <Flex
-              key={todo._id}
-              align="center"
-              p="2"
-              shadow="md"
-              rounded="md"
-              w="full"
-            >
-              <Checkbox
-                isChecked={todo.isCompleted}
-                onChange={() => handleToggleTodo(todo._id, todo.isCompleted)}
-                mr="4"
-              />
-              <Text
-                color="white"
-                flex="1"
-                as={todo.isCompleted ? "s" : undefined}
+            <ScaleFade key={todo._id} in>
+              <Flex
+                align="center"
+                p="4"
+                bg={cardBg}
+                shadow="lg"
+                rounded="lg"
+                w="full"
+                borderWidth="1px"
+                borderColor="gray.700"
+                transition="transform 0.2s"
+                _hover={{ transform: "scale(1.02)", bg: "gray.700" }}
               >
-                {todo.text}
-              </Text>
-              <Button
-                colorScheme="red"
-                onClick={() => handleDeleteTodo(todo._id)}
-              >
-                Delete
-              </Button>
-            </Flex>
+                <Checkbox
+                  isChecked={todo.isCompleted}
+                  onChange={() => handleToggleTodo(todo._id, todo.isCompleted)}
+                  size="lg"
+                  colorScheme="green"
+                  mr="4"
+                />
+                <Text
+                  flex="1"
+                  fontSize="lg"
+                  color={todo.isCompleted ? "gray.500" : textColor}
+                  as={todo.isCompleted ? "s" : undefined}
+                  noOfLines={1}
+                >
+                  {todo.text}
+                </Text>
+                <IconButton
+                  icon={<DeleteIcon />}
+                  colorScheme="red"
+                  size="sm"
+                  onClick={() => handleDeleteTodo(todo._id)}
+                  aria-label="Delete todo"
+                  variant="ghost"
+                  _hover={{ color: "red.400", transform: "scale(1.1)" }}
+                  transition="all 0.2s"
+                />
+              </Flex>
+            </ScaleFade>
           ))}
         </VStack>
       ) : (
-        <Text mt="4">No todos found. Add some!</Text>
+        <Box mt="6">
+          <Text fontSize="lg" color="gray.500">
+            No todos found. Add some!
+          </Text>
+        </Box>
       )}
+
+      <Divider mt="6" mb="4" w="full" maxW="lg" borderColor="gray.600" />
+
+      <Flex justify="center">
+        <Text color="gray.400">Stay organized. Keep track of your tasks.</Text>
+      </Flex>
     </Flex>
   );
 }
