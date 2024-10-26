@@ -20,6 +20,7 @@ import type * as expense from "../expense.js";
 import type * as financial from "../financial.js";
 import type * as household from "../household.js";
 import type * as openai from "../openai.js";
+import type * as target from "../target.js";
 import type * as task from "../task.js";
 import type * as todo from "../todo.js";
 
@@ -38,6 +39,7 @@ declare const fullApi: ApiFromModules<{
   financial: typeof financial;
   household: typeof household;
   openai: typeof openai;
+  target: typeof target;
   task: typeof task;
   todo: typeof todo;
 }>;

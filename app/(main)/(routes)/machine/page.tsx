@@ -21,6 +21,12 @@ import {
   AccordionButton,
   AccordionIcon,
   AccordionPanel,
+  Tabs,
+  TabList,
+  Tab,
+  TabPanels,
+  TabPanel,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { useAction, useMutation, useQuery } from "convex/react";
 import WeeklySummary from "../budgettracker/components/WeeklySummary";
@@ -30,6 +36,7 @@ import PredictionButton from "./components/PredictionButton";
 import FinancialHealthHeader from "./components/FinancialHealthHeader";
 import ExpenseHighlights from "./components/ExpenseHighlights";
 import YearlySummary from "../budgettracker/components/YearlySummary";
+import SavingsTargetPrediction from "./components/SavingsTargetPrediction";
 
 type Tensor = tf.Tensor;
 type Sequential = tf.Sequential;
@@ -647,67 +654,173 @@ const FinancialHealthComponent = () => {
       setYearlyTotals(yearlyData);
     }
   }, [expenses]);
+  const bgColor = useColorModeValue("black", "black");
+  const textColor = useColorModeValue("white", "white");
 
   return (
     <ChakraProvider>
-      <VStack spacing={8} align="stretch" p={4}>
-        <FinancialHealthHeader isLoading={isLoading} model={model} />
-        <WeeklySummary weeklyTotals={weeklyTotals} />
-        <MonthlySummary monthlyTotals={monthlyTotals} />
-        <YearlySummary yearlyTotals={yearlyTotals} />
-        <PredictionButton
-          isLoading={isLoading}
-          onClickPredict={onClickPredict}
-          model={model}
-        />
+      <VStack
+        spacing={8}
+        align="stretch"
+        p={4}
+        bg={bgColor}
+        color={textColor}
+        minHeight="100vh"
+      >
+        <Heading size="xl" textAlign="center" mb={4} color={textColor}>
+          Financial Health Dashboard
+        </Heading>
 
-        {!isLoading && (
-          <Box
-            p={5}
-            shadow="md"
-            borderWidth="1px"
-            bg="white"
-            flex="1"
-            borderRadius="md"
-          >
-            <Text fontSize="lg" color={"gray.800"} mb={2}>
-              Financial Health: <strong>{financialHealth}</strong>
-            </Text>
-            <Text fontSize="lg" color={"gray.800"} mb={2}>
-              Expense Analysis: {expenseSuggestions}
-            </Text>
-            <Accordion allowToggle>
-              <AccordionItem>
-                <h2>
-                  <AccordionButton
-                    _expanded={{ bg: "teal.100", color: "teal.800" }}
+        {isLoading ? (
+          <CircularProgress isIndeterminate color="green.300" />
+        ) : (
+          <Tabs defaultIndex={0} isFitted variant="enclosed" colorScheme="teal">
+            <TabList mb="1em" borderColor="teal.500">
+              <Tab _selected={{ color: "teal.300", bg: "gray.800" }}>
+                Financial Health Prediction
+              </Tab>
+              <Tab _selected={{ color: "teal.300", bg: "gray.800" }}>
+                Savings Target
+              </Tab>
+              <Tab _selected={{ color: "teal.300", bg: "gray.800" }}>
+                Expense Highlights
+              </Tab>
+              <Tab _selected={{ color: "teal.300", bg: "gray.800" }}>
+                Financial Summaries
+              </Tab>
+            </TabList>
+
+            <TabPanels>
+              <TabPanel>
+                <Box
+                  shadow="md"
+                  p={6}
+                  borderRadius="md"
+                  bg="gray.800"
+                  color={textColor}
+                >
+                  <PredictionButton
+                    isLoading={isLoading}
+                    onClickPredict={() => {
+                      setIsLoading(true); // Set loading when clicked
+                      onClickPredict().finally(() => setIsLoading(false)); // Ensure loading state is maintained
+                    }}
+                    model={model}
+                  />
+
+                  <Box
+                    p={5}
+                    shadow="md"
+                    borderWidth="1px"
+                    bg="gray.800"
+                    flex="1"
+                    borderRadius="md"
+                    color={textColor}
                   >
-                    <Box
-                      flex="1"
-                      textAlign="left"
-                      fontSize="lg"
-                      fontWeight="bold"
-                    >
-                      View Detailed Advice
-                    </Box>
-                    <AccordionIcon />
-                  </AccordionButton>
-                </h2>
-                <AccordionPanel pb={4} color={"gray.800"}>
-                  <Text whiteSpace="pre-wrap">{financialAdvice}</Text>
-                </AccordionPanel>
-              </AccordionItem>
-            </Accordion>
-          </Box>
+                    {isLoading ? (
+                      <Box textAlign="center" py={6}>
+                        <CircularProgress isIndeterminate color="teal.300" />
+                        <Text mt={4}>Analyzing Financial Health...</Text>
+                      </Box>
+                    ) : (
+                      <>
+                        <Text fontSize="lg" color={"white"} mb={2}>
+                          Financial Health: <strong>{financialHealth}</strong>
+                        </Text>
+                        <Text fontSize="lg" color={"white"} mb={2}>
+                          Expense Analysis: {expenseSuggestions}
+                        </Text>
+                        <Accordion allowToggle>
+                          <AccordionItem>
+                            <h2>
+                              <AccordionButton
+                                _expanded={{
+                                  bg: "teal.300",
+                                  color: "gray.900",
+                                }}
+                              >
+                                <Box
+                                  flex="1"
+                                  textAlign="left"
+                                  fontSize="lg"
+                                  fontWeight="bold"
+                                >
+                                  View Detailed Advice
+                                </Box>
+                                <AccordionIcon />
+                              </AccordionButton>
+                            </h2>
+                            <AccordionPanel pb={4} color={"white"}>
+                              <Text whiteSpace="pre-wrap">
+                                {financialAdvice}
+                              </Text>
+                            </AccordionPanel>
+                          </AccordionItem>
+                        </Accordion>
+                      </>
+                    )}
+                  </Box>
+                </Box>
+              </TabPanel>
+              {/* Savings Target Prediction Panel */}
+              <TabPanel>
+                <Box
+                  shadow="md"
+                  p={6}
+                  borderRadius="md"
+                  bg="gray.800"
+                  color={textColor}
+                >
+                  <Heading size="lg" mb={4} color={textColor}>
+                    Savings Target Prediction
+                  </Heading>
+                  <SavingsTargetPrediction />
+                </Box>
+              </TabPanel>
+
+              {/* Expense Highlights Panel */}
+              <TabPanel>
+                <Box
+                  shadow="md"
+                  p={6}
+                  borderRadius="md"
+                  bg="gray.800"
+                  color={textColor}
+                >
+                  <Heading size="lg" mb={4} color={textColor}>
+                    Expense Highlights
+                  </Heading>
+                  <ExpenseHighlights
+                    allWeeks={weeklyTotals}
+                    allMonths={monthlyTotals}
+                    allYears={yearlyTotals}
+                    weeklyThresholds={weeklyThresholds}
+                    thresholds={thresholds}
+                    getCategoryWarnings={getCategoryWarnings}
+                  />
+                </Box>
+              </TabPanel>
+
+              {/* Financial Summaries Panel */}
+              <TabPanel>
+                <Box
+                  shadow="md"
+                  p={6}
+                  borderRadius="md"
+                  bg="gray.800"
+                  color={textColor}
+                >
+                  <Heading size="lg" mb={4} color={textColor}>
+                    Financial Summaries
+                  </Heading>
+                  <WeeklySummary weeklyTotals={weeklyTotals} />
+                  <MonthlySummary monthlyTotals={monthlyTotals} />
+                  <YearlySummary yearlyTotals={yearlyTotals} />
+                </Box>
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
         )}
-        <ExpenseHighlights
-          allWeeks={weeklyTotals}
-          allMonths={monthlyTotals}
-          allYears={yearlyTotals} // Add this line to pass the yearly data
-          weeklyThresholds={weeklyThresholds}
-          thresholds={thresholds}
-          getCategoryWarnings={getCategoryWarnings}
-        />
       </VStack>
     </ChakraProvider>
   );

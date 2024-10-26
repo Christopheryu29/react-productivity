@@ -76,25 +76,10 @@ export default defineSchema({
     medianFamilyIncome: v.number(), // You can dynamically calculate or update this as needed
   }).index("by_user", ["userId"]),
 
-  periodic: defineTable({
+  target: defineTable({
     userId: v.string(), // Unique identifier for the user
-    periodType: v.string(), // 'weekly' or 'monthly'
-    periodLabel: v.string(), // E.g., 'Week 35 2024' or 'August 2024'
-    totalIncome: v.number(), // Total income for the period
-    totalExpenses: v.number(), // Total expenses for the period
-    incomeByCategory: v.object({
-      medianFamilyIncome: v.number(),
-    }), // Income breakdown by category
-    expensesByCategory: v.object({
-      housingCost: v.number(),
-      foodCost: v.number(),
-      transportationCost: v.number(),
-      healthcareCost: v.number(),
-      otherNecessitiesCost: v.number(),
-      childcareCost: v.number(),
-      taxes: v.number(),
-    }), // Expenses breakdown by category
-    startDate: v.string(), // Start date of the period (ISO format)
-    endDate: v.string(), // End date of the period (ISO format)
-  }).index("by_user_and_period", ["userId", "periodType", "periodLabel"]),
+    targetAmount: v.number(), // The user's target savings for the year
+    year: v.number(), // The year for which the target applies
+    createdAt: v.string(), // ISO date when the target was created
+  }).index("by_user", ["userId"]),
 });
