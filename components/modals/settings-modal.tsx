@@ -25,7 +25,7 @@ export const SettingsModal = () => {
               Appearance
             </Label>
             <span className="text-sm text-muted-foreground dark:text-gray-400">
-              Customize how Jotion looks on your device
+              Customize how Jift looks on your device
             </span>
           </div>
           <ModeToggle />

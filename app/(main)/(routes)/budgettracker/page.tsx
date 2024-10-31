@@ -180,7 +180,6 @@ const BudgetTrackerPage: React.FC = () => {
   const saveHousehold = async (numAdults: number, numChildren: number) => {
     try {
       await setHouseholdMutation({
-        userId,
         numAdults,
         numChildren,
       });
@@ -545,9 +544,7 @@ const BudgetTrackerPage: React.FC = () => {
 
   const userId = "your-user-id"; // This should be dynamically obtained from your auth context
 
-  const householdData = useQuery(api.household.getHouseholdByUserId, {
-    userId,
-  });
+  const householdData = useQuery(api.household.getHouseholdByUserId);
 
   useEffect(() => {
     if (householdData) {

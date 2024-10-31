@@ -37,6 +37,7 @@ import FinancialHealthHeader from "./components/FinancialHealthHeader";
 import ExpenseHighlights from "./components/ExpenseHighlights";
 import YearlySummary from "../budgettracker/components/YearlySummary";
 import SavingsTargetPrediction from "./components/SavingsTargetPrediction";
+import MonthlyPrediction from "./components/MonthlyPrediction";
 
 type Tensor = tf.Tensor;
 type Sequential = tf.Sequential;
@@ -324,9 +325,7 @@ const FinancialHealthComponent = () => {
   const toast = useToast();
   const userId = "your-user-id"; // Replace with actual userId
 
-  const householdData = useQuery(api.household.getHouseholdByUserId, {
-    userId,
-  });
+  const householdData = useQuery(api.household.getHouseholdByUserId);
 
   const [model, setModel] = useState<Sequential | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -336,19 +335,6 @@ const FinancialHealthComponent = () => {
   const [financialHealth, setFinancialHealth] = useState("");
   const [expenseSuggestions, setExpenseSuggestions] = useState("");
   const [financialAdvice, setFinancialAdvice] = useState("");
-
-  // Find the week and month with the highest expenses
-  const maxExpenseWeek = findMaxExpensePeriod(weeklyTotals);
-  const maxExpenseMonth = findMaxExpensePeriod(monthlyTotals);
-
-  // Get suggestions based on the highest expense categories
-  const weeklyExpenseSuggestion = maxExpenseWeek.expensesByCategory
-    ? evaluateHighExpenses(maxExpenseWeek)
-    : "";
-
-  const monthlyExpenseSuggestion = maxExpenseMonth.expensesByCategory
-    ? evaluateHighExpenses(maxExpenseMonth)
-    : "";
 
   useEffect(() => {
     if (fetchExpenses) {
@@ -680,6 +666,9 @@ const FinancialHealthComponent = () => {
                 Financial Health Prediction
               </Tab>
               <Tab _selected={{ color: "teal.300", bg: "gray.800" }}>
+                Monthly Predictions
+              </Tab>
+              <Tab _selected={{ color: "teal.300", bg: "gray.800" }}>
                 Savings Target
               </Tab>
               <Tab _selected={{ color: "teal.300", bg: "gray.800" }}>
@@ -763,6 +752,21 @@ const FinancialHealthComponent = () => {
                 </Box>
               </TabPanel>
               {/* Savings Target Prediction Panel */}
+              <TabPanel>
+                <Box
+                  shadow="md"
+                  p={6}
+                  borderRadius="md"
+                  bg="gray.800"
+                  color={textColor}
+                >
+                  <Heading size="lg" mb={4} color={textColor}>
+                    Predict Next Month’s Income and Expenses
+                  </Heading>
+                  <MonthlyPrediction />
+                </Box>
+              </TabPanel>
+
               <TabPanel>
                 <Box
                   shadow="md"

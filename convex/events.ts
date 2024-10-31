@@ -2,10 +2,10 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
+// Mutation to add an event
 export const addEvent = mutation({
   args: {
     title: v.string(),
-    userId: v.string(),
     startDate: v.string(),
     endDate: v.string(),
     description: v.optional(v.string()),
@@ -15,17 +15,16 @@ export const addEvent = mutation({
   },
   handler: async (
     ctx,
-    {
-      title,
-      userId,
-      startDate,
-      endDate,
-      description,
-      isAllDay,
-      color,
-      recurringDay,
-    }
+    { title, startDate, endDate, description, isAllDay, color, recurringDay }
   ) => {
+    // Get the authenticated user's identity
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+    const userId = identity.subject;
+
+    // Insert the event with the authenticated userId
     return await ctx.db.insert("events", {
       title,
       userId,
@@ -40,13 +39,22 @@ export const addEvent = mutation({
   },
 });
 
+// Query to get events within a specified date range for the logged-in user
 export const getEventsForDateRange = query({
   args: { startDate: v.string(), endDate: v.string() },
   handler: async (ctx, { startDate, endDate }) => {
+    // Get the authenticated user's identity
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+    const userId = identity.subject;
+
     return await ctx.db
       .query("events")
       .filter((q) =>
         q.and(
+          q.eq(q.field("userId"), userId),
           q.gte(q.field("startDate"), startDate),
           q.lte(q.field("endDate"), endDate)
         )
@@ -55,6 +63,7 @@ export const getEventsForDateRange = query({
   },
 });
 
+// Mutation to toggle event completion
 export const toggleCompletion = mutation({
   args: {
     eventId: v.id("events"),
@@ -65,6 +74,7 @@ export const toggleCompletion = mutation({
   },
 });
 
+// Mutation to delete an event
 export const deleteEvent = mutation({
   args: {
     eventId: v.id("events"),

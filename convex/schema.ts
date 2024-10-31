@@ -36,25 +36,30 @@ export default defineSchema({
     .index("by_date_range", ["startDate", "endDate"])
     .index("by_user_and_date", ["userId", "startDate"]),
 
+  // Schema definition in your schema file
   expenses: defineTable({
     id: v.number(), // Use number for unique identifier
+    userId: v.string(), // Add userId field to associate each entry with a specific user
     amount: v.number(),
     type: v.string(), // 'income' or 'expense'
     date: v.string(), // ISO date string
     category: v.string(),
   })
+    .index("by_user_and_date", ["userId", "date"]) // Add index on userId for efficient querying
     .index("by_type_and_date", ["type", "date"])
     .index("by_category_and_date", ["category", "date"]),
 
   task: defineTable({
-    id: v.string(), // Task ID as a string to match the provided example
+    id: v.string(), // Task ID as a string
+    userId: v.string(), // Add userId to link task to a specific user
     title: v.string(),
     status: v.string(), // 'in progress', 'completed', etc.
     label: v.string(), // 'documentation', 'urgent', etc.
     priority: v.string(), // 'low', 'medium', 'high'
   })
     .index("by_status", ["status"])
-    .index("by_priority", ["priority"]),
+    .index("by_priority", ["priority"])
+    .index("by_user", ["userId"]),
 
   household: defineTable({
     userId: v.string(), // Unique identifier for the user

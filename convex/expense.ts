@@ -10,11 +10,19 @@ export const createExpense = mutation({
     category: v.string(),
   },
   handler: async (ctx, args) => {
-    // Generate a unique ID for the expense
-    const newExpenseId = Date.now(); // Consider a more robust ID strategy if needed
+    const identity = await ctx.auth.getUserIdentity(); // Retrieve user identity
 
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const userId = identity.subject; // Get the user ID from the authenticated user
+    const newExpenseId = Date.now(); // Generate a unique ID for the expense
+
+    // Insert the expense with the userId included
     return await ctx.db.insert("expenses", {
       id: newExpenseId,
+      userId, // Add userId here
       amount: args.amount,
       type: args.type,
       date: args.date,
@@ -23,33 +31,53 @@ export const createExpense = mutation({
   },
 });
 
-// Query to get all expenses
+// Query to get all expenses for the authenticated user
 export const getExpenses = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db.query("expenses").collect();
+    const identity = await ctx.auth.getUserIdentity();
+
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const userId = identity.subject;
+
+    return await ctx.db
+      .query("expenses")
+      .filter((q) => q.eq(q.field("userId"), userId)) // Filter by userId
+      .collect();
   },
 });
 
-// Mutation to delete an expense by ID
+// Mutation to delete an expense by ID for the authenticated user
 export const deleteExpense = mutation({
   args: { id: v.number() },
   handler: async (ctx, args) => {
-    // Ensure the ID is valid and check if the expense exists
+    const identity = await ctx.auth.getUserIdentity();
+
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const userId = identity.subject;
+
     const expense = await ctx.db
       .query("expenses")
-      .filter((q) => q.eq(q.field("id"), args.id))
+      .filter((q) =>
+        q.and(q.eq(q.field("id"), args.id), q.eq(q.field("userId"), userId))
+      )
       .first();
 
     if (!expense) {
       throw new Error("Expense not found");
     }
 
-    return await ctx.db.delete(expense._id); // Use _id from the result to delete
+    return await ctx.db.delete(expense._id);
   },
 });
 
-// Mutation to update an expense
+// Mutation to update an expense for the authenticated user
 export const updateExpense = mutation({
   args: {
     id: v.number(),
@@ -57,10 +85,19 @@ export const updateExpense = mutation({
     category: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // Verify if the expense exists
+    const identity = await ctx.auth.getUserIdentity();
+
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const userId = identity.subject;
+
     const expense = await ctx.db
       .query("expenses")
-      .filter((q) => q.eq(q.field("id"), args.id))
+      .filter((q) =>
+        q.and(q.eq(q.field("id"), args.id), q.eq(q.field("userId"), userId))
+      )
       .first();
 
     if (!expense) {

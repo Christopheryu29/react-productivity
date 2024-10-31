@@ -1,5 +1,3 @@
-// components/HouseholdForm.tsx
-
 import React, { useState, useEffect } from "react";
 import {
   VStack,
@@ -13,7 +11,7 @@ import {
 interface HouseholdFormProps {
   numAdults: number;
   numChildren: number;
-  onSaveHousehold: (numAdults: number, numChildren: number) => void;
+  onSaveHousehold: (numAdults: number, numChildren: number) => Promise<void>;
 }
 
 const HouseholdForm: React.FC<HouseholdFormProps> = ({
@@ -21,25 +19,35 @@ const HouseholdForm: React.FC<HouseholdFormProps> = ({
   numChildren: initialNumChildren,
   onSaveHousehold,
 }) => {
+  const toast = useToast();
   const [numAdults, setNumAdults] = useState<number>(initialNumAdults);
   const [numChildren, setNumChildren] = useState<number>(initialNumChildren);
-  const toast = useToast();
 
   useEffect(() => {
     setNumAdults(initialNumAdults);
     setNumChildren(initialNumChildren);
   }, [initialNumAdults, initialNumChildren]);
 
-  const handleSave = () => {
-    onSaveHousehold(numAdults, numChildren);
-    toast({
-      title: "Household Information Saved",
-      description:
-        "The number of adults and children has been updated successfully.",
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-    });
+  const handleSave = async () => {
+    try {
+      await onSaveHousehold(numAdults, numChildren);
+      toast({
+        title: "Household Information Saved",
+        description:
+          "The number of adults and children has been updated successfully.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      toast({
+        title: "Error Saving Data",
+        description: "There was an error saving your household information.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
   return (

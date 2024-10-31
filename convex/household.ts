@@ -4,16 +4,25 @@ import { v } from "convex/values";
 // Mutation to set the household data
 export const setHousehold = mutation({
   args: {
-    userId: v.string(),
     numAdults: v.number(),
     numChildren: v.number(),
   },
-  handler: async (ctx, { userId, numAdults, numChildren }) => {
+  handler: async (ctx, { numAdults, numChildren }) => {
+    // Get the authenticated user's identity
+    const identity = await ctx.auth.getUserIdentity();
+
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const userId = identity.subject;
+
     // Check if there's an existing entry for the user
     const existing = await ctx.db
       .query("household")
       .filter((q) => q.eq(q.field("userId"), userId))
       .first();
+
     if (existing) {
       // Update existing entry
       return await ctx.db.patch(existing._id, {
@@ -35,10 +44,16 @@ export const setHousehold = mutation({
 
 // Query to get household data by user ID
 export const getHouseholdByUserId = query({
-  args: {
-    userId: v.string(),
-  },
-  handler: async (ctx, { userId }) => {
+  handler: async (ctx) => {
+    // Get the authenticated user's identity
+    const identity = await ctx.auth.getUserIdentity();
+
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const userId = identity.subject;
+
     return await ctx.db
       .query("household")
       .filter((q) => q.eq(q.field("userId"), userId))

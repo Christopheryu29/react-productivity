@@ -27,11 +27,13 @@ import {
   ModalFooter,
   ModalBody,
   ModalCloseButton,
-  chakra,
   Checkbox,
+  IconButton,
 } from "@chakra-ui/react";
 import { SketchPicker, ColorResult } from "react-color";
+import { DeleteIcon } from "@chakra-ui/icons";
 import TodayEventCount from "./components/TodayEventCount";
+import { Id } from "@/convex/_generated/dataModel";
 
 const CalendarPage = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -40,39 +42,27 @@ const CalendarPage = () => {
   );
   const [endTime, setEndTime] = useState<Date>(
     new Date(selectedDate.getTime() + 3600000)
-  ); // One hour later as default end time
+  );
   const [eventTitle, setEventTitle] = useState<string>("");
   const [eventDescription, setEventDescription] = useState<string>("");
   const [eventColor, setEventColor] = useState<string>("#000000");
   const [isRecurring, setIsRecurring] = useState<boolean>(false);
+  const [selectedEventId, setSelectedEventId] = useState<Id<"events"> | null>(
+    null
+  );
   const toast = useToast();
-  const { isOpen, onOpen, onClose } = useDisclosure();
 
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const {
     isOpen: isColorPickerOpen,
     onOpen: onOpenColorPicker,
     onClose: onCloseColorPicker,
   } = useDisclosure();
-
-  const handleDateChange = (date: Date | null) => {
-    if (date) {
-      setSelectedDate(date);
-      setStartTime(new Date(date.getTime()));
-      setEndTime(new Date(date.getTime() + 3600000)); // Set default end time 1 hour after selected start time
-    }
-  };
-
-  const handleStartTimeChange = (time: Date | null) => {
-    if (time) {
-      setStartTime(time);
-    }
-  };
-
-  const handleEndTimeChange = (time: Date | null) => {
-    if (time) {
-      setEndTime(time);
-    }
-  };
+  const {
+    isOpen: isDeleteModalOpen,
+    onOpen: onOpenDeleteModal,
+    onClose: onCloseDeleteModal,
+  } = useDisclosure();
 
   const events = useQuery(api.events.getEventsForDateRange, {
     startDate: format(
@@ -85,13 +75,101 @@ const CalendarPage = () => {
     ),
   });
 
-  const addEvent = useMutation(api.events.addEvent);
-
-  const handleColorChangeComplete = (color: ColorResult) => {
-    setEventColor(color.hex);
+  const handleDateChange = (date: Date | null) => {
+    if (date) {
+      setSelectedDate(date);
+      setStartTime(new Date(date.getTime()));
+      setEndTime(new Date(date.getTime() + 3600000)); // Default end time 1 hour after start
+    }
   };
 
-  const ChakraDatePicker = chakra(DatePicker);
+  const handleStartTimeChange = (time: Date | null) => {
+    if (time) setStartTime(time);
+  };
+
+  const handleEndTimeChange = (time: Date | null) => {
+    if (time) setEndTime(time);
+  };
+
+  const handleColorChangeComplete = (color: ColorResult) =>
+    setEventColor(color.hex);
+
+  const addEvent = useMutation(api.events.addEvent);
+  const deleteEvent = useMutation(api.events.deleteEvent);
+
+  const handleAddEvent = async () => {
+    if (!eventTitle || !selectedDate || !startTime || !endTime) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields.",
+        status: "error",
+        duration: 2000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    const event = {
+      title: eventTitle,
+      startDate: format(startTime, "yyyy-MM-dd'T'HH:mm:ssXXX"),
+      endDate: format(endTime, "yyyy-MM-dd'T'HH:mm:ssXXX"),
+      description: eventDescription,
+      color: eventColor,
+      isAllDay: false,
+      recurringDay: isRecurring ? format(selectedDate, "EEEE") : undefined,
+    };
+
+    try {
+      await addEvent(event);
+      setEventTitle("");
+      setEventDescription("");
+      setIsRecurring(false);
+      setSelectedDate(new Date());
+      setStartTime(new Date());
+      setEndTime(new Date(new Date().getTime() + 3600000));
+      toast({
+        title: "Event added",
+        description: "Your event has been successfully added.",
+        status: "success",
+        duration: 2000,
+        isClosable: true,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "There was an error adding the event.",
+        status: "error",
+        duration: 2000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const handleDeleteEvent = async () => {
+    if (selectedEventId) {
+      try {
+        await deleteEvent({ eventId: selectedEventId });
+        toast({
+          title: "Event deleted",
+          description: "The event has been successfully deleted.",
+          status: "success",
+          duration: 2000,
+          isClosable: true,
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "There was an error deleting the event.",
+          status: "error",
+          duration: 2000,
+          isClosable: true,
+        });
+      } finally {
+        setSelectedEventId(null);
+        onCloseDeleteModal();
+      }
+    }
+  };
 
   const calculateGridRowSpan = (startDate: Date, endDate: Date) => {
     const totalMinutes = differenceInMinutes(endDate, startDate);
@@ -137,70 +215,7 @@ const CalendarPage = () => {
     return [];
   });
 
-  const handleAddEvent = async () => {
-    if (!eventTitle || !selectedDate || !startTime || !endTime) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields.",
-        status: "error",
-        duration: 2000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    const event = {
-      title: eventTitle,
-      userId: "your-user-id",
-      startDate: format(startTime, "yyyy-MM-dd'T'HH:mm:ssXXX"),
-      endDate: format(endTime, "yyyy-MM-dd'T'HH:mm:ssXXX"),
-      description: eventDescription,
-      color: eventColor,
-      isAllDay: false,
-      recurringDay: isRecurring ? format(selectedDate, "EEEE") : undefined,
-    };
-
-    try {
-      await addEvent(event);
-      setEventTitle("");
-      setEventDescription("");
-      setIsRecurring(false);
-      setSelectedDate(new Date());
-      setStartTime(new Date());
-      setEndTime(new Date(new Date().getTime() + 3600000));
-      toast({
-        title: "Event added",
-        description: "Your event has been successfully added.",
-        status: "success",
-        duration: 2000,
-        isClosable: true,
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "There was an error adding the event.",
-        status: "error",
-        duration: 2000,
-        isClosable: true,
-      });
-    }
-  };
-
-  const earliestEventTime = filteredEvents?.length
-    ? Math.min(
-        ...filteredEvents.map((event) => new Date(event.startDate).getHours())
-      )
-    : 0;
-  const latestEventTime = filteredEvents?.length
-    ? Math.max(
-        ...filteredEvents.map((event) => new Date(event.endDate).getHours())
-      )
-    : 24;
-
-  const displayHours = Array.from(
-    { length: latestEventTime - earliestEventTime + 1 },
-    (_, i) => i + earliestEventTime
-  );
+  const displayHours = Array.from({ length: 24 }, (_, i) => i);
 
   return (
     <Box
@@ -224,54 +239,32 @@ const CalendarPage = () => {
           direction={{ base: "column", md: "row" }}
           justifyContent="center"
           align="center"
-          gap="5" // Adjust the gap if needed to make the spacing better
-          wrap="wrap" // Ensure it wraps properly when there's not enough space
+          gap="5"
+          wrap="wrap"
         >
           <Box>
             <Heading size="md" textAlign="center" mb="3" color="teal.300">
               Select Date
             </Heading>
-            <ChakraDatePicker
+            <DatePicker
               selected={selectedDate}
               onChange={handleDateChange}
               inline
-              sx={{
-                ".react-datepicker": {
-                  backgroundColor: "gray.700",
-                  borderRadius: "lg",
-                  color: "white",
-                  padding: "8px",
-                },
-                ".react-datepicker__header": {
-                  backgroundColor: "gray.600",
-                  borderBottom: "none",
-                },
-                ".react-datepicker__day-name, .react-datepicker__day, .react-datepicker__time-name":
-                  {
-                    color: "white",
-                  },
-                ".react-datepicker__current-month": {
-                  color: "white",
-                },
-              }}
+              calendarClassName="react-datepicker-custom"
             />
           </Box>
 
           <Flex
-            direction={{ base: "row", md: "row" }} // Force horizontal alignment on all screen sizes
-            gap="5" // You can adjust the gap as needed for better spacing
-            justifyContent="space-between" // Spread the items across the available space
-            wrap="wrap" // Ensure wrapping occurs if there's not enough space
+            direction="row"
+            gap="5"
+            justifyContent="space-between"
+            wrap="wrap"
           >
-            <Box
-              textAlign="center"
-              flex="1" // Ensure both boxes have equal width
-              minW="140px" // Set a minimum width for mobile screens
-            >
+            <Box textAlign="center" flex="1" minW="140px">
               <Heading size="md" mb="2" color="teal.300">
                 Start Time
               </Heading>
-              <ChakraDatePicker
+              <DatePicker
                 selected={startTime}
                 onChange={handleStartTimeChange}
                 showTimeSelect
@@ -280,31 +273,15 @@ const CalendarPage = () => {
                 timeCaption="Time"
                 dateFormat="h:mm aa"
                 inline
-                sx={{
-                  ".react-datepicker": {
-                    backgroundColor: "gray.700",
-                    color: "white",
-                    borderRadius: "lg",
-                  },
-                  ".react-datepicker__header": {
-                    backgroundColor: "gray.600",
-                  },
-                  ".react-datepicker__time-list-item": {
-                    color: "white",
-                  },
-                }}
+                calendarClassName="react-datepicker-custom"
               />
             </Box>
 
-            <Box
-              textAlign="center"
-              flex="1" // Ensure both boxes have equal width
-              minW="140px" // Set a minimum width for mobile screens
-            >
+            <Box textAlign="center" flex="1" minW="140px">
               <Heading size="md" mb="2" color="teal.300">
                 End Time
               </Heading>
-              <ChakraDatePicker
+              <DatePicker
                 selected={endTime}
                 onChange={handleEndTimeChange}
                 showTimeSelect
@@ -313,19 +290,7 @@ const CalendarPage = () => {
                 timeCaption="Time"
                 dateFormat="h:mm aa"
                 inline
-                sx={{
-                  ".react-datepicker": {
-                    backgroundColor: "gray.700",
-                    color: "white",
-                    borderRadius: "lg",
-                  },
-                  ".react-datepicker__header": {
-                    backgroundColor: "gray.600",
-                  },
-                  ".react-datepicker__time-list-item": {
-                    color: "white",
-                  },
-                }}
+                calendarClassName="react-datepicker-custom"
               />
             </Box>
           </Flex>
@@ -413,7 +378,7 @@ const CalendarPage = () => {
         <TodayEventCount selectedDate={selectedDate} />
 
         <Grid
-          templateRows={`repeat(${displayHours.length * 2}, 1fr)`} // Double the rows for 30-min intervals
+          templateRows={`repeat(${displayHours.length * 2}, 1fr)`}
           templateColumns="1fr"
           gap={2}
           w="100%"
@@ -422,28 +387,21 @@ const CalendarPage = () => {
           borderRadius="lg"
           boxShadow="2xl"
           bg="gray.700"
-          justifyContent="center"
         >
-          {displayHours.map((hour) => {
-            const period = hour >= 12 ? "PM" : "AM";
-            const displayHour = hour % 12 === 0 ? 12 : hour % 12;
-
-            return (
-              <GridItem
-                key={hour}
-                rowSpan={2}
-                p={3}
-                borderRadius="md"
-                bg="gray.600"
-                color="white"
-                transition="background-color 0.2s"
-              >
-                <Text fontWeight="bold">
-                  {displayHour}:00 {period}
-                </Text>
-              </GridItem>
-            );
-          })}
+          {displayHours.map((hour) => (
+            <GridItem
+              key={hour}
+              rowSpan={2}
+              p={3}
+              borderRadius="md"
+              bg="gray.600"
+              color="white"
+            >
+              <Text fontWeight="bold">
+                {hour % 12 === 0 ? 12 : hour % 12}:00 {hour >= 12 ? "PM" : "AM"}
+              </Text>
+            </GridItem>
+          ))}
 
           {filteredEvents &&
             filteredEvents.length > 0 &&
@@ -455,11 +413,13 @@ const CalendarPage = () => {
 
               return (
                 <GridItem
-                  key={event._id}
-                  rowStart={rowStart}
-                  rowSpan={rowSpan}
+                  key={event._id.toString()}
+                  rowStart={calculateRowStart(new Date(event.startDate))}
+                  rowSpan={calculateGridRowSpan(
+                    new Date(event.startDate),
+                    new Date(event.endDate)
+                  )}
                   colSpan={1}
-                  justifyContent="center"
                   bg={event.color || "#3182CE"}
                   color="white"
                   p={3}
@@ -474,13 +434,45 @@ const CalendarPage = () => {
                     {event.title}
                   </Heading>
                   <Text>
-                    {format(startTime, "p")} - {format(endTime, "p")}
+                    {format(new Date(event.startDate), "p")} -{" "}
+                    {format(new Date(event.endDate), "p")}
                   </Text>
                   <Text mt={2}>{event.description || "No description"}</Text>
+                  <IconButton
+                    aria-label="Delete Event"
+                    icon={<DeleteIcon />}
+                    colorScheme="red"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedEventId(event._id as Id<"events">);
+                      onOpenDeleteModal();
+                    }}
+                  />
                 </GridItem>
               );
             })}
         </Grid>
+
+        <Modal isOpen={isDeleteModalOpen} onClose={onCloseDeleteModal}>
+          <ModalOverlay />
+          <ModalContent bg="gray.800">
+            <ModalHeader color="white">Confirm Delete</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <Text color="white">
+                Are you sure you want to delete this event?
+              </Text>
+            </ModalBody>
+            <ModalFooter>
+              <Button colorScheme="red" mr={3} onClick={handleDeleteEvent}>
+                Delete
+              </Button>
+              <Button variant="ghost" onClick={onCloseDeleteModal}>
+                Cancel
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
       </VStack>
     </Box>
   );

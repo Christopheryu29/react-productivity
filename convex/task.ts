@@ -1,7 +1,8 @@
-// convex/tasks.ts
+// convex/task.ts
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
+// Mutation to create a new task with userId
 export const createTask = mutation({
   args: {
     id: v.string(),
@@ -15,8 +16,13 @@ export const createTask = mutation({
     if (!identity) {
       throw new Error("Not authenticated");
     }
+
+    const userId = identity.subject; // Retrieve userId from authenticated identity
+
+    // Insert the task with userId included
     return await ctx.db.insert("task", {
       id: args.id,
+      userId, // Add userId to associate the task with the user
       title: args.title,
       status: args.status,
       label: args.label,
@@ -25,13 +31,26 @@ export const createTask = mutation({
   },
 });
 
+// Query to get tasks specific to the authenticated user
 export const getTasks = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db.query("task").collect();
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const userId = identity.subject; // Retrieve userId
+
+    // Fetch tasks that belong to the authenticated user
+    return await ctx.db
+      .query("task")
+      .filter((q) => q.eq(q.field("userId"), userId))
+      .collect();
   },
 });
 
+// Mutation to update a task's status
 export const updateTaskStatus = mutation({
   args: { id: v.id("task"), status: v.string() },
   handler: async (ctx, args) => {
@@ -41,6 +60,7 @@ export const updateTaskStatus = mutation({
   },
 });
 
+// Mutation to delete a task by ID
 export const deleteTask = mutation({
   args: {
     id: v.id("task"), // Convex's Id<"task"> type
@@ -58,6 +78,7 @@ export const deleteTask = mutation({
   },
 });
 
+// Mutation to update a task with userId as a context
 export const updateTask = mutation({
   args: {
     id: v.id("task"), // Convex ID for the task
