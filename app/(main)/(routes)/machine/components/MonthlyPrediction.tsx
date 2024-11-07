@@ -1,31 +1,52 @@
 // machine/components/MonthlyPrediction.tsx
 import React, { useEffect, useState, useCallback } from "react";
-import { VStack, Text, Button, Spinner, Heading } from "@chakra-ui/react";
+import {
+  VStack,
+  Text,
+  Button,
+  Spinner,
+  Heading,
+  Box,
+  HStack,
+  Icon,
+} from "@chakra-ui/react";
 import * as tf from "@tensorflow/tfjs";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import {
+  FaDollarSign,
+  FaChartLine,
+  FaRedo,
+  FaExclamationTriangle,
+} from "react-icons/fa";
 
 interface MonthlyData {
   date: string;
   income: number;
   expenses: number;
+  expensesByCategory: Record<string, number>;
 }
+
+const SEQUENCE_LENGTH = 6;
 
 const MonthlyPrediction: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [incomeModel, setIncomeModel] = useState<tf.LayersModel | null>(null);
-  const [expenseModel, setExpenseModel] = useState<tf.LayersModel | null>(null);
+  const [expenseModels, setExpenseModels] = useState<
+    Record<string, tf.LayersModel>
+  >({});
   const [predictedIncome, setPredictedIncome] = useState<number | null>(null);
-  const [predictedExpenses, setPredictedExpenses] = useState<number | null>(
-    null
-  );
+  const [predictedExpenses, setPredictedExpenses] = useState<
+    Record<string, number | null>
+  >({});
+  const [totalPredictedExpenses, setTotalPredictedExpenses] = useState<
+    number | null
+  >(null);
   const expenses = useQuery(api.expense.getExpenses);
-
-  const SEQUENCE_LENGTH = 6; // Using last 6 months data for prediction
 
   const prepareMonthlyData = (
     expenses: any[]
-  ): { income: number[]; expenses: number[] } => {
+  ): { income: number[]; expensesByCategory: Record<string, number[]> } => {
     const monthlyData: MonthlyData[] = [];
 
     expenses.forEach((expense) => {
@@ -40,22 +61,37 @@ const MonthlyPrediction: React.FC = () => {
           date: monthYear,
           income: expense.type === "income" ? expense.amount : 0,
           expenses: expense.type === "expense" ? expense.amount : 0,
+          expensesByCategory:
+            expense.type === "expense"
+              ? { [expense.category]: expense.amount }
+              : {},
         });
       } else {
         if (expense.type === "income") {
           monthlyData[dataIndex].income += expense.amount;
         } else {
           monthlyData[dataIndex].expenses += expense.amount;
+          monthlyData[dataIndex].expensesByCategory[expense.category] =
+            (monthlyData[dataIndex].expensesByCategory[expense.category] || 0) +
+            expense.amount;
         }
       }
     });
 
-    console.log("Debug - Monthly Data:", monthlyData);
+    const income = monthlyData.map((data) => data.income);
+    const expensesByCategory: Record<string, number[]> = {};
+    monthlyData.forEach((data) => {
+      for (const [category, amount] of Object.entries(
+        data.expensesByCategory
+      )) {
+        if (!expensesByCategory[category]) {
+          expensesByCategory[category] = Array(monthlyData.length).fill(0);
+        }
+        expensesByCategory[category][monthlyData.indexOf(data)] = amount;
+      }
+    });
 
-    return {
-      income: monthlyData.map((data) => data.income),
-      expenses: monthlyData.map((data) => data.expenses),
-    };
+    return { income, expensesByCategory };
   };
 
   const createSequences = (data: number[], sequenceLength: number) => {
@@ -78,53 +114,22 @@ const MonthlyPrediction: React.FC = () => {
     setIsLoading(true);
 
     if (expenses) {
-      const { income, expenses: expenseValues } = prepareMonthlyData(expenses);
+      const { income, expensesByCategory } = prepareMonthlyData(expenses);
 
       const incomeMin = Math.min(...income);
       const incomeMax = Math.max(...income);
-      const expenseMin = Math.min(...expenseValues);
-      const expenseMax = Math.max(...expenseValues);
-
-      console.log("Debug - Income Min:", incomeMin, "Income Max:", incomeMax);
-      console.log(
-        "Debug - Expense Min:",
-        expenseMin,
-        "Expense Max:",
-        expenseMax
-      );
-
-      const normalizedIncome = normalizeData(income, incomeMin, incomeMax);
-      const normalizedExpenses = normalizeData(
-        expenseValues,
-        expenseMin,
-        expenseMax
-      );
 
       const incomeSequences = createSequences(
-        normalizedIncome,
+        normalizeData(income, incomeMin, incomeMax),
         SEQUENCE_LENGTH
       );
-      const expenseSequences = createSequences(
-        normalizedExpenses,
-        SEQUENCE_LENGTH
-      );
-
       const inputIncome = incomeSequences.map((seq) =>
         seq.slice(0, SEQUENCE_LENGTH)
       );
       const outputIncome = incomeSequences.map((seq) => seq[SEQUENCE_LENGTH]);
 
-      const inputExpenses = expenseSequences.map((seq) =>
-        seq.slice(0, SEQUENCE_LENGTH)
-      );
-      const outputExpenses = expenseSequences.map(
-        (seq) => seq[SEQUENCE_LENGTH]
-      );
-
       const incomeTensor = tf.tensor2d(inputIncome);
       const incomeLabels = tf.tensor1d(outputIncome);
-      const expenseTensor = tf.tensor2d(inputExpenses);
-      const expenseLabels = tf.tensor1d(outputExpenses);
 
       const createDenseModel = () => {
         const model = tf.sequential();
@@ -135,7 +140,7 @@ const MonthlyPrediction: React.FC = () => {
             activation: "relu",
           })
         );
-        model.add(tf.layers.dropout({ rate: 0.2 })); // Dropout to prevent overfitting
+        model.add(tf.layers.dropout({ rate: 0.2 }));
         model.add(tf.layers.dense({ units: 20, activation: "relu" }));
         model.add(tf.layers.dense({ units: 1 }));
         model.compile({
@@ -144,9 +149,6 @@ const MonthlyPrediction: React.FC = () => {
         });
         return model;
       };
-
-      const incomeModel = createDenseModel();
-      const expenseModel = createDenseModel();
 
       const trainModel = async (
         model: tf.LayersModel,
@@ -164,16 +166,47 @@ const MonthlyPrediction: React.FC = () => {
         });
       };
 
+      const incomeModel = createDenseModel();
       await trainModel(incomeModel, incomeTensor, incomeLabels);
-      await trainModel(expenseModel, expenseTensor, expenseLabels);
+
+      const trainedExpenseModels: Record<string, tf.LayersModel> = {};
+      for (const [category, values] of Object.entries(expensesByCategory)) {
+        const categoryMin = Math.min(...values);
+        const categoryMax = Math.max(...values);
+
+        const normalizedValues = normalizeData(
+          values,
+          categoryMin,
+          categoryMax
+        );
+        const categorySequences = createSequences(
+          normalizedValues,
+          SEQUENCE_LENGTH
+        );
+        const inputCategory = categorySequences.map((seq) =>
+          seq.slice(0, SEQUENCE_LENGTH)
+        );
+        const outputCategory = categorySequences.map(
+          (seq) => seq[SEQUENCE_LENGTH]
+        );
+
+        const expenseTensor = tf.tensor2d(inputCategory);
+        const expenseLabels = tf.tensor1d(outputCategory);
+
+        const expenseModel = createDenseModel();
+        await trainModel(expenseModel, expenseTensor, expenseLabels);
+
+        trainedExpenseModels[category] = expenseModel;
+
+        expenseTensor.dispose();
+        expenseLabels.dispose();
+      }
 
       setIncomeModel(incomeModel);
-      setExpenseModel(expenseModel);
+      setExpenseModels(trainedExpenseModels);
 
       incomeTensor.dispose();
       incomeLabels.dispose();
-      expenseTensor.dispose();
-      expenseLabels.dispose();
     }
     setIsLoading(false);
   }, [expenses]);
@@ -183,76 +216,266 @@ const MonthlyPrediction: React.FC = () => {
   }, [initializeModel]);
 
   const makePrediction = () => {
-    if (!incomeModel || !expenseModel || !expenses) return;
+    if (!incomeModel || Object.keys(expenseModels).length === 0 || !expenses)
+      return;
     setIsLoading(true);
 
-    const { income, expenses: expenseValues } = prepareMonthlyData(expenses);
+    const { income, expensesByCategory } = prepareMonthlyData(expenses);
     const incomeMin = Math.min(...income);
     const incomeMax = Math.max(...income);
-    const expenseMin = Math.min(...expenseValues);
-    const expenseMax = Math.max(...expenseValues);
 
     const lastIncomeSequence = normalizeData(
       income.slice(-SEQUENCE_LENGTH),
       incomeMin,
       incomeMax
     );
-    const lastExpenseSequence = normalizeData(
-      expenseValues.slice(-SEQUENCE_LENGTH),
-      expenseMin,
-      expenseMax
-    );
-
     const incomePredictionTensor = incomeModel.predict(
       tf.tensor2d([lastIncomeSequence])
     ) as tf.Tensor;
-    const expensePredictionTensor = expenseModel.predict(
-      tf.tensor2d([lastExpenseSequence])
-    ) as tf.Tensor;
-
     const incomePrediction = denormalizeValue(
       incomePredictionTensor.dataSync()[0],
       incomeMin,
       incomeMax
     );
-    const expensePrediction = denormalizeValue(
-      expensePredictionTensor.dataSync()[0],
-      expenseMin,
-      expenseMax
-    );
 
-    console.log("Debug - Predicted Income Value:", incomePrediction);
-    console.log("Debug - Predicted Expense Value:", expensePrediction);
+    const categoryPredictions: Record<string, number | null> = {};
+    let totalPrediction = 0;
+
+    for (const [category, model] of Object.entries(expenseModels)) {
+      const values = expensesByCategory[category];
+      const categoryMin = Math.min(...values);
+      const categoryMax = Math.max(...values);
+
+      const lastCategorySequence = normalizeData(
+        values.slice(-SEQUENCE_LENGTH),
+        categoryMin,
+        categoryMax
+      );
+      const categoryPredictionTensor = model.predict(
+        tf.tensor2d([lastCategorySequence])
+      ) as tf.Tensor;
+      const categoryPrediction = denormalizeValue(
+        categoryPredictionTensor.dataSync()[0],
+        categoryMin,
+        categoryMax
+      );
+
+      categoryPredictions[category] = categoryPrediction;
+      totalPrediction += categoryPrediction;
+
+      categoryPredictionTensor.dispose();
+    }
 
     setPredictedIncome(incomePrediction);
-    setPredictedExpenses(expensePrediction);
+    setPredictedExpenses(categoryPredictions);
+    setTotalPredictedExpenses(totalPrediction);
 
     incomePredictionTensor.dispose();
-    expensePredictionTensor.dispose();
     setIsLoading(false);
   };
 
   return (
-    <VStack spacing={4} align="center">
-      <Heading size="md">Next Month’s Predictions</Heading>
-      {isLoading ? (
-        <Spinner size="lg" />
-      ) : (
-        <>
-          <Text color="white">
-            Predicted Income: ${predictedIncome?.toFixed(2)}
-          </Text>
-          <Text color="white">
-            Predicted Expenses: ${predictedExpenses?.toFixed(2)}
-          </Text>
-        </>
-      )}
-      <Button
-        colorScheme="teal"
-        onClick={makePrediction}
-        isDisabled={!incomeModel || !expenseModel}
+    <VStack
+      spacing={6}
+      align="center"
+      p={8}
+      bgGradient="radial-gradient(circle at center, #303030 0%, #34373f 25%, #2f3246 50%, #303030 100%)"
+      rounded="xl"
+      boxShadow="2xl"
+      w="100%"
+      mx="auto"
+    >
+      <Heading
+        size="lg"
+        color="whiteAlpha.900"
+        fontWeight="bold"
+        mb={10}
+        mt={4}
+        textShadow="1px 1px 8px rgba(0, 0, 0, 0.4)"
       >
-        Recalculate Prediction
+        Next Month’s Predictions
+      </Heading>
+
+      {expenses && expenses.length >= SEQUENCE_LENGTH ? (
+        isLoading ? (
+          <Spinner size="xl" color="teal.300" />
+        ) : (
+          <VStack spacing={4} w="100%">
+            <Box
+              w="100%"
+              p={6}
+              bg="transparent"
+              backdropFilter="blur(12px)"
+              border="1px solid rgba(255, 255, 255, 0.2)"
+              borderRadius="2xl"
+              boxShadow="inset 0 1px 2px rgba(255, 255, 255, 0.1), 0 8px 32px rgba(0, 0, 0, 0.4)"
+              transition="transform 0.3s ease, box-shadow 0.3s ease"
+              _hover={{
+                transform: "scale(1.015)",
+                boxShadow: "0 12px 40px rgba(0, 255, 255, 0.4)",
+              }}
+            >
+              <HStack justify="space-between" align="center">
+                <Icon
+                  as={FaDollarSign}
+                  color="teal.300"
+                  boxSize={8}
+                  style={{ filter: "drop-shadow(0px 0px 8px teal)" }}
+                />
+                <Text fontSize="lg" fontWeight="bold" color="whiteAlpha.800">
+                  Predicted Income:
+                </Text>
+                <Text
+                  fontSize="2xl"
+                  fontWeight="extrabold"
+                  color="teal.200"
+                  style={{ filter: "drop-shadow(0px 0px 6px teal)" }}
+                >
+                  ${predictedIncome?.toFixed(2) || "N/A"}
+                </Text>
+              </HStack>
+            </Box>
+
+            <Box
+              w="100%"
+              p={6}
+              mt={4}
+              bg="transparent"
+              backdropFilter="blur(12px)"
+              border="1px solid rgba(255, 255, 255, 0.2)"
+              borderRadius="2xl"
+              boxShadow="inset 0 1px 2px rgba(255, 255, 255, 0.1), 0 8px 32px rgba(0, 0, 0, 0.4)"
+              transition="transform 0.3s ease, box-shadow 0.3s ease"
+              _hover={{
+                transform: "scale(1.015)",
+                boxShadow: "0 12px 40px rgba(255, 165, 0, 0.4)",
+              }}
+            >
+              <HStack justify="space-between" align="center">
+                <Icon
+                  as={FaChartLine}
+                  color="orange.300"
+                  boxSize={8}
+                  style={{ filter: "drop-shadow(0px 0px 8px orange)" }}
+                />
+                <Text fontSize="lg" fontWeight="bold" color="whiteAlpha.800">
+                  Total Predicted Expenses:
+                </Text>
+                <Text
+                  fontSize="2xl"
+                  fontWeight="extrabold"
+                  color="orange.200"
+                  style={{ filter: "drop-shadow(0px 0px 6px orange)" }}
+                >
+                  ${totalPredictedExpenses?.toFixed(2) || "N/A"}
+                </Text>
+              </HStack>
+            </Box>
+
+            {Object.entries(predictedExpenses).map(([category, amount], i) => (
+              <Box
+                key={i}
+                w="100%"
+                p={6}
+                mt={4}
+                bg="transparent"
+                backdropFilter="blur(12px)"
+                border="1px solid rgba(255, 255, 255, 0.2)"
+                borderRadius="2xl"
+                boxShadow="inset 0 1px 2px rgba(255, 255, 255, 0.1), 0 8px 32px rgba(0, 0, 0, 0.4)"
+                transition="transform 0.3s ease, box-shadow 0.3s ease"
+                _hover={{
+                  transform: "scale(1.015)",
+                  boxShadow: "0 12px 40px rgba(255, 69, 69, 0.4)",
+                }}
+              >
+                <HStack justify="space-between" align="center">
+                  <Icon
+                    as={FaChartLine}
+                    color="red.300"
+                    boxSize={8}
+                    style={{ filter: "drop-shadow(0px 0px 8px red)" }}
+                  />
+                  <Text fontSize="lg" fontWeight="bold" color="whiteAlpha.800">
+                    Predicted {category} Expenses:
+                  </Text>
+                  <Text
+                    fontSize="2xl"
+                    fontWeight="extrabold"
+                    color="red.200"
+                    style={{ filter: "drop-shadow(0px 0px 6px red)" }}
+                  >
+                    ${amount?.toFixed(2) || "N/A"}
+                  </Text>
+                </HStack>
+              </Box>
+            ))}
+          </VStack>
+        )
+      ) : (
+        <Box
+          p={6}
+          bg="rgba(245, 158, 11, 0.2)"
+          border="1px solid"
+          borderColor="orange.400"
+          rounded="lg"
+          textAlign="center"
+        >
+          <HStack justify="center" spacing={2}>
+            <Icon as={FaExclamationTriangle} color="orange.400" boxSize={6} />
+            <Text fontSize="lg" fontWeight="bold" color="orange.300">
+              Insufficient Data
+            </Text>
+          </HStack>
+          <Text mt={2} color="orange.200" fontSize="md">
+            Please provide at least {SEQUENCE_LENGTH} months of historical data.
+          </Text>
+        </Box>
+      )}
+
+      <Button
+        size="lg"
+        onClick={makePrediction}
+        isDisabled={!incomeModel || Object.keys(expenseModels).length === 0}
+        mt={10}
+        mb={6}
+        w="100%"
+        rounded="full"
+        fontWeight="bold"
+        transition="all 0.3s ease-in-out"
+        bgGradient="linear(to-r, teal.500, cyan.500, blue.600)"
+        color="white"
+        boxShadow="0px 4px 10px rgba(0, 255, 255, 0.3)"
+        _hover={{
+          bgGradient: "linear(to-r, blue.500, cyan.500, teal.400)",
+          boxShadow: "0px 6px 15px rgba(0, 255, 255, 0.5)",
+          transform: "scale(1.08)",
+        }}
+        _active={{
+          bgGradient: "linear(to-r, cyan.600, teal.500, blue.700)",
+          boxShadow: "0px 4px 8px rgba(0, 255, 255, 0.4)",
+          transform: "scale(0.97)",
+        }}
+        _disabled={{
+          bgGradient: "linear(to-r, gray.400, gray.500)",
+          color: "gray.300",
+          cursor: "not-allowed",
+          opacity: 0.7,
+          boxShadow: "none",
+        }}
+      >
+        <HStack spacing={2}>
+          <Text>Recalculate Prediction</Text>
+          <Icon
+            as={FaRedo}
+            boxSize={5}
+            color="whiteAlpha.900"
+            style={{
+              animation: "spin 1s linear infinite",
+              transition: "all 0.3s ease-in-out",
+            }}
+          />
+        </HStack>
       </Button>
     </VStack>
   );

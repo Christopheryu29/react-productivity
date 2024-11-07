@@ -15,6 +15,7 @@ import {
   Stack,
   Text,
   Button,
+  useBreakpointValue,
 } from "@chakra-ui/react";
 import { DataTable } from "../task/components/data-table"; // Adjust the import path as needed
 import { columns } from "../task/components/columns"; // Adjust the import path as needed
@@ -159,12 +160,32 @@ const CurrentDateTime: React.FC = () => {
   };
 
   return (
-    <Box textAlign="center" p={4} mb={6} bg="gray.100" rounded="md">
-      <Heading size="md" color="gray.700">
-        Today is {formatDate(currentTime)}
+    <Box
+      textAlign="center"
+      p={10}
+      mb={10}
+      bgGradient="linear(to-r, #0f2027, #203a43, #2c5364)"
+      rounded="2xl"
+      boxShadow="dark-lg"
+      border="none"
+      transition="background 0.5s ease-in-out"
+    >
+      <Heading
+        size="2xl"
+        color="cyan.200"
+        mb={5}
+        fontWeight="extrabold"
+        textShadow="1px 1px 5px rgba(0, 0, 0, 0.6)"
+      >
+        {formatDate(currentTime)}
       </Heading>
-      <Text fontSize="xl" color="gray.600">
-        Current Time: {formatTime(currentTime)}
+      <Text
+        fontSize="4xl"
+        color="cyan.100"
+        fontWeight="extrabold"
+        textShadow="1px 1px 5px rgba(0, 0, 0, 0.6)"
+      >
+        {formatTime(currentTime)}
       </Text>
     </Box>
   );
@@ -210,6 +231,7 @@ const HomePage: React.FC = () => {
   const fetchedExpenses = useQuery(api.expense.getExpenses);
   const addExpenseMutation = useMutation(api.expense.createExpense);
   const toast = useToast();
+  const isMobile = useBreakpointValue({ base: true, md: false });
 
   useEffect(() => {
     if (fetchedTasks) {
@@ -312,74 +334,227 @@ const HomePage: React.FC = () => {
 
   if (loadingTasks || loadingExpenses) {
     return (
-      <Container maxW="container.xl" p={8}>
-        <Spinner size="xl" thickness="4px" color="blue.500" />
-        <Heading mt={4} color="blue.500">
-          Loading...
-        </Heading>
+      <Container
+        maxW="container.xl"
+        p={8}
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        h="100vh"
+      >
+        <Spinner size="xl" thickness="4px" color="gray.300" />
       </Container>
     );
   }
 
   return (
-    <Container
-      maxW="container.xl"
-      p={8}
-      minH="100vh"
-      display="flex"
-      flexDirection="column"
-      overflowY="hidden"
-    >
-      {/* Current Date and Time */}
-      <CurrentDateTime />
+    <Container maxW="container.xl" p={isMobile ? 4 : 8} minH="100vh">
+      {/* Header with Date and Time */}
+      <Box
+        textAlign="center"
+        p={isMobile ? 6 : 10}
+        mb={10}
+        bg="rgba(40, 40, 55, 0.85)"
+        rounded="2xl"
+        boxShadow="0px 8px 24px rgba(0, 0, 0, 0.3)"
+        transition="all 0.5s ease-in-out"
+        backdropFilter="blur(15px)"
+        _hover={{ boxShadow: "0px 0px 30px rgba(100, 150, 255, 0.2)" }}
+      >
+        <Heading
+          size={isMobile ? "xl" : "2xl"}
+          color="white"
+          mb={3}
+          fontWeight="extrabold"
+          textShadow="0px 3px 8px rgba(0, 0, 0, 0.4)"
+        >
+          {new Date().toLocaleDateString(undefined, {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })}
+        </Heading>
+        <Text
+          fontSize={isMobile ? "2xl" : "3xl"}
+          color="white"
+          fontWeight="medium"
+          textShadow="0px 2px 5px rgba(0, 0, 0, 0.3)"
+        >
+          {new Date().toLocaleTimeString(undefined, {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </Text>
+      </Box>
 
-      {/* Section for Expenses, Weekly Summary, and Critical Periods */}
-      <Grid templateColumns={{ base: "1fr", md: "1fr 2fr" }} gap={6} flex="1">
-        {/* Left Column: Add New Expense and Today Event Count */}
-        <GridItem>
-          <Box boxShadow="md" p={5} rounded="md" bg="white" mb={6}>
-            <Heading size="lg" mb={4} color="gray.800">
+      {/* Main Content Layout */}
+      {isMobile ? (
+        // Stack layout for mobile view
+        <Stack spacing={6}>
+          <Box
+            boxShadow="md"
+            p={4}
+            rounded="xl"
+            bg="rgba(255, 255, 255, 0.08)"
+            backdropFilter="blur(10px)"
+            border="1px solid rgba(255, 255, 255, 0.1)"
+          >
+            <Heading size="md" mb={3} color="white" fontWeight="semibold">
               Add New Expense
             </Heading>
             <ExpenseForm onAddExpense={handleAddExpense} />
           </Box>
 
-          <Box mt={6} boxShadow="md">
+          <Box
+            boxShadow="md"
+            rounded="xl"
+            bg="rgba(255, 255, 255, 0.08)"
+            backdropFilter="blur(10px)"
+            border="1px solid rgba(255, 255, 255, 0.1)"
+          >
             <CriticalPeriods
               criticalWeeks={criticalWeeks}
               criticalMonths={criticalMonths}
               criticalYears={criticalYears}
             />
           </Box>
-        </GridItem>
 
-        {/* Right Column: Weekly Summary and Critical Periods */}
-        <GridItem>
-          <Box boxShadow="md" p={5} rounded="md" bg="gray.700">
-            <Heading size="lg" mb={4} color="white" textAlign="center">
-              There are
+          <Box
+            boxShadow="lg"
+            p={4}
+            rounded="xl"
+            bg="linear-gradient(145deg, #222233, #2f2f47)"
+            textAlign="center"
+          >
+            <Heading
+              size="md"
+              mb={3}
+              color="white"
+              textShadow="0px 3px 8px rgba(0, 0, 0, 0.6)"
+            >
+              Today’s Events
             </Heading>
             <TodayEventCount selectedDate={new Date()} />
           </Box>
-          <Box boxShadow="md" p={5} rounded="md">
-            <Heading size="lg" mb={4} color={"white"}>
+
+          <Box
+            boxShadow="lg"
+            p={4}
+            rounded="xl"
+            bg="linear-gradient(145deg, #222233, #2f2f47)"
+          >
+            <Heading
+              size="md"
+              mb={3}
+              color="white"
+              textShadow="0px 2px 6px rgba(0, 0, 0, 0.5)"
+            >
               Weekly Summary
             </Heading>
             <WeeklySummary weeklyTotals={weeklyTotals} />
           </Box>
+        </Stack>
+      ) : (
+        // Grid layout for desktop view
+        <Grid templateColumns="1fr 2fr" gap={6} flex="1">
+          {/* Left Column: Expense Form and Critical Periods */}
+          <GridItem>
+            <Box
+              boxShadow="md"
+              p={6}
+              rounded="xl"
+              bg="rgba(255, 255, 255, 0.08)"
+              backdropFilter="blur(10px)"
+              border="1px solid rgba(255, 255, 255, 0.1)"
+              mb={6}
+            >
+              <Heading size="md" mb={3} color="white" fontWeight="semibold">
+                Add New Expense
+              </Heading>
+              <ExpenseForm onAddExpense={handleAddExpense} />
+            </Box>
 
-          {/* Critical Spending Periods */}
-        </GridItem>
-      </Grid>
+            <Box
+              mt={6}
+              boxShadow="md"
+              bg="rgba(255, 255, 255, 0.08)"
+              rounded="xl"
+              backdropFilter="blur(10px)"
+              border="1px solid rgba(255, 255, 255, 0.1)"
+            >
+              <CriticalPeriods
+                criticalWeeks={criticalWeeks}
+                criticalMonths={criticalMonths}
+                criticalYears={criticalYears}
+              />
+            </Box>
+          </GridItem>
 
-      <Divider my={8} />
+          {/* Right Column: Today’s Events and Weekly Summary */}
+          <GridItem>
+            <Box
+              boxShadow="lg"
+              p={8}
+              rounded="xl"
+              bg="linear-gradient(145deg, #222233, #2f2f47)"
+              textAlign="center"
+            >
+              <Heading
+                size="lg"
+                mb={3}
+                color="white"
+                textShadow="0px 3px 8px rgba(0, 0, 0, 0.6)"
+              >
+                Today’s Events
+              </Heading>
+              <TodayEventCount selectedDate={new Date()} />
+            </Box>
 
-      {/* Section for Task Overview */}
-      <Stack spacing={6} flex="1 0 auto">
-        <Heading color="white" size="lg">
-          Home - Task Overview
+            <Box
+              boxShadow="lg"
+              p={8}
+              rounded="xl"
+              mt={6}
+              bg="linear-gradient(145deg, #222233, #2f2f47)"
+            >
+              <Heading
+                size="lg"
+                mb={3}
+                color="white"
+                textShadow="0px 2px 6px rgba(0, 0, 0, 0.5)"
+              >
+                Weekly Summary
+              </Heading>
+              <WeeklySummary weeklyTotals={weeklyTotals} />
+            </Box>
+          </GridItem>
+        </Grid>
+      )}
+
+      <Divider my={8} borderColor="rgba(255, 255, 255, 0.1)" />
+
+      {/* Task Overview */}
+      <Stack spacing={isMobile ? 6 : 8} flex="1 0 auto">
+        <Heading
+          color="white"
+          size={isMobile ? "md" : "lg"}
+          fontWeight="semibold"
+          textShadow="0px 2px 5px rgba(0, 0, 0, 0.3)"
+        >
+          Task Overview
         </Heading>
-        <Box color="white" flex="1 0 auto" overflow="auto">
+        <Box
+          flex="1 0 auto"
+          overflow="auto"
+          bg="rgba(255, 255, 255, 0.08)"
+          rounded="xl"
+          boxShadow="lg"
+          textColor="white"
+          p={isMobile ? 4 : 8}
+          border="1px solid rgba(255, 255, 255, 0.1)"
+          backdropFilter="blur(10px)"
+        >
           <DataTable data={tasks} columns={columns} />
         </Box>
       </Stack>

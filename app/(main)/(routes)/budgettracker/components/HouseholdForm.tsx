@@ -6,6 +6,8 @@ import {
   Input,
   Button,
   useToast,
+  useColorModeValue,
+  Box,
 } from "@chakra-ui/react";
 
 interface HouseholdFormProps {
@@ -49,35 +51,81 @@ const HouseholdForm: React.FC<HouseholdFormProps> = ({
       });
     }
   };
+  const bgColor = useColorModeValue("#303030", "#303030");
 
   return (
-    <VStack spacing={4}>
-      <FormControl>
-        <FormLabel htmlFor="numAdults">Number of Adults</FormLabel>
-        <Input
-          id="numAdults"
-          placeholder="Number of Adults"
-          type="number"
-          size="sm"
-          value={numAdults}
-          onChange={(e) => setNumAdults(Number(e.target.value))}
-        />
-      </FormControl>
-      <FormControl>
-        <FormLabel htmlFor="numChildren">Number of Children</FormLabel>
-        <Input
-          id="numChildren"
-          placeholder="Number of Children"
-          type="number"
-          size="sm"
-          value={numChildren}
-          onChange={(e) => setNumChildren(Number(e.target.value))}
-        />
-      </FormControl>
-      <Button colorScheme="green" onClick={handleSave}>
-        Save Household Info
-      </Button>
-    </VStack>
+    <Box
+      bg={bgColor}
+      p={6}
+      borderRadius="lg"
+      boxShadow="2xl"
+      w="full"
+      maxW="400px"
+      color="whiteAlpha.900"
+      border="1px solid rgba(255, 255, 255, 0.1)"
+    >
+      <VStack spacing={4} align="stretch">
+        <FormControl>
+          <FormLabel
+            fontSize="sm"
+            fontWeight="medium"
+            htmlFor="numAdults"
+            color="whiteAlpha.800"
+          >
+            Number of Adults
+          </FormLabel>
+          <Input
+            id="numAdults"
+            placeholder="Enter number of adults"
+            type="number"
+            size="md"
+            value={numAdults}
+            onChange={(e) => setNumAdults(Number(e.target.value))}
+            bg="whiteAlpha.100"
+            color="whiteAlpha.900"
+            _placeholder={{ color: "whiteAlpha.600" }}
+            focusBorderColor="blue.400"
+            borderRadius="md"
+            border="1px solid rgba(255, 255, 255, 0.2)"
+          />
+        </FormControl>
+
+        <FormControl>
+          <FormLabel
+            fontSize="sm"
+            fontWeight="medium"
+            htmlFor="numChildren"
+            color="whiteAlpha.800"
+          >
+            Number of Children
+          </FormLabel>
+          <Input
+            id="numChildren"
+            placeholder="Enter number of children"
+            type="number"
+            size="md"
+            value={numChildren}
+            onChange={(e) => setNumChildren(Number(e.target.value))}
+            bg="whiteAlpha.100"
+            color="whiteAlpha.900"
+            _placeholder={{ color: "whiteAlpha.600" }}
+            focusBorderColor="blue.400"
+            borderRadius="md"
+            border="1px solid rgba(255, 255, 255, 0.2)"
+          />
+        </FormControl>
+
+        <Button
+          colorScheme="green"
+          onClick={handleSave}
+          width="full"
+          borderRadius="md"
+          _hover={{ bg: "green.500" }}
+        >
+          Save Household Info
+        </Button>
+      </VStack>
+    </Box>
   );
 };
 

@@ -8,7 +8,6 @@ import {
   Search,
   Settings,
   Trash,
-  Calculator,
   Calendar,
   Wallet,
   CalendarDays,
@@ -171,11 +170,7 @@ export const Navigation: React.FC<NavigationProps> = ({ togglePomodoro }) => {
           <Item label="Search" icon={Search} isSearch onClick={search.onOpen} />
           <Item label="Settings" icon={Settings} onClick={settings.onOpen} />
           <Item label="Home" icon={Home} onClick={() => router.push("/home")} />
-          <Item
-            label="Calculator"
-            icon={Calculator}
-            onClick={() => router.push("/calculator")}
-          />
+
           <Item
             label="Calendar"
             icon={CalendarDays}

@@ -3,12 +3,14 @@
 
 import React, { useState } from "react";
 import {
+  Box,
   Button,
   FormControl,
   FormLabel,
   Input,
   Select,
   VStack,
+  useColorModeValue,
   useToast,
 } from "@chakra-ui/react";
 import { useMutation } from "convex/react";
@@ -82,80 +84,132 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
     }
   };
 
+  const bgColor = useColorModeValue("#303030", "#303030");
+
   return (
-    <VStack spacing={4}>
-      <FormControl>
-        <FormLabel htmlFor="amount">Amount</FormLabel>
-        <Input
-          id="amount"
-          placeholder="Amount"
-          type="number"
-          value={newExpense}
-          onChange={(e) => setNewExpense(Number(e.target.value))}
-        />
-      </FormControl>
+    <Box
+      bg={bgColor}
+      p={6}
+      borderRadius="lg"
+      boxShadow="2xl"
+      w="full"
+      maxW="400px"
+      color="whiteAlpha.900"
+    >
+      <VStack spacing={4}>
+        <FormControl>
+          <FormLabel htmlFor="amount">Amount</FormLabel>
+          <Input
+            id="amount"
+            placeholder="Amount"
+            type="number"
+            value={newExpense}
+            onChange={(e) => setNewExpense(Number(e.target.value))}
+            bg="whiteAlpha.200"
+            color="whiteAlpha.900"
+            _placeholder={{ color: "whiteAlpha.600" }}
+            focusBorderColor="blue.400"
+          />
+        </FormControl>
 
-      <FormControl>
-        <FormLabel htmlFor="type">Type</FormLabel>
-        <Select
-          id="type"
-          placeholder="Select Type"
-          value={newExpenseType}
-          onChange={(e) =>
-            setNewExpenseType(e.target.value as "income" | "expense")
-          }
-        >
-          <option value="income">Income</option>
-          <option value="expense">Expense</option>
-        </Select>
-      </FormControl>
+        <FormControl>
+          <FormLabel htmlFor="type">Type</FormLabel>
+          <Select
+            id="type"
+            placeholder="Select Type"
+            value={newExpenseType}
+            onChange={(e) =>
+              setNewExpenseType(e.target.value as "income" | "expense")
+            }
+            bg="whiteAlpha.200"
+            color="whiteAlpha.900"
+            _placeholder={{ color: "whiteAlpha.600" }}
+            focusBorderColor="blue.400"
+          >
+            <option value="income" style={{ color: "black" }}>
+              Income
+            </option>
+            <option value="expense" style={{ color: "black" }}>
+              Expense
+            </option>
+          </Select>
+        </FormControl>
 
-      <FormControl>
-        <FormLabel htmlFor="category">Category</FormLabel>
-        <Select
-          id="category"
-          placeholder="Select Category"
-          value={newCategory}
-          onChange={(e) => setNewCategory(e.target.value)}
-        >
-          {newExpenseType === "income" ? (
-            <>
-              <option value="median_family_income">Median Family Income</option>
-              <option value="Other">Other</option>
-            </>
-          ) : (
-            <>
-              <option value="housing_cost">Housing Cost</option>
-              <option value="food_cost">Food Cost</option>
-              <option value="transportation_cost">Transportation Cost</option>
-              <option value="healthcare_cost">Healthcare Cost</option>
-              <option value="other_necessities_cost">
-                Other Necessities Cost
-              </option>
-              <option value="childcare_cost">Childcare Cost</option>
-              <option value="taxes">Taxes</option>
-            </>
-          )}
-        </Select>
-      </FormControl>
+        <FormControl>
+          <FormLabel htmlFor="category">Category</FormLabel>
+          <Select
+            id="category"
+            placeholder="Select Category"
+            value={newCategory}
+            onChange={(e) => setNewCategory(e.target.value)}
+            bg="whiteAlpha.200"
+            color="whiteAlpha.900"
+            _placeholder={{ color: "whiteAlpha.600" }}
+            focusBorderColor="blue.400"
+          >
+            {newExpenseType === "income" ? (
+              <>
+                <option value="median_family_income" style={{ color: "black" }}>
+                  Median Family Income
+                </option>
+                <option value="Other" style={{ color: "black" }}>
+                  Other
+                </option>
+              </>
+            ) : (
+              <>
+                <option value="housing_cost" style={{ color: "black" }}>
+                  Housing Cost
+                </option>
+                <option value="food_cost" style={{ color: "black" }}>
+                  Food Cost
+                </option>
+                <option value="transportation_cost" style={{ color: "black" }}>
+                  Transportation Cost
+                </option>
+                <option value="healthcare_cost" style={{ color: "black" }}>
+                  Healthcare Cost
+                </option>
+                <option
+                  value="other_necessities_cost"
+                  style={{ color: "black" }}
+                >
+                  Other Necessities Cost
+                </option>
+                <option value="childcare_cost" style={{ color: "black" }}>
+                  Childcare Cost
+                </option>
+                <option value="taxes" style={{ color: "black" }}>
+                  Taxes
+                </option>
+              </>
+            )}
+          </Select>
+        </FormControl>
 
-      <FormControl>
-        <FormLabel htmlFor="date">
-          Selected Date {/* Add margin-right to the FormLabel */}
-        </FormLabel>
-        <DatePicker
-          selected={selectedDate}
-          onChange={(date: Date | null) => setSelectedDate(date)}
-          dateFormat="yyyy-MM-dd" // Format the date
-          showPopperArrow={false} // Optional: Hide the arrow of the popper
-          className="chakra-datepicker" // You can add Chakra styling by adding a custom class
-        />
-      </FormControl>
+        <FormControl>
+          <FormLabel htmlFor="date">Selected Date</FormLabel>
+          <DatePicker
+            selected={selectedDate}
+            onChange={(date: Date | null) => setSelectedDate(date)}
+            dateFormat="yyyy-MM-dd"
+            showPopperArrow={false}
+            className="chakra-datepicker"
+            customInput={
+              <Input
+                bg="whiteAlpha.200"
+                color="whiteAlpha.900"
+                focusBorderColor="blue.400"
+              />
+            }
+          />
+        </FormControl>
 
-      <Button colorScheme="blue" onClick={handleAddExpense}>
-        Add Expense
-      </Button>
-    </VStack>
+        <Button colorScheme="blue" onClick={handleAddExpense} width="full">
+          Add Expense
+        </Button>
+      </VStack>
+    </Box>
   );
 };
 

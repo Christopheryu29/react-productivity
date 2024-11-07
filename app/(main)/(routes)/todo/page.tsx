@@ -68,14 +68,24 @@ function TodoApp() {
   );
 
   return (
-    <Flex direction="column" p="6" minH="100vh" align="center">
-      <Flex justify="center" align="center" mb="6">
-        <Heading size="2xl" color="blue.300">
+    <Flex
+      direction="column"
+      p="6"
+      minH="100vh"
+      align="center"
+      bgGradient="linear(to-b, #202020, #2c2c2c)"
+    >
+      <Flex justify="center" align="center" mb="8">
+        <Heading
+          size="2xl"
+          color="white"
+          textShadow="1px 1px 5px rgba(0, 0, 0, 0.6)"
+        >
           Todo List
         </Heading>
       </Flex>
 
-      <Flex gap="2" w="full" maxW="lg" mb="6">
+      <Flex gap="2" w="full" maxW="lg" mb="8">
         <Input
           flex="1"
           p="4"
@@ -85,24 +95,31 @@ function TodoApp() {
           size="lg"
           borderColor="gray.600"
           rounded="lg"
-          shadow="sm"
-          bg={cardBg}
-          color={textColor}
-          _placeholder={{ color: placeholderColor }}
+          shadow="md"
+          bg="gray.700"
+          color="whiteAlpha.900"
+          _placeholder={{ color: "gray.400" }}
+          _focus={{
+            borderColor: "cyan.500",
+            boxShadow: "0px 0px 10px rgba(56, 189, 248, 0.5)",
+          }}
         />
         <IconButton
           icon={<AddIcon />}
-          colorScheme="blue"
+          bgGradient="linear(to-r, teal.400, cyan.500)"
+          color="white"
           size="lg"
           onClick={handleAddTodo}
           aria-label="Add todo"
           variant="solid"
-          boxShadow="lg"
+          shadow="lg"
           _hover={{
             transform: "scale(1.05)",
-            bg: "blue.400",
+            bgGradient: "linear(to-r, teal.500, cyan.600)",
+            boxShadow: "0px 4px 12px rgba(56, 189, 248, 0.6)",
           }}
           transition="all 0.2s"
+          rounded="full"
         />
       </Flex>
 
@@ -113,28 +130,34 @@ function TodoApp() {
               <Flex
                 align="center"
                 p="4"
-                bg={cardBg}
+                bg="gray.800"
                 shadow="lg"
                 rounded="lg"
                 w="full"
                 borderWidth="1px"
                 borderColor="gray.700"
-                transition="transform 0.2s"
-                _hover={{ transform: "scale(1.02)", bg: "gray.700" }}
+                _hover={{
+                  transform: "scale(1.02)",
+                  bg: "gray.700",
+                  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)",
+                }}
+                transition="all 0.2s ease"
               >
                 <Checkbox
                   isChecked={todo.isCompleted}
                   onChange={() => handleToggleTodo(todo._id, todo.isCompleted)}
                   size="lg"
-                  colorScheme="green"
+                  colorScheme="cyan"
                   mr="4"
                 />
                 <Text
                   flex="1"
                   fontSize="lg"
-                  color={todo.isCompleted ? "gray.500" : textColor}
+                  color={todo.isCompleted ? "gray.500" : "whiteAlpha.900"}
                   as={todo.isCompleted ? "s" : undefined}
                   noOfLines={1}
+                  opacity={todo.isCompleted ? 0.7 : 1}
+                  transition="opacity 0.2s"
                 >
                   {todo.text}
                 </Text>
@@ -145,7 +168,10 @@ function TodoApp() {
                   onClick={() => handleDeleteTodo(todo._id)}
                   aria-label="Delete todo"
                   variant="ghost"
-                  _hover={{ color: "red.400", transform: "scale(1.1)" }}
+                  _hover={{
+                    color: "red.400",
+                    transform: "scale(1.1)",
+                  }}
                   transition="all 0.2s"
                 />
               </Flex>
@@ -153,17 +179,19 @@ function TodoApp() {
           ))}
         </VStack>
       ) : (
-        <Box mt="6">
-          <Text fontSize="lg" color="gray.500">
+        <Box mt="8" textAlign="center">
+          <Text fontSize="lg" color="gray.400" fontWeight="medium">
             No todos found. Add some!
           </Text>
         </Box>
       )}
 
-      <Divider mt="6" mb="4" w="full" maxW="lg" borderColor="gray.600" />
+      <Divider mt="8" mb="6" w="full" maxW="lg" borderColor="gray.600" />
 
       <Flex justify="center">
-        <Text color="gray.400">Stay organized. Keep track of your tasks.</Text>
+        <Text fontSize="md" color="gray.400" fontStyle="italic">
+          Stay organized. Keep track of your tasks.
+        </Text>
       </Flex>
     </Flex>
   );

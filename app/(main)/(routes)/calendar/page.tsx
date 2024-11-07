@@ -220,17 +220,18 @@ const CalendarPage = () => {
   return (
     <Box
       color="white"
-      p={{ base: "3", md: "5" }}
-      maxW="900px"
       mx="auto"
-      mt="10"
+      mt="8"
+      borderRadius="lg"
+      bg="radial-gradient(circle at center, #202020 0%, #26282f 25%, #1f2236 50%, #202020 100%)"
+      boxShadow="xl"
     >
-      <VStack spacing={{ base: "3", md: "5" }} align="stretch">
+      <VStack spacing={{ base: "4", md: "6" }} align="stretch">
         <Heading
           textAlign="center"
           size={{ base: "lg", md: "2xl" }}
-          mb={{ base: "3", md: "5" }}
-          color="teal.400"
+          mb={{ base: "4", md: "6" }}
+          color="whiteAlpha.900"
         >
           Event Calendar
         </Heading>
@@ -239,11 +240,11 @@ const CalendarPage = () => {
           direction={{ base: "column", md: "row" }}
           justifyContent="center"
           align="center"
-          gap="5"
+          gap="6"
           wrap="wrap"
         >
-          <Box>
-            <Heading size="md" textAlign="center" mb="3" color="teal.300">
+          <Box bg="transparent" p="4" borderRadius="lg" boxShadow="md">
+            <Heading size="md" textAlign="center" mb="2" color="whiteAlpha.800">
               Select Date
             </Heading>
             <DatePicker
@@ -256,12 +257,17 @@ const CalendarPage = () => {
 
           <Flex
             direction="row"
-            gap="5"
+            gap="6"
             justifyContent="space-between"
             wrap="wrap"
           >
-            <Box textAlign="center" flex="1" minW="140px">
-              <Heading size="md" mb="2" color="teal.300">
+            <Box bg="transparent" p="4" borderRadius="lg" boxShadow="md">
+              <Heading
+                size="md"
+                textAlign="center"
+                mb="2"
+                color="whiteAlpha.800"
+              >
                 Start Time
               </Heading>
               <DatePicker
@@ -277,8 +283,13 @@ const CalendarPage = () => {
               />
             </Box>
 
-            <Box textAlign="center" flex="1" minW="140px">
-              <Heading size="md" mb="2" color="teal.300">
+            <Box bg="transparent" p="4" borderRadius="lg" boxShadow="md">
+              <Heading
+                size="md"
+                textAlign="center"
+                mb="2"
+                color="whiteAlpha.800"
+              >
                 End Time
               </Heading>
               <DatePicker
@@ -296,16 +307,24 @@ const CalendarPage = () => {
           </Flex>
         </Flex>
 
-        <VStack spacing="4">
+        <VStack
+          spacing="4"
+          align="stretch"
+          bg="transparent"
+          p="4"
+          borderRadius="lg"
+          boxShadow="md"
+        >
           <FormControl>
             <Input
               placeholder="Event Title"
               value={eventTitle}
               onChange={(e) => setEventTitle(e.target.value)}
-              bg="gray.700"
+              bg="gray.600"
               color="white"
               borderRadius="md"
               _placeholder={{ color: "gray.400" }}
+              _hover={{ bg: "gray.500" }}
               padding="6"
             />
           </FormControl>
@@ -314,32 +333,43 @@ const CalendarPage = () => {
               placeholder="Description"
               value={eventDescription}
               onChange={(e) => setEventDescription(e.target.value)}
-              bg="gray.700"
+              bg="gray.600"
               color="white"
               borderRadius="md"
               _placeholder={{ color: "gray.400" }}
+              _hover={{ bg: "gray.500" }}
               padding="6"
             />
           </FormControl>
           <Checkbox
             isChecked={isRecurring}
             onChange={() => setIsRecurring(!isRecurring)}
-            colorScheme="teal"
+            colorScheme="whiteAlpha"
           >
             Repeat Every Week
           </Checkbox>
         </VStack>
-
-        <Button
-          onClick={onOpenColorPicker}
-          bg="teal.500"
-          color="white"
-          _hover={{ bg: "teal.400" }}
-          size="lg"
-          w="full"
+        <VStack
+          spacing="4"
+          align="stretch"
+          bg="transparent"
+          p="4"
+          borderRadius="lg"
+          boxShadow="md"
         >
-          Choose Color
-        </Button>
+          <Button
+            onClick={onOpenColorPicker}
+            bg="gray.600"
+            color="white"
+            _hover={{ bg: "gray.500", boxShadow: "md" }}
+            size="lg"
+            w="full"
+            mt="4"
+            borderRadius="lg"
+          >
+            Choose Color
+          </Button>
+        </VStack>
 
         <Modal isOpen={isColorPickerOpen} onClose={onCloseColorPicker}>
           <ModalOverlay />
@@ -353,65 +383,90 @@ const CalendarPage = () => {
               />
             </ModalBody>
             <ModalFooter>
-              <Button colorScheme="teal" onClick={onCloseColorPicker}>
+              <Button colorScheme="whiteAlpha" onClick={onCloseColorPicker}>
                 Close
               </Button>
             </ModalFooter>
           </ModalContent>
         </Modal>
-
-        <Button
-          onClick={handleAddEvent}
-          bg="teal.500"
-          color="white"
-          _hover={{ bg: "teal.400" }}
-          size="lg"
-          mt="5"
-          w="full"
+        <VStack
+          spacing="4"
+          align="stretch"
+          bg="transparent"
+          p="4"
+          borderRadius="lg"
+          boxShadow="md"
         >
-          Add Event
-        </Button>
+          <Button
+            onClick={handleAddEvent}
+            bg="gray.600"
+            color="white"
+            _hover={{ bg: "gray.500", boxShadow: "md" }}
+            size="lg"
+            mt="4"
+            w="full"
+            borderRadius="lg"
+          >
+            Add Event
+          </Button>
+        </VStack>
 
-        <Heading size="lg" mt="5" textAlign="center" color="teal.400">
+        <Heading size="lg" mt="6" textAlign="center" color="whiteAlpha.900">
           Schedule for {format(selectedDate, "PPP")}
         </Heading>
-        <TodayEventCount selectedDate={selectedDate} />
-
-        <Grid
-          templateRows={`repeat(${displayHours.length * 2}, 1fr)`}
-          templateColumns="1fr"
-          gap={2}
-          w="100%"
-          maxW="800px"
-          p={{ base: 3, md: 5 }}
+        <VStack
+          spacing="4"
+          align="stretch"
+          bg="transparent"
+          p="4"
           borderRadius="lg"
-          boxShadow="2xl"
-          bg="gray.700"
+          boxShadow="md"
         >
-          {displayHours.map((hour) => (
-            <GridItem
-              key={hour}
-              rowSpan={2}
-              p={3}
-              borderRadius="md"
-              bg="gray.600"
-              color="white"
-            >
-              <Text fontWeight="bold">
-                {hour % 12 === 0 ? 12 : hour % 12}:00 {hour >= 12 ? "PM" : "AM"}
-              </Text>
-            </GridItem>
-          ))}
+          <TodayEventCount selectedDate={selectedDate} />
+        </VStack>
+        <VStack
+          spacing="4"
+          align="stretch"
+          bg="transparent"
+          p="4"
+          borderRadius="lg"
+          boxShadow="md"
+        >
+          <Grid
+            templateRows={`repeat(${displayHours.length * 2}, 1fr)`}
+            templateColumns="1fr"
+            gap={{ base: 2, md: 3 }}
+            w="100%"
+            p={{ base: 4, md: 5 }}
+            borderRadius="lg"
+            boxShadow="2xl"
+            bg="gray.800"
+          >
+            {displayHours.map((hour) => (
+              <GridItem
+                key={hour}
+                rowSpan={2}
+                p={4}
+                borderRadius="lg"
+                bg="gray.700"
+                color="white"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                boxShadow="md"
+                _hover={{ transform: "scale(1.02)", bg: "gray.600" }}
+                transition="transform 0.2s ease-in-out, background-color 0.2s ease-in-out"
+              >
+                <Text fontWeight="bold" color="whiteAlpha.800">
+                  {hour % 12 === 0 ? 12 : hour % 12}:00{" "}
+                  {hour >= 12 ? "PM" : "AM"}
+                </Text>
+              </GridItem>
+            ))}
 
-          {filteredEvents &&
-            filteredEvents.length > 0 &&
-            filteredEvents.map((event) => {
-              const startTime = new Date(event.startDate);
-              const endTime = new Date(event.endDate);
-              const rowStart = calculateRowStart(startTime);
-              const rowSpan = calculateGridRowSpan(startTime, endTime);
-
-              return (
+            {filteredEvents &&
+              filteredEvents.length > 0 &&
+              filteredEvents.map((event) => (
                 <GridItem
                   key={event._id.toString()}
                   rowStart={calculateRowStart(new Date(event.startDate))}
@@ -420,38 +475,41 @@ const CalendarPage = () => {
                     new Date(event.endDate)
                   )}
                   colSpan={1}
-                  bg={event.color || "#3182CE"}
+                  bg={event.color || "#4A5568"}
                   color="white"
-                  p={3}
+                  p={4}
                   borderRadius="lg"
-                  shadow="lg"
-                  border="1px solid"
-                  borderColor="gray.500"
-                  _hover={{ bg: "gray.600", transform: "scale(1.02)" }}
-                  transition="background-color 0.2s, transform 0.2s"
+                  boxShadow="lg"
+                  _hover={{ transform: "scale(1.03)", boxShadow: "xl" }}
+                  transition="transform 0.2s ease-in-out"
                 >
-                  <Heading size="sm" mb={2}>
+                  <Heading size="sm" mb={1} color="whiteAlpha.900">
                     {event.title}
                   </Heading>
-                  <Text>
+                  <Text color="whiteAlpha.800" fontWeight="medium">
                     {format(new Date(event.startDate), "p")} -{" "}
                     {format(new Date(event.endDate), "p")}
                   </Text>
-                  <Text mt={2}>{event.description || "No description"}</Text>
+                  <Text mt={1} fontSize="sm" color="whiteAlpha.700">
+                    {event.description || "No description"}
+                  </Text>
                   <IconButton
                     aria-label="Delete Event"
                     icon={<DeleteIcon />}
                     colorScheme="red"
                     size="sm"
+                    variant="ghost"
+                    mt={2}
+                    _hover={{ color: "red.300" }}
                     onClick={() => {
                       setSelectedEventId(event._id as Id<"events">);
                       onOpenDeleteModal();
                     }}
                   />
                 </GridItem>
-              );
-            })}
-        </Grid>
+              ))}
+          </Grid>
+        </VStack>
 
         <Modal isOpen={isDeleteModalOpen} onClose={onCloseDeleteModal}>
           <ModalOverlay />
@@ -467,7 +525,11 @@ const CalendarPage = () => {
               <Button colorScheme="red" mr={3} onClick={handleDeleteEvent}>
                 Delete
               </Button>
-              <Button variant="ghost" onClick={onCloseDeleteModal}>
+              <Button
+                variant="ghost"
+                color="white"
+                onClick={onCloseDeleteModal}
+              >
                 Cancel
               </Button>
             </ModalFooter>

@@ -21,11 +21,14 @@ import {
   AlertTitle,
   AlertDescription,
   SimpleGrid,
+  Heading,
+  Divider,
 } from "@chakra-ui/react";
 import { InfoOutlineIcon } from "@chakra-ui/icons";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import * as tf from "@tensorflow/tfjs";
+import { FaPiggyBank, FaCalendarAlt, FaChartPie } from "react-icons/fa";
 
 // Define the structure for user financial data
 interface FinancialData {
@@ -55,12 +58,15 @@ const SavingsTargetPrediction = () => {
 
   const toast = useToast();
   const currentYear = new Date().getFullYear();
-  const userId = "exampleUserId"; // Replace with dynamic user ID from authentication
+
+  const currentMonth = new Date().getMonth();
+  const isDecember = currentMonth === 11;
+  const targetYear = isDecember ? currentYear + 1 : currentYear;
 
   // Fetch financial data and user savings target from the backend
   const userExpenses = useQuery(api.expense.getExpenses) || [];
   const userSavingsTarget = useQuery(api.target.getSavingsTarget, {
-    year: currentYear,
+    year: targetYear,
   });
 
   const setSavingsTargetMutation = useMutation(api.target.setSavingsTarget);
@@ -79,53 +85,29 @@ const SavingsTargetPrediction = () => {
         : {},
     })) || [];
 
-  // Calculate total income and expenses for the current year
   const calculateCurrentSavings = () => {
     if (!userFinancialData || userFinancialData.length === 0) return;
     const totalIncome = userFinancialData.reduce(
-      (sum: number, data: FinancialData) => sum + data.totalIncome,
+      (sum, data) => sum + data.totalIncome,
       0
     );
     const totalExpenses = userFinancialData.reduce(
-      (sum: number, data: FinancialData) => sum + data.totalExpenses,
+      (sum, data) => sum + data.totalExpenses,
       0
     );
     setCurrentSavings(totalIncome - totalExpenses);
   };
 
   const calculateMonthsLeft = () => {
-    const currentMonthIndex = new Date().getMonth();
-    setMonthsLeft(12 - (currentMonthIndex + 1));
-  };
-
-  // Function to analyze spending by category
-  const analyzeSpending = () => {
-    const expenseCategories: Record<string, number> = {};
-
-    userExpenses.forEach((expense: any) => {
-      if (expense.type === "expense") {
-        expenseCategories[expense.category] =
-          (expenseCategories[expense.category] || 0) + expense.amount;
-      }
-    });
-
-    const sortedCategories = Object.entries(expenseCategories).sort(
-      (a, b) => b[1] - a[1]
-    );
-
-    const analysis = sortedCategories.map(
-      ([category, amount]) =>
-        `You have spent $${amount.toFixed(2)} on ${category}.`
-    );
-
-    setSpendingAnalysis(analysis);
+    const currentMonthIndex = currentMonth; // 0 = January, 11 = December
+    // Calculate months remaining in the current year
+    setMonthsLeft(11 - currentMonthIndex); // 11 represents December
   };
 
   useEffect(() => {
     setIsLoading(true);
     calculateCurrentSavings();
     calculateMonthsLeft();
-    analyzeSpending();
     if (userSavingsTarget) {
       setSavingsTarget(userSavingsTarget.targetAmount);
     }
@@ -150,12 +132,12 @@ const SavingsTargetPrediction = () => {
       try {
         await setSavingsTargetMutation({
           targetAmount: savingsTarget,
-          year: currentYear,
+          year: targetYear,
         });
 
         toast({
           title: "Savings target saved!",
-          description: `Your target of $${savingsTarget} has been saved.`,
+          description: `Your target of $${savingsTarget} has been saved for ${targetYear}.`,
           status: "success",
           duration: 3000,
           isClosable: true,
@@ -185,7 +167,6 @@ const SavingsTargetPrediction = () => {
 
   const calculateSavingsSuggestion = () => {
     if (savingsTarget <= currentSavings) {
-      // If the savings target is already met or exceeded
       setRemainingSavings(0);
       setMonthlySuggestion(0);
       setPredictionResult(
@@ -200,66 +181,98 @@ const SavingsTargetPrediction = () => {
         isClosable: true,
       });
     } else {
-      // If the savings target is not yet met, calculate the remaining savings needed
       const remaining = savingsTarget - currentSavings;
       const suggestion = remaining / monthsLeft;
       setRemainingSavings(remaining);
       setMonthlySuggestion(suggestion);
       saveSavingsTarget();
-      calculateAdvancedPrediction(); // Trigger AI/ML Logic only if needed
+      calculateAdvancedPrediction();
     }
   };
 
   const calculateAdvancedPrediction = async () => {
-    if (savingsTarget <= currentSavings) {
-      // If target is already met, skip the prediction and notify user
-      setPredictionResult(
-        "Congratulations! You have already met or exceeded your savings target."
-      );
-      setIsBehindTarget(false);
-      return;
-    }
+    // Process monthly data into training sets
+    const monthsPassed = userFinancialData.length;
+    const monthlyNetSavings = userFinancialData.map(
+      (data) => data.totalIncome - data.totalExpenses
+    );
 
-    const monthsPassed = 12 - monthsLeft;
+    // Normalize the data to scale within a range (e.g., -1 to 1)
+    const minSavings = Math.min(...monthlyNetSavings);
+    const maxSavings = Math.max(...monthlyNetSavings);
+    const normalizedSavings = monthlyNetSavings.map(
+      (savings) => (savings - minSavings) / (maxSavings - minSavings)
+    );
 
+    // Prepare input (months) and output (normalized net savings) tensors
     const xValues = Array.from({ length: monthsPassed }, (_, i) => i + 1);
-    const yValues = userFinancialData
-      .filter((data, index) => index < monthsPassed)
-      .map((data) => data.totalIncome - data.totalExpenses);
-
     const xTensor = tf.tensor2d(xValues, [xValues.length, 1]);
-    const yTensor = tf.tensor2d(yValues, [yValues.length, 1]);
+    const yTensor = tf.tensor2d(normalizedSavings, [
+      normalizedSavings.length,
+      1,
+    ]);
 
+    // Build a more complex model with additional layers and dropout regularization
     const model = tf.sequential();
-    model.add(tf.layers.dense({ units: 1, inputShape: [1] }));
-    model.compile({ optimizer: "sgd", loss: "meanSquaredError" });
+    model.add(
+      tf.layers.dense({ units: 64, activation: "relu", inputShape: [1] })
+    );
+    model.add(tf.layers.dropout({ rate: 0.2 }));
+    model.add(tf.layers.dense({ units: 32, activation: "relu" }));
+    model.add(tf.layers.dense({ units: 1 }));
+    model.compile({ optimizer: "adam", loss: "meanSquaredError" });
 
-    await model.fit(xTensor, yTensor, { epochs: 100 });
+    // Train the model
+    await model.fit(xTensor, yTensor, { epochs: 200, validationSplit: 0.2 });
 
+    // Predict for the upcoming months
     const nextMonth = monthsPassed + 1;
     const predictionTensor = tf.tensor2d([nextMonth], [1, 1]);
+    const normalizedPrediction = model.predict(predictionTensor) as tf.Tensor;
+    const predictedSavings =
+      normalizedPrediction.dataSync()[0] * (maxSavings - minSavings) +
+      minSavings;
 
-    const prediction = model.predict(predictionTensor);
-    let predictedSavings;
+    // Calculate projected total savings
+    const projectedSavings = predictedSavings + currentSavings;
 
-    if (Array.isArray(prediction)) {
-      predictedSavings = prediction[0].dataSync()[0];
-    } else {
-      predictedSavings = (prediction as tf.Tensor).dataSync()[0];
-    }
+    // Refined messages based on projected savings compared to target
+    const difference = projectedSavings - savingsTarget;
 
-    if (predictedSavings + currentSavings < savingsTarget) {
-      setPredictionResult(
-        "Based on advanced analysis, you are at risk of not meeting your target."
-      );
-      setIsBehindTarget(true);
-    } else {
-      setPredictionResult(
-        "Advanced analysis shows you're likely to meet your target."
-      );
+    if (difference >= 0) {
+      if (difference >= savingsTarget * 0.1) {
+        setPredictionResult(
+          "You are likely to exceed your savings target by a significant margin. Excellent progress!"
+        );
+      } else {
+        setPredictionResult(
+          "You are currently on track to meet your savings target. Keep up the good work!"
+        );
+      }
       setIsBehindTarget(false);
+    } else {
+      const achievableWithMinorAdjustments =
+        projectedSavings >= savingsTarget * 0.95;
+      const achievableWithModerateAdjustments =
+        projectedSavings >= savingsTarget * 0.8;
+
+      if (achievableWithMinorAdjustments) {
+        setPredictionResult(
+          "The target is achievable with minor adjustments. Slightly increase your monthly savings to stay on track."
+        );
+      } else if (achievableWithModerateAdjustments) {
+        setPredictionResult(
+          "The target is achievable with moderate adjustments. Consider a more focused savings plan."
+        );
+      } else {
+        setPredictionResult(
+          "You are at risk of not meeting your target. Significant adjustments are recommended."
+        );
+      }
+      setIsBehindTarget(true);
     }
 
+    // Clean up tensors
     xTensor.dispose();
     yTensor.dispose();
     predictionTensor.dispose();
@@ -278,27 +291,63 @@ const SavingsTargetPrediction = () => {
 
   return (
     <ChakraProvider>
-      <VStack spacing={6} p={6}>
-        <Text fontSize="xl" color={"white"}>
-          Your current savings so far this year: ${currentSavings.toFixed(2)}
-        </Text>
+      <VStack
+        spacing={6}
+        p={10}
+        bgGradient="radial-gradient(circle at center, #303030 0%, #34373f 25%, #2f3246 50%, #303030 100%)"
+        rounded="2xl"
+        boxShadow="2xl"
+        mx="auto"
+        align="stretch"
+        textAlign="center"
+      >
+        <Heading
+          letterSpacing="wide"
+          size="lg"
+          color="whiteAlpha.900"
+          fontWeight="bold"
+          mb={10}
+          mt={4}
+          textShadow="1px 1px 8px rgba(0, 0, 0, 0.4)"
+        >
+          Savings Target Prediction
+        </Heading>
 
-        <FormControl isInvalid={inputError}>
-          <FormLabel color="white">
-            Enter your savings target for the year
+        <Box bg="gray.700" rounded="xl" p={6} shadow="md">
+          <Text fontSize="lg" color="gray.300">
+            Current Savings this Year
+          </Text>
+          <Text fontSize="4xl" fontWeight="bold" color="green.400">
+            ${currentSavings.toFixed(2)}
+          </Text>
+        </Box>
+
+        <FormControl
+          isInvalid={inputError}
+          bg="gray.700"
+          p={5}
+          rounded="xl"
+          shadow="md"
+          w="100%"
+        >
+          <FormLabel color="gray.300" fontSize="lg" fontWeight="medium">
+            Set {isDecember ? "Next Year's" : "Annual"} Savings Target
             <Tooltip
-              label="This is the amount you aim to save this year."
-              fontSize="md"
+              label={`Your savings goal for ${targetYear}`}
+              fontSize="sm"
             >
               <InfoOutlineIcon ml={2} />
             </Tooltip>
           </FormLabel>
           <Input
-            placeholder="Enter savings target"
+            placeholder="Enter target amount"
             type="number"
             value={savingsTarget}
-            color={"white"}
+            color="white"
             onChange={handleSavingsTargetChange}
+            bg="gray.600"
+            _placeholder={{ color: "gray.400" }}
+            focusBorderColor="teal.300"
           />
           {inputError && (
             <FormErrorMessage>Invalid target amount.</FormErrorMessage>
@@ -306,66 +355,143 @@ const SavingsTargetPrediction = () => {
         </FormControl>
 
         <Button
-          colorScheme="teal"
+          bgGradient="linear(to-r, teal.400, cyan.500)"
+          color="white"
+          size="lg"
+          _hover={{
+            bgGradient: "linear(to-r, teal.500, cyan.600)",
+            boxShadow:
+              "0 0 10px rgba(56, 189, 248, 0.6), 0 0 20px rgba(56, 189, 248, 0.4)",
+            transform: "scale(1.02)",
+          }}
+          _active={{
+            bgGradient: "linear(to-r, teal.500, cyan.600)",
+            transform: "scale(0.98)",
+            boxShadow: "0 0 10px rgba(56, 189, 248, 0.4)",
+          }}
+          transition="all 0.3s ease-in-out"
           onClick={calculateSavingsSuggestion}
           isLoading={isSaving}
+          w="100%"
+          rounded="full"
+          shadow="xl"
+          fontWeight="bold"
         >
-          Calculate Savings Suggestion
+          Calculate Savings Suggestion for {targetYear}
         </Button>
 
-        {/* Display Remaining Savings and Monthly Suggestions */}
         {remainingSavings !== null && (
           <SlideFade in>
-            <Box>
-              <Text fontSize="lg" color={"white"}>
-                You need to save ${remainingSavings.toFixed(2)} more to reach
-                your goal.
+            <Box
+              bg="gray.700"
+              p={5}
+              rounded="xl"
+              shadow="lg"
+              w="100%"
+              textAlign="center"
+            >
+              <Text fontSize="lg" color="whiteAlpha.800" mb={1}>
+                <Icon as={FaPiggyBank} color="cyan.400" mr={2} />
+                Additional Savings Needed
               </Text>
-              <Text fontSize="lg" color={"white"}>
-                Suggested monthly savings for the remaining {monthsLeft} months:
-                ${monthlySuggestion?.toFixed(2)}
+              <Text fontSize="3xl" fontWeight="bold" color="cyan.300" mb={4}>
+                ${remainingSavings.toFixed(2)}
+              </Text>
+
+              <Divider borderColor="gray.600" my={3} />
+
+              <Text fontSize="lg" color="whiteAlpha.800" mb={1}>
+                <Icon as={FaCalendarAlt} color="cyan.400" mr={2} />
+                Suggested Monthly Savings
+              </Text>
+              <Text fontSize="2xl" fontWeight="bold" color="teal.300">
+                ${monthlySuggestion?.toFixed(2)} for {monthsLeft} months
               </Text>
             </Box>
           </SlideFade>
         )}
 
-        {/* AI/ML Prediction Result */}
         {predictionResult && (
-          <Alert status={isBehindTarget ? "error" : "success"}>
-            <AlertIcon />
-            <Flex direction="column">
-              <AlertTitle>
-                {isBehindTarget ? "Risk Alert" : "On Track!"}
+          <Alert
+            status={isBehindTarget ? "warning" : "success"}
+            rounded="xl"
+            bgGradient={
+              isBehindTarget
+                ? "linear(to-r, orange.500, red.500)"
+                : "linear(to-r, teal.500, green.500)"
+            }
+            shadow="lg"
+            color="whiteAlpha.900"
+            p={5}
+          >
+            <AlertIcon
+              boxSize="1.5em"
+              color={isBehindTarget ? "orange.300" : "green.300"}
+            />
+            <Flex direction="column" ml={3} textAlign="left">
+              <AlertTitle fontSize="lg" fontWeight="bold">
+                {isBehindTarget ? "⚠️ Warning" : "✅ On Track"}
               </AlertTitle>
-              <AlertDescription>{predictionResult}</AlertDescription>
+              <AlertDescription fontSize="md">
+                {predictionResult}
+              </AlertDescription>
             </Flex>
           </Alert>
         )}
 
-        {/* Spending Analysis */}
-        <SimpleGrid columns={1} spacing={4} width="100%">
-          <Text fontSize="lg" color="white">
-            Spending Analysis:
+        <SimpleGrid columns={1} spacing={4} w="100%">
+          <Text fontSize="lg" color="cyan.400" fontWeight="bold" mb={3}>
+            Spending Analysis
           </Text>
           {spendingAnalysis.map((analysis, index) => (
-            <Text key={index} color="white">
-              {analysis}
-            </Text>
+            <Box
+              key={index}
+              p={4}
+              bgGradient="linear(to-br, gray.700 10%, gray.800 90%)"
+              border="1px solid"
+              borderColor="cyan.700"
+              rounded="lg"
+              shadow="lg"
+              boxShadow="0px 4px 8px rgba(0, 0, 0, 0.4), 0px 8px 16px rgba(0, 0, 0, 0.2)"
+              _hover={{
+                transform: "scale(1.03)",
+                transition: "all 0.3s ease-in-out",
+              }}
+            >
+              <Flex align="center" justify="start">
+                <Icon as={FaChartPie} color="cyan.300" boxSize={5} mr={3} />
+                <Text
+                  color="whiteAlpha.900"
+                  fontSize="md"
+                  fontWeight="medium"
+                  lineHeight="1.5"
+                >
+                  {analysis}
+                </Text>
+              </Flex>
+            </Box>
           ))}
         </SimpleGrid>
 
-        {/* Savings Progress Bar */}
-        <Box width="100%">
+        <Box w="100%">
           <Text fontSize="lg" color="white" mb={2}>
-            Progress toward goal:
+            Progress towards Goal
           </Text>
           <Progress
-            colorScheme="teal"
+            bgGradient="linear(to-r, teal.500, green.400)"
             size="lg"
             value={(currentSavings / savingsTarget) * 100}
             hasStripe
             isAnimated
+            rounded="full"
           />
+          <Text mt={3} fontSize="md" color="gray.300" textAlign="center">
+            You are{" "}
+            <Text as="span" color="cyan.400" fontWeight="bold">
+              {((currentSavings / savingsTarget) * 100).toFixed(2)}%
+            </Text>{" "}
+            towards your goal. Blue color represents your savings progress.
+          </Text>
         </Box>
       </VStack>
     </ChakraProvider>

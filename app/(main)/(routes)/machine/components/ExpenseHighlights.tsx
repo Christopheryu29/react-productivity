@@ -14,9 +14,21 @@ import {
   useColorModeValue,
   Stack,
   useBreakpointValue,
+  Accordion,
+  AccordionItem,
+  AccordionButton,
+  AccordionIcon,
+  AccordionPanel,
 } from "@chakra-ui/react";
 import { api } from "@/convex/_generated/api";
-import { MdWarning, MdCheckCircle, MdInfoOutline } from "react-icons/md";
+import {
+  MdWarning,
+  MdCheckCircle,
+  MdInfoOutline,
+  MdCalendarViewWeek,
+  MdDateRange,
+  MdOutlineDateRange,
+} from "react-icons/md";
 import { FaLightbulb } from "react-icons/fa"; // Icon for financial advice
 import { AiOutlineDollar } from "react-icons/ai"; // Icon for totals
 import CriticalPeriods from "./CriticalPeriods";
@@ -140,17 +152,6 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
 
   // Responsive heading size
   const headingSize = useBreakpointValue({ base: "md", md: "lg" });
-
-  // Color modes
-  const bgGradient = useColorModeValue(
-    "linear(to-br, teal.50, white)",
-    "linear(to-br, teal.900, gray.800)"
-  );
-  const adviceBg = useColorModeValue("white", "gray.700");
-
-  // Color mode for light/dark theme
-  const bgColor = useColorModeValue("white", "gray.800");
-  const borderColor = useColorModeValue("teal.100", "teal.700");
 
   // Sort weeks by year and week number
   const sortedWeeks = [...allWeeks].sort((a, b) => {
@@ -318,14 +319,10 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
   return (
     <Box
       boxShadow="2xl"
-      p={8}
       rounded="xl"
-      bgGradient={bgGradient}
-      mt={8}
-      border="1px"
-      borderColor={borderColor}
+      bgGradient="radial-gradient(circle at center, #303030 0%, #34373f 25%, #2f3246 50%, #303030 100%)"
       transition="all 0.3s"
-      _hover={{ boxShadow: "lg", transform: "scale(1.02)" }}
+      _hover={{ boxShadow: "lg", transform: "scale(1.001)" }}
     >
       <CriticalPeriods
         criticalWeeks={criticalWeeks}
@@ -333,282 +330,635 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
         criticalYears={criticalYears}
       />
 
-      <Divider orientation="horizontal" borderColor="teal.300" my={4} />
-      <HStack spacing={3} mb={6}>
-        <Icon as={AiOutlineDollar} color="teal.600" boxSize={8} />
-        <Heading size={headingSize} color="teal.700">
+      <HStack spacing={4} mb={8} align="center">
+        <Box
+          bgGradient="linear(to-br, #3a5f7d, #4a81a0)"
+          p={3}
+          rounded="full"
+          boxShadow="0 4px 12px rgba(0, 0, 0, 0.3)"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          marginTop="3rem"
+          marginLeft="1rem"
+        >
+          <Icon as={AiOutlineDollar} color="white" boxSize={6} />
+        </Box>
+
+        <Heading
+          size={headingSize}
+          color="whiteAlpha.900"
+          fontWeight="bold"
+          textShadow="1px 1px 5px rgba(0, 0, 0, 0.6)"
+          letterSpacing="wider"
+          marginTop="3rem"
+          style={{
+            filter: "brightness(1.2)",
+          }}
+        >
           Expense Highlights
         </Heading>
       </HStack>
 
-      <VStack align="start" spacing={8} w="100%">
-        {/* Loop through sorted weeks */}
-        {sortedWeeks.map((week, index) => {
-          const expensePercentage = parseFloat(
-            calculateExpensePercentage(week.totalExpenses, week.totalIncome)
-          );
-          const colorScheme = getColorScheme(expensePercentage);
-          return (
-            <Box
-              key={index}
-              w="100%"
-              boxShadow="lg"
-              p={6}
-              bg={colorScheme.bg}
-              rounded="md"
-              border="1px"
-              borderColor={`${colorScheme.badge}.300`}
-              transition="all 0.3s"
-              _hover={{ transform: "scale(1.01)" }}
-            >
-              <HStack justify="space-between">
-                <Heading size="md" color={colorScheme.text}>
-                  {week.week}
-                </Heading>
-                <Badge variant="solid" colorScheme={colorScheme.badge} p={1}>
-                  <Icon
-                    as={
-                      expensePercentage > 90
-                        ? MdWarning
-                        : expensePercentage > 70
-                        ? MdInfoOutline
-                        : MdCheckCircle
-                    }
-                    mr={1}
-                  />
-                  {expensePercentage > 90
-                    ? "Overspending Alert"
-                    : expensePercentage > 70
-                    ? "High Spending"
-                    : "Well-Managed"}
-                </Badge>
-              </HStack>
-              <Stack mt={4} spacing={2}>
-                <Text color={`${colorScheme.text}.600`} fontWeight="semibold">
-                  Total Expenses: ${week.totalExpenses.toFixed(2)} (
-                  <Badge colorScheme={colorScheme.badge}>
-                    {expensePercentage}% of Income
-                  </Badge>
+      <VStack align="start" spacing={10} w="100%">
+        {/* Collapsible Weekly Highlights */}
+        <Accordion allowMultiple w="100%">
+          <AccordionItem border="none">
+            <h2>
+              <AccordionButton
+                _expanded={{
+                  bg: "linear(to-br, teal.500, blue.500)",
+                  color: "white",
+                }}
+                p={4}
+                rounded="md"
+                transition="all 0.3s ease"
+                _hover={{ boxShadow: "lg" }}
+              >
+                <HStack spacing={4} flex="1" textAlign="left">
+                  <Box
+                    bgGradient="linear(to-br, teal.500, blue.500)"
+                    p={3}
+                    rounded="full"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    boxShadow="lg"
+                  >
+                    <Icon as={MdCalendarViewWeek} color="white" boxSize={6} />
+                  </Box>
+                  <Heading size="lg" fontWeight="bold">
+                    Weekly Highlights
+                  </Heading>
+                </HStack>
+                <AccordionIcon />
+              </AccordionButton>
+            </h2>
+            <AccordionPanel pb={4}>
+              {sortedWeeks.map((week, index) => {
+                const expensePercentage = parseFloat(
+                  calculateExpensePercentage(
+                    week.totalExpenses,
+                    week.totalIncome
                   )
-                </Text>
-                <Text color="gray.600">
-                  Total Income:{" "}
-                  <Badge variant="outline" colorScheme="blue">
-                    ${week.totalIncome.toFixed(2)}
-                  </Badge>
-                </Text>
+                );
+                const colorScheme = getColorScheme(expensePercentage);
 
-                {/* Display weekly warnings */}
-                {getCategoryWarnings(
-                  week.expensesByCategory,
-                  week.totalIncome,
-                  weeklyThresholds
-                ).map((warning, index) => (
-                  <Text key={index} color="orange.600" mt={1}>
-                    {warning}
-                  </Text>
-                ))}
-                {/* Display weekly evaluations */}
-                {weeklyEvaluations[index].map((evaluation, idx) => (
-                  <Text key={idx} color="purple.600" mt={1}>
-                    {evaluation}
-                  </Text>
-                ))}
-              </Stack>
-            </Box>
-          );
-        })}
+                return (
+                  <Box
+                    key={index}
+                    w="100%"
+                    p={6}
+                    mb={6}
+                    bgGradient="linear(to-br, #1a202c, #2d3748)"
+                    rounded="2xl"
+                    boxShadow="0 8px 24px rgba(0, 0, 0, 0.3)"
+                    borderLeft="6px solid"
+                    borderColor={`${colorScheme.badge}.500`}
+                    _hover={{
+                      transform: "scale(1.03)",
+                      boxShadow: "0 12px 30px rgba(0, 0, 0, 0.5)",
+                    }}
+                    transition="all 0.3s ease"
+                  >
+                    <HStack justify="space-between" mb={3}>
+                      <Heading
+                        size="md"
+                        color="whiteAlpha.900"
+                        fontWeight="bold"
+                      >
+                        {week.week}
+                      </Heading>
+                      <Badge
+                        variant="solid"
+                        colorScheme={colorScheme.badge}
+                        px={3}
+                        py={1}
+                        rounded="lg"
+                        boxShadow="sm"
+                        fontWeight="bold"
+                        display="flex"
+                        alignItems="center"
+                      >
+                        <Icon
+                          as={
+                            expensePercentage > 90
+                              ? MdWarning
+                              : expensePercentage > 70
+                              ? MdInfoOutline
+                              : MdCheckCircle
+                          }
+                          mr={1}
+                        />
+                        {expensePercentage > 90
+                          ? "Overspending Alert"
+                          : expensePercentage > 70
+                          ? "High Spending"
+                          : "Well-Managed"}
+                      </Badge>
+                    </HStack>
 
-        <Divider orientation="horizontal" borderColor="teal.300" my={4} />
+                    <Stack mt={4} spacing={3}>
+                      <Text
+                        fontSize="lg"
+                        fontWeight="semibold"
+                        color={`${colorScheme.text}.300`}
+                      >
+                        Total Expenses: ${week.totalExpenses.toFixed(2)}{" "}
+                        <Badge
+                          colorScheme={colorScheme.badge}
+                          px={2}
+                          py={1}
+                          rounded="full"
+                          fontSize="sm"
+                          fontWeight="bold"
+                        >
+                          {expensePercentage}% of Income
+                        </Badge>
+                      </Text>
 
-        {/* Loop through sorted months */}
-        {sortedMonths.map((month, index) => {
-          const expensePercentage = parseFloat(
-            calculateExpensePercentage(month.totalExpenses, month.totalIncome)
-          );
-          const colorScheme = getColorScheme(expensePercentage);
-          return (
-            <Box
-              key={index}
-              w="100%"
-              boxShadow="lg"
-              p={6}
-              bg={colorScheme.bg}
-              rounded="md"
-              border="1px"
-              borderColor={`${colorScheme.badge}.300`}
-              transition="all 0.3s"
-              _hover={{ transform: "scale(1.01)" }}
-            >
-              <HStack justify="space-between">
-                <Heading size="md" color={colorScheme.text}>
-                  Month {month.month}
-                </Heading>
-                <Badge variant="solid" colorScheme={colorScheme.badge} p={1}>
-                  <Icon
-                    as={
-                      expensePercentage > 90
-                        ? MdWarning
-                        : expensePercentage > 70
-                        ? MdInfoOutline
-                        : MdCheckCircle
-                    }
-                    mr={1}
-                  />
-                  {expensePercentage > 90
-                    ? "Overspending Alert"
-                    : expensePercentage > 70
-                    ? "High Spending"
-                    : "Well-Managed"}
-                </Badge>
-              </HStack>
-              <Stack mt={4} spacing={2}>
-                <Text color={`${colorScheme.text}.600`} fontWeight="semibold">
-                  Total Expenses: ${month.totalExpenses.toFixed(2)} (
-                  <Badge colorScheme={colorScheme.badge}>
-                    {expensePercentage}% of Income
-                  </Badge>
+                      <Text color="whiteAlpha.800" fontSize="md">
+                        Total Income:{" "}
+                        <Badge
+                          variant="outline"
+                          colorScheme="blue"
+                          fontSize="md"
+                          px={2}
+                          py={1}
+                          rounded="full"
+                          fontWeight="bold"
+                        >
+                          ${week.totalIncome.toFixed(2)}
+                        </Badge>
+                      </Text>
+
+                      <Divider
+                        borderColor={`${colorScheme.badge}.300`}
+                        opacity={0.4}
+                        marginTop="1rem"
+                      />
+
+                      {/* Display category warnings with icons */}
+                      {getCategoryWarnings(
+                        week.expensesByCategory,
+                        week.totalIncome,
+                        weeklyThresholds
+                      ).map((warning, i) => (
+                        <HStack
+                          key={i}
+                          spacing={2}
+                          color="orange.300"
+                          alignItems="center"
+                        >
+                          <Icon as={MdWarning} boxSize={5} />
+                          <Text fontWeight="medium">{warning}</Text>
+                        </HStack>
+                      ))}
+
+                      {/* Display weekly evaluations with bullet points and icons */}
+                      {weeklyEvaluations[index].map((evaluation, i) => (
+                        <HStack
+                          key={i}
+                          spacing={2}
+                          color="purple.300"
+                          alignItems="center"
+                        >
+                          <Icon as={FaLightbulb} boxSize={5} />
+                          <Text fontWeight="medium">{evaluation}</Text>
+                        </HStack>
+                      ))}
+                    </Stack>
+                  </Box>
+                );
+              })}
+            </AccordionPanel>
+          </AccordionItem>
+
+          {/* Collapsible Monthly Highlights */}
+          <AccordionItem border="none" mt={6}>
+            <h2>
+              <AccordionButton
+                _expanded={{
+                  bg: "linear(to-br, teal.500, blue.500)",
+                  color: "white",
+                }}
+                p={4}
+                rounded="md"
+                transition="all 0.3s ease"
+                _hover={{ boxShadow: "lg" }}
+              >
+                <HStack spacing={4} flex="1" textAlign="left">
+                  <Box
+                    bgGradient="linear(to-br, teal.500, blue.500)"
+                    p={3}
+                    rounded="full"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    boxShadow="lg"
+                  >
+                    <Icon as={MdDateRange} color="white" boxSize={6} />
+                  </Box>
+                  <Heading size="lg" fontWeight="bold">
+                    Monthly Highlights
+                  </Heading>
+                </HStack>
+                <AccordionIcon />
+              </AccordionButton>
+            </h2>
+            <AccordionPanel pb={4}>
+              {sortedMonths.map((month, index) => {
+                const expensePercentage = parseFloat(
+                  calculateExpensePercentage(
+                    month.totalExpenses,
+                    month.totalIncome
                   )
-                </Text>
-                <Text color="gray.600">
-                  Total Income:{" "}
-                  <Badge variant="outline" colorScheme="blue">
-                    ${month.totalIncome.toFixed(2)}
-                  </Badge>
-                </Text>
+                );
+                const colorScheme = getColorScheme(expensePercentage);
 
-                {/* Display monthly warnings */}
-                {getCategoryWarnings(
-                  month.expensesByCategory,
-                  month.totalIncome,
-                  thresholds
-                ).map((warning, index) => (
-                  <Text key={index} color="orange.600" mt={1}>
-                    {warning}
-                  </Text>
-                ))}
-                {/* Display monthly evaluations */}
-                {monthlyEvaluations[index].map((evaluation, idx) => (
-                  <Text key={idx} color="purple.600" mt={1}>
-                    {evaluation}
-                  </Text>
-                ))}
-              </Stack>
-            </Box>
-          );
-        })}
+                return (
+                  <Box
+                    key={index}
+                    w="100%"
+                    p={6}
+                    mb={6}
+                    bgGradient="linear(to-br, #1a202c, #2d3748)"
+                    rounded="2xl"
+                    boxShadow="0 8px 24px rgba(0, 0, 0, 0.3)"
+                    borderLeft="6px solid"
+                    borderColor={`${colorScheme.badge}.500`}
+                    _hover={{
+                      transform: "scale(1.03)",
+                      boxShadow: "0 12px 30px rgba(0, 0, 0, 0.5)",
+                    }}
+                    transition="all 0.3s ease"
+                  >
+                    <HStack justify="space-between" mb={3}>
+                      <Heading
+                        size="md"
+                        color="whiteAlpha.900"
+                        fontWeight="bold"
+                      >
+                        Month {month.month}
+                      </Heading>
+                      <Badge
+                        variant="solid"
+                        colorScheme={colorScheme.badge}
+                        px={3}
+                        py={1}
+                        rounded="lg"
+                        boxShadow="sm"
+                        fontWeight="bold"
+                        display="flex"
+                        alignItems="center"
+                      >
+                        <Icon
+                          as={
+                            expensePercentage > 90
+                              ? MdWarning
+                              : expensePercentage > 70
+                              ? MdInfoOutline
+                              : MdCheckCircle
+                          }
+                          mr={1}
+                        />
+                        {expensePercentage > 90
+                          ? "Overspending Alert"
+                          : expensePercentage > 70
+                          ? "High Spending"
+                          : "Well-Managed"}
+                      </Badge>
+                    </HStack>
+
+                    <Stack mt={4} spacing={3}>
+                      <Text
+                        fontSize="lg"
+                        fontWeight="semibold"
+                        color={`${colorScheme.text}.300`}
+                      >
+                        Total Expenses: ${month.totalExpenses.toFixed(2)}{" "}
+                        <Badge
+                          colorScheme={colorScheme.badge}
+                          px={2}
+                          py={1}
+                          rounded="full"
+                          fontSize="sm"
+                          fontWeight="bold"
+                        >
+                          {expensePercentage}% of Income
+                        </Badge>
+                      </Text>
+
+                      <Text color="whiteAlpha.800" fontSize="md">
+                        Total Income:{" "}
+                        <Badge
+                          variant="outline"
+                          colorScheme="blue"
+                          fontSize="md"
+                          px={2}
+                          py={1}
+                          rounded="full"
+                          fontWeight="bold"
+                        >
+                          ${month.totalIncome.toFixed(2)}
+                        </Badge>
+                      </Text>
+
+                      <Divider
+                        borderColor={`${colorScheme.badge}.300`}
+                        opacity={0.4}
+                        marginTop="1rem"
+                      />
+
+                      {/* Corrected category warnings for monthly data */}
+                      {getCategoryWarnings(
+                        month.expensesByCategory,
+                        month.totalIncome,
+                        weeklyThresholds
+                      ).map((warning, i) => (
+                        <HStack
+                          key={i}
+                          spacing={2}
+                          color="orange.300"
+                          alignItems="center"
+                        >
+                          <Icon as={MdWarning} boxSize={5} />
+                          <Text fontWeight="medium">{warning}</Text>
+                        </HStack>
+                      ))}
+
+                      {/* Monthly evaluations */}
+                      {monthlyEvaluations[index].map((evaluation, i) => (
+                        <HStack
+                          key={i}
+                          spacing={2}
+                          color="purple.300"
+                          alignItems="center"
+                        >
+                          <Icon as={FaLightbulb} boxSize={5} />
+                          <Text fontWeight="medium">{evaluation}</Text>
+                        </HStack>
+                      ))}
+                    </Stack>
+                  </Box>
+                );
+              })}
+            </AccordionPanel>
+          </AccordionItem>
+
+          {/* Collapsible Yearly Highlights */}
+          <AccordionItem border="none" mt={6}>
+            <h2>
+              <AccordionButton
+                _expanded={{
+                  bg: "linear(to-br, teal.500, blue.500)",
+                  color: "white",
+                }}
+                p={4}
+                rounded="md"
+                transition="all 0.3s ease"
+                _hover={{ boxShadow: "lg" }}
+              >
+                <HStack spacing={4} flex="1" textAlign="left">
+                  <Box
+                    bgGradient="linear(to-br, teal.500, blue.500)"
+                    p={3}
+                    rounded="full"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    boxShadow="lg"
+                  >
+                    <Icon as={MdOutlineDateRange} color="white" boxSize={6} />
+                  </Box>
+                  <Heading size="lg" fontWeight="bold">
+                    Yearly Highlights
+                  </Heading>
+                </HStack>
+                <AccordionIcon />
+              </AccordionButton>
+            </h2>
+            <AccordionPanel pb={4}>
+              {sortedYears.map((year, index) => {
+                const expensePercentage = parseFloat(
+                  calculateExpensePercentage(
+                    year.totalExpenses,
+                    year.totalIncome
+                  )
+                );
+                const colorScheme = getColorScheme(expensePercentage);
+
+                return (
+                  <Box
+                    key={index}
+                    w="100%"
+                    p={6}
+                    mb={6}
+                    bgGradient="linear(to-br, #1a202c, #2d3748)"
+                    rounded="2xl"
+                    boxShadow="0 8px 24px rgba(0, 0, 0, 0.3)"
+                    borderLeft="6px solid"
+                    borderColor={`${colorScheme.badge}.500`}
+                    _hover={{
+                      transform: "scale(1.03)",
+                      boxShadow: "0 12px 30px rgba(0, 0, 0, 0.5)",
+                    }}
+                    transition="all 0.3s ease"
+                  >
+                    <HStack justify="space-between" mb={3}>
+                      <Heading
+                        size="md"
+                        color="whiteAlpha.900"
+                        fontWeight="bold"
+                      >
+                        Year {year.year}
+                      </Heading>
+                      <Badge
+                        variant="solid"
+                        colorScheme={colorScheme.badge}
+                        px={3}
+                        py={1}
+                        rounded="lg"
+                        boxShadow="sm"
+                        fontWeight="bold"
+                        display="flex"
+                        alignItems="center"
+                      >
+                        <Icon
+                          as={
+                            expensePercentage > 90
+                              ? MdWarning
+                              : expensePercentage > 70
+                              ? MdInfoOutline
+                              : MdCheckCircle
+                          }
+                          mr={1}
+                        />
+                        {expensePercentage > 90
+                          ? "Overspending Alert"
+                          : expensePercentage > 70
+                          ? "High Spending"
+                          : "Well-Managed"}
+                      </Badge>
+                    </HStack>
+
+                    <Stack mt={4} spacing={3}>
+                      <Text
+                        fontSize="lg"
+                        fontWeight="semibold"
+                        color={`${colorScheme.text}.300`}
+                      >
+                        Total Expenses: ${year.totalExpenses.toFixed(2)}{" "}
+                        <Badge
+                          colorScheme={colorScheme.badge}
+                          px={2}
+                          py={1}
+                          rounded="full"
+                          fontSize="sm"
+                          fontWeight="bold"
+                        >
+                          {expensePercentage}% of Income
+                        </Badge>
+                      </Text>
+
+                      <Text color="whiteAlpha.800" fontSize="md">
+                        Total Income:{" "}
+                        <Badge
+                          variant="outline"
+                          colorScheme="blue"
+                          fontSize="md"
+                          px={2}
+                          py={1}
+                          rounded="full"
+                          fontWeight="bold"
+                        >
+                          ${year.totalIncome.toFixed(2)}
+                        </Badge>
+                      </Text>
+
+                      <Divider
+                        borderColor={`${colorScheme.badge}.300`}
+                        opacity={0.4}
+                        marginTop="1rem"
+                      />
+
+                      {/* Corrected category warnings for yearly data */}
+                      {getCategoryWarnings(
+                        year.expensesByCategory,
+                        year.totalIncome,
+                        weeklyThresholds
+                      ).map((warning, i) => (
+                        <HStack
+                          key={i}
+                          spacing={2}
+                          color="orange.300"
+                          alignItems="center"
+                        >
+                          <Icon as={MdWarning} boxSize={5} />
+                          <Text fontWeight="medium">{warning}</Text>
+                        </HStack>
+                      ))}
+
+                      {/* Yearly evaluations */}
+                      {yearlyEvaluations[index].map((evaluation, i) => (
+                        <HStack
+                          key={i}
+                          spacing={2}
+                          color="purple.300"
+                          alignItems="center"
+                        >
+                          <Icon as={FaLightbulb} boxSize={5} />
+                          <Text fontWeight="medium">{evaluation}</Text>
+                        </HStack>
+                      ))}
+                    </Stack>
+                  </Box>
+                );
+              })}
+            </AccordionPanel>
+          </AccordionItem>
+        </Accordion>
       </VStack>
 
-      <Divider orientation="horizontal" borderColor="teal.300" my={4} />
-
-      {/* Loop through sorted years */}
-      {sortedYears.map((year, index) => {
-        const expensePercentage = parseFloat(
-          calculateExpensePercentage(year.totalExpenses, year.totalIncome)
-        );
-        const colorScheme = getColorScheme(expensePercentage);
-        return (
-          <Box
-            key={index}
-            w="100%"
-            boxShadow="lg"
-            p={6}
-            bg={colorScheme.bg}
-            rounded="md"
-            border="1px"
-            borderColor={`${colorScheme.badge}.300`}
-            transition="all 0.3s"
-            _hover={{ transform: "scale(1.01)" }}
-          >
-            <HStack justify="space-between">
-              <Heading size="md" color={colorScheme.text}>
-                Year {year.year}
-              </Heading>
-              <Badge variant="solid" colorScheme={colorScheme.badge} p={1}>
-                <Icon
-                  as={
-                    expensePercentage > 90
-                      ? MdWarning
-                      : expensePercentage > 70
-                      ? MdInfoOutline
-                      : MdCheckCircle
-                  }
-                  mr={1}
-                />
-                {expensePercentage > 90
-                  ? "Overspending Alert"
-                  : expensePercentage > 70
-                  ? "High Spending"
-                  : "Well-Managed"}
-              </Badge>
-            </HStack>
-            <Stack mt={4} spacing={2}>
-              <Text color={`${colorScheme.text}.600`} fontWeight="semibold">
-                Total Expenses: ${year.totalExpenses.toFixed(2)} (
-                <Badge colorScheme={colorScheme.badge}>
-                  {expensePercentage}% of Income
-                </Badge>
-                )
-              </Text>
-              <Text color="gray.600">
-                Total Income:{" "}
-                <Badge variant="outline" colorScheme="blue">
-                  ${year.totalIncome.toFixed(2)}
-                </Badge>
-              </Text>
-
-              {/* Display yearly warnings */}
-              {getCategoryWarnings(
-                year.expensesByCategory,
-                year.totalIncome,
-                thresholds
-              ).map((warning, index) => (
-                <Text key={index} color="orange.600" mt={1}>
-                  {warning}
-                </Text>
-              ))}
-              {/* Display yearly evaluations */}
-              {yearlyEvaluations[index].map((evaluation, idx) => (
-                <Text key={idx} color="purple.600" mt={1}>
-                  {evaluation}
-                </Text>
-              ))}
-            </Stack>
-          </Box>
-        );
-      })}
-
-      <Divider orientation="horizontal" mt={6} borderColor="teal.300" />
-
       {/* Button to fetch AI-generated advice */}
-      <Button
-        colorScheme="teal"
-        mt={6}
-        w="full"
-        onClick={fetchAdvice}
-        isLoading={loadingAdvice}
-        loadingText="Fetching Advice"
-        size="lg"
-        rounded="full"
-        transition="all 0.2s"
-        _hover={{ boxShadow: "xl", transform: "scale(1.05)" }}
+      <VStack
+        spacing="4"
+        align="stretch"
+        bg="transparent"
+        p="4"
+        borderRadius="lg"
+        boxShadow="md"
       >
-        Get Financial Advice
-      </Button>
+        <Button
+          mt={6}
+          w="full"
+          onClick={fetchAdvice}
+          isLoading={loadingAdvice}
+          loadingText="Fetching Advice"
+          size="lg"
+          rounded="full"
+          bgGradient="linear(to-r, #3a3d5e, #4a81a0)" // Enhanced gradient with deep blues
+          color="white"
+          fontWeight="bold"
+          fontSize="xl"
+          transition="all 0.3s ease"
+          _hover={{
+            bgGradient: "linear(to-r, #4b5d7a, #5b9bb5)",
+            transform: "scale(1.05)",
+            boxShadow:
+              "0 8px 20px rgba(0, 0, 0, 0.25), 0px 0px 12px rgba(75, 93, 122, 0.6)",
+          }}
+          _active={{
+            transform: "scale(0.98)",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+          }}
+        >
+          Get Financial Advice
+        </Button>
+      </VStack>
 
       {/* Display AI-generated advice */}
-      <Box mt={8} p={6} bg={adviceBg} rounded="lg" boxShadow="sm">
-        <HStack spacing={3} mb={4}>
-          <Icon as={FaLightbulb} color="teal.500" boxSize={6} />
-          <Heading size="md" color="teal.600">
+      <Box
+        mt={8}
+        p={6}
+        bgGradient="radial-gradient(circle at center, #303030 0%, #34373f 25%, #2f3246 50%, #303030 100%)" // Darker, more sophisticated gradient
+        rounded="2xl"
+        boxShadow="0px 6px 25px rgba(0, 0, 0, 0.4), 0px 0px 15px rgba(39, 48, 70, 0.5)"
+      >
+        <HStack spacing={4} mb={4} align="center">
+          <Box
+            bgGradient="linear(to-br, #5b9bb5, #4b5d7a)"
+            p={3}
+            rounded="full"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            boxShadow="0px 0px 12px rgba(75, 93, 122, 0.5)"
+          >
+            <Icon as={FaLightbulb} color="white" boxSize={5} />
+          </Box>
+          <Heading
+            size="lg"
+            color="whiteAlpha.900"
+            fontWeight="bold"
+            textShadow="0px 0px 8px rgba(0, 0, 0, 0.4)"
+          >
             Financial Advice
           </Heading>
         </HStack>
+
         {loadingAdvice ? (
-          <Spinner color="teal.500" size="lg" />
+          <Spinner color="teal.300" size="lg" />
         ) : (
           advice.map((paragraph, index) => (
-            <Text key={index} color="gray.800" mb={3}>
+            <Text
+              key={index}
+              color="whiteAlpha.800"
+              mb={3}
+              fontSize="lg"
+              lineHeight="1.8"
+              letterSpacing="wider"
+            >
               {paragraph}
             </Text>
           ))

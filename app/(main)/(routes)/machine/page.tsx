@@ -27,17 +27,31 @@ import {
   TabPanels,
   TabPanel,
   useColorModeValue,
+  useBreakpointValue,
 } from "@chakra-ui/react";
-import { useAction, useMutation, useQuery } from "convex/react";
+import { useAction, useQuery } from "convex/react";
 import WeeklySummary from "../budgettracker/components/WeeklySummary";
 import MonthlySummary from "../budgettracker/components/MonthlySummary";
 import { api } from "@/convex/_generated/api";
-import PredictionButton from "./components/PredictionButton";
-import FinancialHealthHeader from "./components/FinancialHealthHeader";
+
 import ExpenseHighlights from "./components/ExpenseHighlights";
 import YearlySummary from "../budgettracker/components/YearlySummary";
 import SavingsTargetPrediction from "./components/SavingsTargetPrediction";
 import MonthlyPrediction from "./components/MonthlyPrediction";
+import { Tooltip } from "@chakra-ui/react";
+import {
+  FaPiggyBank,
+  FaDollarSign,
+  FaClipboardList,
+  FaInfoCircle,
+} from "react-icons/fa";
+
+const headers = [
+  { label: "Monthly Predictions", icon: FaClipboardList },
+  { label: "Savings Target", icon: FaPiggyBank },
+  { label: "Expense Highlights", icon: FaDollarSign },
+  { label: "Financial Summaries", icon: FaInfoCircle },
+];
 
 type Tensor = tf.Tensor;
 type Sequential = tf.Sequential;
@@ -269,61 +283,9 @@ const calculateMonthlyTotals = (expenses: Expense[]): MonthlyTotals[] => {
   return Object.values(totals);
 };
 
-const getMaxExpenseCategory = (expensesByCategory: Record<string, number>) => {
-  return Object.entries(expensesByCategory).reduce(
-    (max, current) => (current[1] > max[1] ? current : max),
-    ["", 0]
-  );
-};
-
-const findMaxExpensePeriod = (
-  totals: {
-    totalIncome: number; // Add this property
-    totalExpenses: number;
-    expensesByCategory: Record<string, number>;
-    week?: string;
-    month?: string;
-  }[]
-) => {
-  return totals.reduce(
-    (max, current) =>
-      current.totalExpenses > max.totalExpenses ? current : max,
-    {
-      totalIncome: 0,
-      totalExpenses: 0,
-      expensesByCategory: {},
-      week: "",
-      month: "",
-    }
-  );
-};
-
-const evaluateHighExpenses = (totals: {
-  expensesByCategory: Record<string, number>;
-}) => {
-  const [maxCategory, maxAmount] = getMaxExpenseCategory(
-    totals.expensesByCategory
-  );
-  return `The highest expense category is ${maxCategory} with a total of $${maxAmount.toFixed(
-    2
-  )}. Consider reducing costs in this category.`;
-};
-
-// Improved Expense Highlights Section
-const thresholds = {
-  housing: 0.3, // Housing should not exceed 30% of income
-  food: 0.15, // Food should not exceed 15% of income
-  transportation: 0.15,
-  healthcare: 0.1,
-  other_necessities: 0.1,
-  childcare: 0.1, // Adjust based on typical childcare costs in your area
-  taxes: 0.25, // Taxes are generally a fixed percentage but can be adjusted
-};
-
 const FinancialHealthComponent = () => {
   const fetchExpenses = useQuery(api.expense.getExpenses);
   const toast = useToast();
-  const userId = "your-user-id"; // Replace with actual userId
 
   const householdData = useQuery(api.household.getHouseholdByUserId);
 
@@ -335,6 +297,8 @@ const FinancialHealthComponent = () => {
   const [financialHealth, setFinancialHealth] = useState("");
   const [expenseSuggestions, setExpenseSuggestions] = useState("");
   const [financialAdvice, setFinancialAdvice] = useState("");
+  const isMobile = useBreakpointValue({ base: true, md: false });
+  const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
     if (fetchExpenses) {
@@ -640,194 +604,129 @@ const FinancialHealthComponent = () => {
       setYearlyTotals(yearlyData);
     }
   }, [expenses]);
-  const bgColor = useColorModeValue("black", "black");
-  const textColor = useColorModeValue("white", "white");
+
+  const bgColor = "#202020";
+  const borderColor = "#4a4a4a";
+  const shadowColor = "0 0 40px rgba(0, 0, 0, 0.8)";
+  const gradientBg = "linear(to-br, #3a3a3a, #262626)";
 
   return (
     <ChakraProvider>
       <VStack
-        spacing={8}
+        spacing={isMobile ? 8 : 16}
         align="stretch"
-        p={4}
+        p={isMobile ? 6 : 12}
         bg={bgColor}
-        color={textColor}
+        color="#e0e1dd"
         minHeight="100vh"
+        mx="auto"
+        boxShadow={shadowColor}
       >
-        <Heading size="xl" textAlign="center" mb={4} color={textColor}>
+        <Heading
+          size={isMobile ? "xl" : "3xl"}
+          textAlign="center"
+          mb={isMobile ? 6 : 12}
+          color="#e0e1dd"
+          fontWeight="extrabold"
+          letterSpacing="wider"
+          textTransform="uppercase"
+          textShadow={`0 0 10px ${borderColor}, 0 0 20px ${borderColor}`}
+        >
           Financial Health Dashboard
         </Heading>
 
-        {isLoading ? (
-          <CircularProgress isIndeterminate color="green.300" />
-        ) : (
-          <Tabs defaultIndex={0} isFitted variant="enclosed" colorScheme="teal">
-            <TabList mb="1em" borderColor="teal.500">
-              <Tab _selected={{ color: "teal.300", bg: "gray.800" }}>
-                Financial Health Prediction
-              </Tab>
-              <Tab _selected={{ color: "teal.300", bg: "gray.800" }}>
-                Monthly Predictions
-              </Tab>
-              <Tab _selected={{ color: "teal.300", bg: "gray.800" }}>
-                Savings Target
-              </Tab>
-              <Tab _selected={{ color: "teal.300", bg: "gray.800" }}>
-                Expense Highlights
-              </Tab>
-              <Tab _selected={{ color: "teal.300", bg: "gray.800" }}>
-                Financial Summaries
-              </Tab>
-            </TabList>
-
-            <TabPanels>
-              <TabPanel>
-                <Box
-                  shadow="md"
-                  p={6}
-                  borderRadius="md"
-                  bg="gray.800"
-                  color={textColor}
+        <Tabs
+          defaultIndex={0}
+          isFitted
+          variant="soft-rounded"
+          colorScheme="gray"
+          size={isMobile ? "sm" : "md"}
+        >
+          <TabList
+            mb={isMobile ? "1.5em" : "2.5em"}
+            justifyContent="center"
+            gap={isMobile ? 2 : 4}
+            p={3}
+            bgGradient="linear(to-r, #262626, #3a3a3a)"
+            borderRadius="full"
+            boxShadow="0 0 20px #3a3a3a"
+            border={`1px solid ${borderColor}`}
+          >
+            {headers.map(({ label, icon: Icon }, index) => (
+              <Tooltip label={label} key={index} placement="top" hasArrow>
+                <Tab
+                  _selected={{
+                    color: "#e0e1dd",
+                    bgGradient: gradientBg,
+                    fontWeight: "bold",
+                    transform: "scale(1.1)",
+                    boxShadow: `0 0 20px ${borderColor}`,
+                  }}
+                  _hover={{
+                    bg: "#3a3a3a",
+                    boxShadow: "0 0 10px #3a3a3a",
+                    transform: "translateY(-2px)",
+                  }}
+                  display="flex"
+                  flexDirection="column"
+                  alignItems="center"
+                  justifyContent="center"
+                  p={isMobile ? 3 : 4}
+                  borderRadius="lg"
+                  transition="all 0.3s ease"
                 >
-                  <PredictionButton
-                    isLoading={isLoading}
-                    onClickPredict={() => {
-                      setIsLoading(true); // Set loading when clicked
-                      onClickPredict().finally(() => setIsLoading(false)); // Ensure loading state is maintained
-                    }}
-                    model={model}
-                  />
+                  <Icon size={isMobile ? 26 : 30} />
+                  <Text mt={1} fontSize={isMobile ? "xs" : "sm"}>
+                    {label}
+                  </Text>
+                </Tab>
+              </Tooltip>
+            ))}
+          </TabList>
 
-                  <Box
-                    p={5}
-                    shadow="md"
-                    borderWidth="1px"
-                    bg="gray.800"
-                    flex="1"
-                    borderRadius="md"
-                    color={textColor}
-                  >
-                    {isLoading ? (
-                      <Box textAlign="center" py={6}>
-                        <CircularProgress isIndeterminate color="teal.300" />
-                        <Text mt={4}>Analyzing Financial Health...</Text>
-                      </Box>
-                    ) : (
-                      <>
-                        <Text fontSize="lg" color={"white"} mb={2}>
-                          Financial Health: <strong>{financialHealth}</strong>
-                        </Text>
-                        <Text fontSize="lg" color={"white"} mb={2}>
-                          Expense Analysis: {expenseSuggestions}
-                        </Text>
-                        <Accordion allowToggle>
-                          <AccordionItem>
-                            <h2>
-                              <AccordionButton
-                                _expanded={{
-                                  bg: "teal.300",
-                                  color: "gray.900",
-                                }}
-                              >
-                                <Box
-                                  flex="1"
-                                  textAlign="left"
-                                  fontSize="lg"
-                                  fontWeight="bold"
-                                >
-                                  View Detailed Advice
-                                </Box>
-                                <AccordionIcon />
-                              </AccordionButton>
-                            </h2>
-                            <AccordionPanel pb={4} color={"white"}>
-                              <Text whiteSpace="pre-wrap">
-                                {financialAdvice}
-                              </Text>
-                            </AccordionPanel>
-                          </AccordionItem>
-                        </Accordion>
-                      </>
-                    )}
-                  </Box>
-                </Box>
-              </TabPanel>
-              {/* Savings Target Prediction Panel */}
-              <TabPanel>
-                <Box
-                  shadow="md"
-                  p={6}
-                  borderRadius="md"
-                  bg="gray.800"
-                  color={textColor}
-                >
-                  <Heading size="lg" mb={4} color={textColor}>
-                    Predict Next Month’s Income and Expenses
-                  </Heading>
-                  <MonthlyPrediction />
-                </Box>
-              </TabPanel>
-
-              <TabPanel>
-                <Box
-                  shadow="md"
-                  p={6}
-                  borderRadius="md"
-                  bg="gray.800"
-                  color={textColor}
-                >
-                  <Heading size="lg" mb={4} color={textColor}>
-                    Savings Target Prediction
-                  </Heading>
-                  <SavingsTargetPrediction />
-                </Box>
-              </TabPanel>
-
-              {/* Expense Highlights Panel */}
-              <TabPanel>
-                <Box
-                  shadow="md"
-                  p={6}
-                  borderRadius="md"
-                  bg="gray.800"
-                  color={textColor}
-                >
-                  <Heading size="lg" mb={4} color={textColor}>
-                    Expense Highlights
-                  </Heading>
-                  <ExpenseHighlights
-                    allWeeks={weeklyTotals}
-                    allMonths={monthlyTotals}
-                    allYears={yearlyTotals}
-                    weeklyThresholds={weeklyThresholds}
-                    thresholds={thresholds}
-                    getCategoryWarnings={getCategoryWarnings}
-                  />
-                </Box>
-              </TabPanel>
-
-              {/* Financial Summaries Panel */}
-              <TabPanel>
-                <Box
-                  shadow="md"
-                  p={6}
-                  borderRadius="md"
-                  bg="gray.800"
-                  color={textColor}
-                >
-                  <Heading size="lg" mb={4} color={textColor}>
-                    Financial Summaries
-                  </Heading>
-                  <WeeklySummary weeklyTotals={weeklyTotals} />
-                  <MonthlySummary monthlyTotals={monthlyTotals} />
-                  <YearlySummary yearlyTotals={yearlyTotals} />
-                </Box>
-              </TabPanel>
-            </TabPanels>
-          </Tabs>
-        )}
+          <TabPanels>
+            <TabPanelContent>
+              <MonthlyPrediction />
+            </TabPanelContent>
+            <TabPanelContent>
+              <SavingsTargetPrediction />
+            </TabPanelContent>
+            <TabPanelContent>
+              <ExpenseHighlights
+                allWeeks={weeklyTotals}
+                allMonths={monthlyTotals}
+                allYears={yearlyTotals}
+                weeklyThresholds={weeklyThresholds}
+                thresholds={thresholds}
+                getCategoryWarnings={getCategoryWarnings}
+              />
+            </TabPanelContent>
+            <TabPanelContent>
+              <WeeklySummary weeklyTotals={weeklyTotals} />
+              <MonthlySummary monthlyTotals={monthlyTotals} />
+              <YearlySummary yearlyTotals={yearlyTotals} />
+            </TabPanelContent>
+          </TabPanels>
+        </Tabs>
       </VStack>
     </ChakraProvider>
   );
 };
+
+const TabPanelContent: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
+  <TabPanel>
+    <Box
+      transition="transform 0.3s ease, box-shadow 0.3s ease"
+      _hover={{
+        shadow: "0 0 25px #3a3a3a",
+        transform: "translateY(-5px)",
+      }}
+    >
+      {children}
+    </Box>
+  </TabPanel>
+);
 
 export default FinancialHealthComponent;

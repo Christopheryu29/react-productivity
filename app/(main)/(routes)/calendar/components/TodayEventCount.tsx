@@ -6,7 +6,8 @@ import React from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { format, isSameDay, startOfDay } from "date-fns";
-import { Box, Text } from "@chakra-ui/react";
+import { Box, HStack, Text } from "@chakra-ui/react";
+import { CalendarIcon } from "@chakra-ui/icons";
 
 interface Event {
   _id: string;
@@ -62,16 +63,46 @@ const TodayEventCount: React.FC<TodayEventCountProps> = ({ selectedDate }) => {
 
   return (
     <Box
-      mt={4}
-      bg="gray.700"
-      p={4}
-      borderRadius="lg"
-      color="white"
+      mt={6}
+      p={6}
+      borderRadius="xl"
+      bgGradient="transparent"
+      transition="transform 0.2s ease, box-shadow 0.2s ease"
       textAlign="center"
+      color="white"
     >
-      <Text fontSize="lg" fontWeight="bold">
-        {todaysEvents.length} {todaysEvents.length === 1 ? "event" : "events"}{" "}
-        today
+      <HStack
+        justifyContent="center"
+        mb={4}
+        spacing={{ base: 2, md: 3 }}
+        align="center"
+      >
+        <Box
+          bg="rgba(0, 191, 255, 0.1)" // Soft cyan background for icon
+          p={2}
+          borderRadius="full"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          boxShadow="0px 2px 8px rgba(0, 191, 255, 0.3)" // Subtle shadow for depth
+        >
+          <CalendarIcon boxSize={5} color="cyan.400" />
+        </Box>
+
+        <Text
+          fontSize={{ base: "lg", md: "xl" }}
+          fontWeight="extrabold"
+          color="cyan.400"
+          textShadow="1px 1px 5px rgba(0, 191, 255, 0.4)" // Soft text shadow for glow effect
+          letterSpacing="wider" // Adds a modern, spacious feel
+        >
+          {todaysEvents.length} {todaysEvents.length === 1 ? "Event" : "Events"}{" "}
+          Today
+        </Text>
+      </HStack>
+
+      <Text fontSize="md" color="gray.300">
+        Stay on top of your schedule and make the most of your day!
       </Text>
     </Box>
   );
