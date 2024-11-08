@@ -72,11 +72,16 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
         duration: 3000,
         isClosable: true,
       });
-    } catch (error) {
-      console.error("Failed to add expense:", error);
+    } catch (error: unknown) {
+      // Use a type guard to check if `error` has a `message` property
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "There was an error adding the expense.";
+      console.error("Failed to add expense:", errorMessage);
       toast({
         title: "Error Adding Expense",
-        description: "There was an error adding the expense.",
+        description: errorMessage,
         status: "error",
         duration: 3000,
         isClosable: true,
