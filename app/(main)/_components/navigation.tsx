@@ -37,7 +37,6 @@ import { Item } from "./item";
 import { DocumentList } from "./document-list";
 import { TrashBox } from "./trash-box";
 import { Navbar } from "./navbar";
-import { PomodoroTimer } from "./pomodorotimer";
 
 interface NavigationProps {
   togglePomodoro: () => void;

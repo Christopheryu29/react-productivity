@@ -20,6 +20,7 @@ import {
   Spinner,
   Container,
   Stack,
+  Text,
 } from "@chakra-ui/react";
 
 interface Task {
@@ -78,63 +79,162 @@ const TaskPage: React.FC = () => {
   if (loading) return <p>Loading tasks...</p>;
 
   return (
-    <Container maxW="container.xl" p={4}>
-      <Heading color={"white"} mb={6}>
+    <Container
+      maxW={{ base: "container.sm", md: "container.lg", xl: "container.xl" }}
+      height={"stretch"}
+      p={{ base: 4, md: 6, xl: 8 }}
+      bg="202020"
+      borderRadius={{ base: "lg", md: "xl" }}
+      boxShadow="lg"
+    >
+      <Heading
+        color="white"
+        mb={8}
+        textAlign="center"
+        fontSize={{ base: "2xl", md: "3xl" }}
+      >
         Task Management
       </Heading>
       <VStack
         as="form"
-        color={"white"}
+        color="white"
         onSubmit={
           handleSubmit as unknown as React.FormEventHandler<HTMLDivElement>
         }
-        spacing={4}
+        spacing={6}
         align="stretch"
+        bg="radial-gradient(circle at center, #303030 0%, #34373f 25%, #2f3246 50%, #303030 100%)"
+        p={6}
+        borderRadius="lg"
+        boxShadow="md"
       >
         <FormControl isRequired>
-          <FormLabel htmlFor="title">Title</FormLabel>
+          <FormLabel htmlFor="title" fontWeight="bold" color="gray.300">
+            Title
+          </FormLabel>
           <Input
             id="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Title"
+            bg="gray.600"
+            color="white"
+            _placeholder={{ color: "gray.400" }}
           />
         </FormControl>
+
         <FormControl>
-          <FormLabel color={"white"}>Status</FormLabel>
-          <Select value={status} onChange={(e) => setStatus(e.target.value)}>
-            <option value="backlog">Backlog</option>
-            <option value="todo">Todo</option>
-            <option value="in progress">In Progress</option>
-            <option value="done">Done</option>
-            <option value="canceled">Canceled</option>
+          <FormLabel color="gray.300" fontWeight="bold">
+            Status
+          </FormLabel>
+          <Select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            bg="gray.600"
+            color="white"
+          >
+            <option value="backlog" style={{ color: "black" }}>
+              Backlog
+            </option>
+            <option value="todo" style={{ color: "black" }}>
+              Todo
+            </option>
+            <option value="in progress" style={{ color: "black" }}>
+              In Progress
+            </option>
+            <option value="done" style={{ color: "black" }}>
+              Done
+            </option>
+            <option value="canceled" style={{ color: "black" }}>
+              Canceled
+            </option>
           </Select>
         </FormControl>
+
         <FormControl>
-          <FormLabel>Label</FormLabel>
-          <Select value={label} onChange={(e) => setLabel(e.target.value)}>
-            <option value="bug">Bug</option>
-            <option value="feature">Feature</option>
-            <option value="documentation">Documentation</option>
+          <FormLabel color="gray.300" fontWeight="bold">
+            Label
+          </FormLabel>
+          <Select
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            bg="gray.600"
+            color="white"
+          >
+            <option value="bug" style={{ color: "black" }}>
+              Bug
+            </option>
+            <option value="feature" style={{ color: "black" }}>
+              Feature
+            </option>
+            <option value="documentation" style={{ color: "black" }}>
+              Documentation
+            </option>
           </Select>
         </FormControl>
+
         <FormControl>
-          <FormLabel>Priority</FormLabel>
+          <FormLabel color="gray.300" fontWeight="bold">
+            Priority
+          </FormLabel>
           <Select
             value={priority}
             onChange={(e) => setPriority(e.target.value)}
+            bg="gray.600"
+            color="white"
+            _hover={{ bg: "gray.500" }}
+            focusBorderColor="blue.400"
           >
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
+            <option value="low" style={{ color: "black" }}>
+              Low
+            </option>
+            <option value="medium" style={{ color: "black" }}>
+              Medium
+            </option>
+            <option value="high" style={{ color: "black" }}>
+              High
+            </option>
           </Select>
         </FormControl>
-        <Button type="submit" colorScheme="blue">
+
+        <Button
+          type="submit"
+          colorScheme="blue"
+          width="full"
+          py={6}
+          fontSize="lg"
+          fontWeight="bold"
+          bgGradient="linear(to-r, blue.500, cyan.400)"
+          color="white"
+          _hover={{
+            bgGradient: "linear(to-r, blue.600, cyan.500)",
+            transform: "scale(1.02)",
+            boxShadow: "xl",
+          }}
+          _active={{
+            bgGradient: "linear(to-r, blue.700, cyan.600)",
+            transform: "scale(0.98)",
+          }}
+          borderRadius="md"
+          boxShadow="lg"
+          transition="all 0.2s ease-in-out"
+        >
           Add Task
         </Button>
       </VStack>
-      <Box color="white">
-        <DataTable data={tasks} columns={columns} />
+
+      <Box color="white" mt={8}>
+        <Text fontSize="lg" mb={4} fontWeight="bold">
+          Task List
+        </Text>
+        <Box
+          bg="radial-gradient(circle at center, #303030 0%, #34373f 25%, #2f3246 50%, #303030 100%)"
+          p={4}
+          borderRadius="lg"
+          boxShadow="md"
+        >
+          <DataTable data={tasks} columns={columns} />
+        </Box>
       </Box>
     </Container>
   );

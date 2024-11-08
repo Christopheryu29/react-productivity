@@ -68,37 +68,51 @@ export function DataTable<TData, TValue>({
   });
 
   return (
-    <div>
-      <DataTableToolbar table={table} />
-      <div className="rounded-md border max-h-[70vh] overflow-auto">
-        <Table>
+    <div className="p-4 rounded-lg shadow-lg">
+      {/* Wrapped DataTableToolbar in a div with styling */}
+      <div className="flex flex-wrap gap-2 justify-between items-center mb-4">
+        <DataTableToolbar table={table} />
+      </div>
+
+      <div className="rounded-lg border border-gray-700 max-h-[70vh] overflow-auto">
+        <Table className="w-full text-white ">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id} colSpan={header.colSpan}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  );
-                })}
+              <TableRow
+                key={headerGroup.id}
+                className="bg-gray-700 text-xs md:text-sm uppercase text-gray-400"
+              >
+                {headerGroup.headers.map((header) => (
+                  <TableHead
+                    key={header.id}
+                    colSpan={header.colSpan}
+                    className="px-2 py-2 md:px-4 md:py-2"
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
+
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  className="hover:bg-gray-700 transition-colors duration-150"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      key={cell.id}
+                      className="px-2 py-1 md:px-4 md:py-2 border-b border-gray-700"
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -111,7 +125,7 @@ export function DataTable<TData, TValue>({
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center"
+                  className="h-24 text-center text-gray-500"
                 >
                   No results.
                 </TableCell>
@@ -120,9 +134,12 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      {/* Conditionally render pagination */}
+
       {table.getRowModel().rows?.length > 0 && (
-        <div className="p-0 m-0">
+        <div className="flex flex-col md:flex-row md:justify-between items-center mt-4 p-4  rounded-b-lg border-t border-gray-700">
+          <span className="text-sm text-gray-400 mb-2 md:mb-0">
+            Rows per page
+          </span>
           <DataTablePagination table={table} />
         </div>
       )}

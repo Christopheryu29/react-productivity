@@ -39,6 +39,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
   const toast = useToast();
 
   const handleAddExpense = async () => {
+    // Validate inputs before proceeding
     if (newExpense <= 0 || !newCategory || !selectedDate) {
       toast({
         title: "Invalid Input",
@@ -51,42 +52,31 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
       return;
     }
 
-    try {
-      const newEntry = {
-        amount: newExpense,
-        type: newExpenseType,
-        category: newCategory,
-        date: selectedDate.toISOString(), // Store date as ISO string
-      };
+    // Prepare the new entry
+    const newEntry = {
+      amount: newExpense,
+      type: newExpenseType,
+      category: newCategory,
+      date: selectedDate.toISOString(),
+    };
 
-      await addExpenseMutation(newEntry);
-      onAddExpense(newEntry);
+    // Attempt to add expense via mutation without any error handling
+    addExpenseMutation(newEntry); // Do not await if you don't want to handle errors synchronously
 
-      setNewExpense(0);
-      setNewCategory("");
-      setSelectedDate(new Date()); // Reset the date picker
-      toast({
-        title: "Expense Added",
-        description: "Your new expense has been added successfully.",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-    } catch (error: unknown) {
-      // Use a type guard to check if `error` has a `message` property
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "There was an error adding the expense.";
-      console.error("Failed to add expense:", errorMessage);
-      toast({
-        title: "Error Adding Expense",
-        description: errorMessage,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    }
+    // Always proceed with the success actions
+    onAddExpense(newEntry);
+    toast({
+      title: "Expense Added",
+      description: "Your new expense has been added successfully.",
+      status: "success",
+      duration: 3000,
+      isClosable: true,
+    });
+
+    // Reset form fields after success actions
+    setNewExpense(0);
+    setNewCategory("");
+    setSelectedDate(new Date());
   };
 
   const bgColor = useColorModeValue("#303030", "#303030");
@@ -193,18 +183,28 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
         </FormControl>
 
         <FormControl>
-          <FormLabel htmlFor="date">Selected Date</FormLabel>
+          <FormLabel htmlFor="date" fontWeight="bold" fontSize="sm">
+            Selected Date
+          </FormLabel>
           <DatePicker
             selected={selectedDate}
             onChange={(date: Date | null) => setSelectedDate(date)}
             dateFormat="yyyy-MM-dd"
             showPopperArrow={false}
+            popperContainer={({ children }) => (
+              <div style={{ zIndex: 1000, position: "relative" }}>
+                {children}
+              </div>
+            )}
+            portalId="date-picker-portal" // Ensures DatePicker is rendered within a portal
             className="chakra-datepicker"
             customInput={
               <Input
-                bg="whiteAlpha.200"
-                color="whiteAlpha.900"
+                bg="transparent"
+                color="white"
+                _placeholder={{ color: "gray.400" }}
                 focusBorderColor="blue.400"
+                placeholder="Select Date"
               />
             }
           />

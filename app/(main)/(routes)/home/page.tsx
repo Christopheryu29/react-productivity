@@ -547,7 +547,7 @@ const HomePage: React.FC = () => {
         <Box
           flex="1 0 auto"
           overflow="auto"
-          bg="rgba(255, 255, 255, 0.08)"
+          bg="radial-gradient(circle at center, #303030 0%, #34373f 25%, #2f3246 50%, #303030 100%)"
           rounded="xl"
           boxShadow="lg"
           textColor="white"
