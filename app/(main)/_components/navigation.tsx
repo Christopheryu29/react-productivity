@@ -144,6 +144,10 @@ export const Navigation: React.FC<NavigationProps> = ({ togglePomodoro }) => {
     });
   };
 
+  const iconSize = isMobile ? "1.5rem" : "1rem"; // Adjust icon size based on screen size
+  const textSize = isMobile ? "text-lg" : "text-sm"; // Adjust text size based on screen size
+  const itemPadding = isMobile ? "py-3 px-4" : "py-2 px-3"; // Adjust padding for larger touch targets on mobile
+
   return (
     <>
       <aside
@@ -151,7 +155,7 @@ export const Navigation: React.FC<NavigationProps> = ({ togglePomodoro }) => {
         className={cn(
           "group/sidebar h-full bg-secondary overflow-y-auto relative flex w-60 flex-col z-[99999]",
           isResetting && "transition-all ease-in-out duration-300",
-          isMobile && "w-0"
+          isMobile ? "w-full" : "w-60"
         )}
       >
         <div
@@ -223,9 +227,9 @@ export const Navigation: React.FC<NavigationProps> = ({ togglePomodoro }) => {
       <div
         ref={navbarRef}
         className={cn(
-          "absolute top-0 z-[99999] left-60 w-[calc(100%-240px)]",
-          isResetting && "transition-all ease-in-out duration-300",
-          isMobile && "left-0 w-full"
+          "absolute top-0 z-[99999]",
+          isMobile ? "left-0 w-full" : "left-60 w-[calc(100%-240px)]",
+          isResetting && "transition-all ease-in-out duration-300"
         )}
       >
         {!!params.documentId ? (

@@ -20,42 +20,55 @@ export function DataTableToolbar<TData>({
   const isFiltered = table.getState().columnFilters.length > 0;
 
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex flex-1 items-center space-x-2">
-        <Input
-          placeholder="Filter tasks..."
-          value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("title")?.setFilterValue(event.target.value)
-          }
-          className="h-8 w-[150px] lg:w-[250px]"
-        />
-        {table.getColumn("status") && (
-          <DataTableFacetedFilter
-            column={table.getColumn("status")}
-            title="Status"
-            options={statuses}
+    <div className="overflow-x-auto px-2 py-1">
+      <div className="flex flex-wrap items-center justify-between space-y-2 lg:space-y-0">
+        <div className="flex flex-1 items-center space-x-2">
+          {/* Task Filter Input */}
+          <Input
+            placeholder="Filter tasks..."
+            value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("title")?.setFilterValue(event.target.value)
+            }
+            className="h-8 w-[150px] lg:w-[250px] text-sm"
           />
-        )}
-        {table.getColumn("priority") && (
-          <DataTableFacetedFilter
-            column={table.getColumn("priority")}
-            title="Priority"
-            options={priorities}
-          />
-        )}
-        {isFiltered && (
-          <Button
-            variant="ghost"
-            onClick={() => table.resetColumnFilters()}
-            className="h-8 px-2 lg:px-3"
-          >
-            Reset
-            <Cross2Icon className="ml-2 h-4 w-4" />
-          </Button>
-        )}
+
+          {/* Status Filter */}
+          {table.getColumn("status") && (
+            <DataTableFacetedFilter
+              column={table.getColumn("status")}
+              title="Status"
+              options={statuses}
+            />
+          )}
+
+          {/* Priority Filter */}
+          {table.getColumn("priority") && (
+            <DataTableFacetedFilter
+              column={table.getColumn("priority")}
+              title="Priority"
+              options={priorities}
+            />
+          )}
+
+          {/* Reset Button */}
+          {isFiltered && (
+            <Button
+              variant="ghost"
+              onClick={() => table.resetColumnFilters()}
+              className="h-8 px-2 lg:px-3 text-sm"
+            >
+              Reset
+              <Cross2Icon className="ml-2 h-4 w-4" />
+            </Button>
+          )}
+        </div>
+
+        {/* View Options */}
+        <div className="mt-2 lg:mt-0">
+          <DataTableViewOptions table={table} />
+        </div>
       </div>
-      <DataTableViewOptions table={table} />
     </div>
   );
 }

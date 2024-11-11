@@ -164,7 +164,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
             bg="white"
             color="black"
             border="1px"
-            borderColor="gray.300"
+            borderColor="g ray.300"
             _hover={{ borderColor: "gray.500" }}
           >
             <option value="all">All Expenses</option>

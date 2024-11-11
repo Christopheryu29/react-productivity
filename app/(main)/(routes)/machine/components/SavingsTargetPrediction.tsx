@@ -23,6 +23,7 @@ import {
   SimpleGrid,
   Heading,
   Divider,
+  useBreakpointValue,
 } from "@chakra-ui/react";
 import { InfoOutlineIcon } from "@chakra-ui/icons";
 import { useMutation, useQuery } from "convex/react";
@@ -55,6 +56,7 @@ const SavingsTargetPrediction = () => {
   const [financialHealthScore, setFinancialHealthScore] = useState<
     number | null
   >(null);
+  const isMobile = useBreakpointValue({ base: true, md: false });
 
   const toast = useToast();
   const currentYear = new Date().getFullYear();
@@ -357,7 +359,10 @@ const SavingsTargetPrediction = () => {
         <Button
           bgGradient="linear(to-r, teal.400, cyan.500)"
           color="white"
-          size="lg"
+          size={isMobile ? "md" : "lg"} // Adjust size based on screen size
+          fontSize={isMobile ? "sm" : "md"} // Smaller font size for mobile
+          px={isMobile ? 4 : 6} // Smaller padding on mobile
+          py={isMobile ? 3 : 4} // Adjust padding for mobile
           _hover={{
             bgGradient: "linear(to-r, teal.500, cyan.600)",
             boxShadow:

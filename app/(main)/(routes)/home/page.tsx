@@ -305,31 +305,20 @@ const HomePage: React.FC = () => {
     type: "income" | "expense";
     category: string;
   }) => {
-    try {
-      const expenseEntry = {
-        ...newExpense,
-        id: Date.now(),
-        date: new Date().toISOString(),
-      };
-      await addExpenseMutation(expenseEntry);
-      setExpenses((prev) => [...prev, expenseEntry]);
-      toast({
-        title: "Expense Added",
-        description: "Your expense has been added successfully.",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-    } catch (error) {
-      toast({
-        title: "Error Adding Expense",
-        description: "There was an error adding your expense.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      console.error("Error adding expense:", error);
-    }
+    const expenseEntry = {
+      ...newExpense,
+      id: Date.now(),
+      date: new Date().toISOString(),
+    };
+    await addExpenseMutation(expenseEntry);
+    setExpenses((prev) => [...prev, expenseEntry]);
+    toast({
+      title: "Expense Added",
+      description: "Your expense has been added successfully.",
+      status: "success",
+      duration: 3000,
+      isClosable: true,
+    });
   };
 
   if (loadingTasks || loadingExpenses) {
@@ -440,13 +429,13 @@ const HomePage: React.FC = () => {
 
           <Box
             boxShadow="lg"
-            p={4}
             rounded="xl"
             bg="linear-gradient(145deg, #222233, #2f2f47)"
           >
             <Heading
               size="md"
               mb={3}
+              p={3}
               color="white"
               textShadow="0px 2px 6px rgba(0, 0, 0, 0.5)"
             >

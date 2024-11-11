@@ -297,7 +297,7 @@ const FinancialHealthComponent = () => {
   const [financialHealth, setFinancialHealth] = useState("");
   const [expenseSuggestions, setExpenseSuggestions] = useState("");
   const [financialAdvice, setFinancialAdvice] = useState("");
-  const isMobile = useBreakpointValue({ base: true, md: false });
+  const isMobile = useBreakpointValue({ base: true, md: false }) ?? false;
   const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
@@ -685,13 +685,13 @@ const FinancialHealthComponent = () => {
           </TabList>
 
           <TabPanels>
-            <TabPanelContent>
+            <TabPanelContent isMobile={isMobile}>
               <MonthlyPrediction />
             </TabPanelContent>
-            <TabPanelContent>
+            <TabPanelContent isMobile={isMobile}>
               <SavingsTargetPrediction />
             </TabPanelContent>
-            <TabPanelContent>
+            <TabPanelContent isMobile={isMobile}>
               <ExpenseHighlights
                 allWeeks={weeklyTotals}
                 allMonths={monthlyTotals}
@@ -701,7 +701,7 @@ const FinancialHealthComponent = () => {
                 getCategoryWarnings={getCategoryWarnings}
               />
             </TabPanelContent>
-            <TabPanelContent>
+            <TabPanelContent isMobile={isMobile}>
               <WeeklySummary weeklyTotals={weeklyTotals} />
               <MonthlySummary monthlyTotals={monthlyTotals} />
               <YearlySummary yearlyTotals={yearlyTotals} />
@@ -713,10 +713,11 @@ const FinancialHealthComponent = () => {
   );
 };
 
-const TabPanelContent: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => (
-  <TabPanel>
+const TabPanelContent: React.FC<{
+  children: React.ReactNode;
+  isMobile: boolean;
+}> = ({ children, isMobile }) => (
+  <TabPanel p={isMobile ? 0 : 4}>
     <Box
       transition="transform 0.3s ease, box-shadow 0.3s ease"
       _hover={{
