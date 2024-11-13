@@ -343,18 +343,11 @@ const HomePage: React.FC = () => {
         textAlign="center"
         p={isMobile ? 6 : 10}
         mb={10}
-        bg="rgba(40, 40, 55, 0.85)"
-        rounded="2xl"
-        boxShadow="0px 8px 24px rgba(0, 0, 0, 0.3)"
-        transition="all 0.5s ease-in-out"
-        backdropFilter="blur(15px)"
-        _hover={{ boxShadow: "0px 0px 30px rgba(100, 150, 255, 0.2)" }}
+        className="bg-white dark:bg-[rgba(40,40,55,0.85)] text-gray-800 dark:text-white rounded-2xl shadow-lg backdrop-blur-sm"
       >
         <Heading
           size={isMobile ? "xl" : "2xl"}
-          color="white"
-          mb={3}
-          fontWeight="extrabold"
+          className="text-gray-800 dark:text-white mb-3 font-extrabold"
           textShadow="0px 3px 8px rgba(0, 0, 0, 0.4)"
         >
           {new Date().toLocaleDateString(undefined, {
@@ -366,9 +359,7 @@ const HomePage: React.FC = () => {
         </Heading>
         <Text
           fontSize={isMobile ? "2xl" : "3xl"}
-          color="white"
-          fontWeight="medium"
-          textShadow="0px 2px 5px rgba(0, 0, 0, 0.3)"
+          className="text-gray-700 dark:text-gray-300 font-medium"
         >
           {new Date().toLocaleTimeString(undefined, {
             hour: "2-digit",
@@ -381,27 +372,17 @@ const HomePage: React.FC = () => {
       {isMobile ? (
         // Stack layout for mobile view
         <Stack spacing={6}>
-          <Box
-            boxShadow="md"
-            p={4}
-            rounded="xl"
-            bg="rgba(255, 255, 255, 0.08)"
-            backdropFilter="blur(10px)"
-            border="1px solid rgba(255, 255, 255, 0.1)"
-          >
-            <Heading size="md" mb={3} color="white" fontWeight="semibold">
+          <Box className="bg-white dark:bg-[rgba(40,40,55,0.85)] text-gray-800 dark:text-white rounded-xl shadow-md p-4">
+            <Heading
+              size="md"
+              className="text-gray-800 dark:text-white mb-3 font-semibold"
+            >
               Add New Expense
             </Heading>
             <ExpenseForm onAddExpense={handleAddExpense} />
           </Box>
 
-          <Box
-            boxShadow="md"
-            rounded="xl"
-            bg="rgba(255, 255, 255, 0.08)"
-            backdropFilter="blur(10px)"
-            border="1px solid rgba(255, 255, 255, 0.1)"
-          >
+          <Box className="bg-white dark:bg-[rgba(40,40,55,0.85)] rounded-xl shadow-md">
             <CriticalPeriods
               criticalWeeks={criticalWeeks}
               criticalMonths={criticalMonths}
@@ -409,35 +390,20 @@ const HomePage: React.FC = () => {
             />
           </Box>
 
-          <Box
-            boxShadow="lg"
-            p={4}
-            rounded="xl"
-            bg="linear-gradient(145deg, #222233, #2f2f47)"
-            textAlign="center"
-          >
+          <Box className="bg-white dark:bg-[rgba(40,40,55,0.85)]  text-center p-4 rounded-xl shadow-lg">
             <Heading
               size="md"
-              mb={3}
-              color="white"
-              textShadow="0px 3px 8px rgba(0, 0, 0, 0.6)"
+              className="text-gray-800 dark:text-white mb-3 font-semibold"
             >
               Today’s Events
             </Heading>
             <TodayEventCount selectedDate={new Date()} />
           </Box>
 
-          <Box
-            boxShadow="lg"
-            rounded="xl"
-            bg="linear-gradient(145deg, #222233, #2f2f47)"
-          >
+          <Box className="bg-white dark:bg-[rgba(40,40,55,0.85)]  rounded-xl shadow-lg">
             <Heading
               size="md"
-              mb={3}
-              p={3}
-              color="white"
-              textShadow="0px 2px 6px rgba(0, 0, 0, 0.5)"
+              className="text-gray-800 dark:text-white mb-3 p-3 text-center font-semibold"
             >
               Weekly Summary
             </Heading>
@@ -449,29 +415,17 @@ const HomePage: React.FC = () => {
         <Grid templateColumns="1fr 2fr" gap={6} flex="1">
           {/* Left Column: Expense Form and Critical Periods */}
           <GridItem>
-            <Box
-              boxShadow="md"
-              p={6}
-              rounded="xl"
-              bg="rgba(255, 255, 255, 0.08)"
-              backdropFilter="blur(10px)"
-              border="1px solid rgba(255, 255, 255, 0.1)"
-              mb={6}
-            >
-              <Heading size="md" mb={3} color="white" fontWeight="semibold">
+            <Box className="bg-white dark:bg-[rgba(40,40,55,0.85)] text-gray-800 dark:text-white rounded-xl shadow-md p-6 mb-6">
+              <Heading
+                size="md"
+                className="text-gray-800 dark:text-white mb-3 font-semibold"
+              >
                 Add New Expense
               </Heading>
               <ExpenseForm onAddExpense={handleAddExpense} />
             </Box>
 
-            <Box
-              mt={6}
-              boxShadow="md"
-              bg="rgba(255, 255, 255, 0.08)"
-              rounded="xl"
-              backdropFilter="blur(10px)"
-              border="1px solid rgba(255, 255, 255, 0.1)"
-            >
+            <Box className="bg-white dark:bg-[rgba(40,40,55,0.85)] rounded-xl shadow-md mt-6">
               <CriticalPeriods
                 criticalWeeks={criticalWeeks}
                 criticalMonths={criticalMonths}
@@ -482,36 +436,20 @@ const HomePage: React.FC = () => {
 
           {/* Right Column: Today’s Events and Weekly Summary */}
           <GridItem>
-            <Box
-              boxShadow="lg"
-              p={8}
-              rounded="xl"
-              bg="linear-gradient(145deg, #222233, #2f2f47)"
-              textAlign="center"
-            >
+            <Box className="bg-white dark:bg-[rgba(40,40,55,0.85)] text-gray-800 dark:text-white text-center p-8 rounded-xl shadow-lg">
               <Heading
                 size="lg"
-                mb={3}
-                color="white"
-                textShadow="0px 3px 8px rgba(0, 0, 0, 0.6)"
+                className="text-gray-800 dark:text-white mb-3 font-semibold"
               >
                 Today’s Events
               </Heading>
               <TodayEventCount selectedDate={new Date()} />
             </Box>
 
-            <Box
-              boxShadow="lg"
-              p={8}
-              rounded="xl"
-              mt={6}
-              bg="linear-gradient(145deg, #222233, #2f2f47)"
-            >
+            <Box className="bg-white dark:bg-[rgba(40,40,55,0.85)]  text-gray-800 dark:text-white rounded-xl shadow-lg p-8 mt-6">
               <Heading
                 size="lg"
-                mb={3}
-                color="white"
-                textShadow="0px 2px 6px rgba(0, 0, 0, 0.5)"
+                className="text-gray-800 dark:text-white mb-3 font-semibold"
               >
                 Weekly Summary
               </Heading>
@@ -526,25 +464,22 @@ const HomePage: React.FC = () => {
       {/* Task Overview */}
       <Stack spacing={isMobile ? 6 : 8} flex="1 0 auto">
         <Heading
-          color="white"
+          className="text-gray-800 dark:text-white font-semibold"
           size={isMobile ? "md" : "lg"}
-          fontWeight="semibold"
-          textShadow="0px 2px 5px rgba(0, 0, 0, 0.3)"
         >
           Task Overview
         </Heading>
         <Box
-          flex="1 0 auto"
-          overflow="auto"
-          bg="radial-gradient(circle at center, #303030 0%, #34373f 25%, #2f3246 50%, #303030 100%)"
-          rounded="xl"
-          boxShadow="lg"
-          textColor="white"
-          p={isMobile ? 4 : 8}
-          border="1px solid rgba(255, 255, 255, 0.1)"
-          backdropFilter="blur(10px)"
+          className="overflow-auto text-gray-800 dark:text-white rounded-xl shadow-lg  border border-gray-200 dark:border-gray-700"
+          style={{
+            backgroundColor: "transparent",
+            backgroundImage:
+              "radial-gradient(circle at center, #303030 0%, #34373f 25%, #2f3246 50%, #303030 100%)",
+          }}
         >
-          <DataTable data={tasks} columns={columns} />
+          <div className="bg-white dark:bg-transparent rounded-xl shadow-lg">
+            <DataTable data={tasks} columns={columns} />
+          </div>
         </Box>
       </Stack>
     </Container>

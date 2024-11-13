@@ -9,6 +9,7 @@ import {
   Box,
   HStack,
   Icon,
+  useBreakpointValue,
 } from "@chakra-ui/react";
 import * as tf from "@tensorflow/tfjs";
 import { useQuery } from "convex/react";
@@ -274,12 +275,14 @@ const MonthlyPrediction: React.FC = () => {
     setIsLoading(false);
   };
 
+  const isMobile = useBreakpointValue({ base: true, md: false });
+
   return (
     <VStack
       spacing={6}
       align="center"
       p={8}
-      bgGradient="radial-gradient(circle at center, #303030 0%, #34373f 25%, #2f3246 50%, #303030 100%)"
+      className="bg-gray-100 dark:bg-[radial-gradient(circle_at_center,_#303030_0%,_#34373f_25%,_#2f3246_50%,_#303030_100%)]"
       rounded="xl"
       boxShadow="2xl"
       w="100%"
@@ -287,11 +290,10 @@ const MonthlyPrediction: React.FC = () => {
     >
       <Heading
         size="lg"
-        color="whiteAlpha.900"
+        className="text-gray-800 dark:text-white dark:filter "
         fontWeight="bold"
         mb={10}
         mt={4}
-        textShadow="1px 1px 8px rgba(0, 0, 0, 0.4)"
       >
         Next Month’s Predictions
       </Heading>
@@ -315,25 +317,55 @@ const MonthlyPrediction: React.FC = () => {
                 boxShadow: "0 12px 40px rgba(0, 255, 255, 0.4)",
               }}
             >
-              <HStack justify="space-between" align="center">
-                <Icon
-                  as={FaDollarSign}
-                  color="teal.300"
-                  boxSize={8}
-                  style={{ filter: "drop-shadow(0px 0px 8px teal)" }}
-                />
-                <Text fontSize="lg" fontWeight="bold" color="whiteAlpha.800">
-                  Predicted Income:
-                </Text>
-                <Text
-                  fontSize="2xl"
-                  fontWeight="extrabold"
-                  color="teal.200"
-                  style={{ filter: "drop-shadow(0px 0px 6px teal)" }}
-                >
-                  ${predictedIncome?.toFixed(2) || "N/A"}
-                </Text>
-              </HStack>
+              {isMobile ? (
+                <VStack align="start">
+                  <Icon
+                    as={FaDollarSign}
+                    color="teal.300"
+                    boxSize={8}
+                    className="dark:filter dark:drop-shadow-[0_0_8px_teal]"
+                  />
+                  <Text
+                    fontSize="lg"
+                    fontWeight="bold"
+                    className="text-gray-800 dark:text-white"
+                  >
+                    Predicted Income:
+                  </Text>
+                  <Text
+                    fontSize="2xl"
+                    fontWeight="extrabold"
+                    color="teal.200"
+                    className="dark:filter dark:drop-shadow-[0_0_6px_teal]"
+                  >
+                    ${predictedIncome?.toFixed(2) || "N/A"}
+                  </Text>
+                </VStack>
+              ) : (
+                <HStack justify="space-between" align="center">
+                  <Icon
+                    as={FaDollarSign}
+                    color="teal.300"
+                    boxSize={8}
+                    className="dark:filter dark:drop-shadow-[0_0_8px_teal]"
+                  />
+                  <Text
+                    fontSize="lg"
+                    fontWeight="bold"
+                    className="text-gray-800 dark:text-white"
+                  >
+                    Predicted Income:
+                  </Text>
+                  <Text
+                    fontSize="2xl"
+                    fontWeight="extrabold"
+                    color="teal.200"
+                    className="dark:filter dark:drop-shadow-[0_0_6px_teal]"
+                  >
+                    ${predictedIncome?.toFixed(2) || "N/A"}
+                  </Text>
+                </HStack>
+              )}
             </Box>
 
             <Box
@@ -351,25 +383,55 @@ const MonthlyPrediction: React.FC = () => {
                 boxShadow: "0 12px 40px rgba(255, 165, 0, 0.4)",
               }}
             >
-              <HStack justify="space-between" align="center">
-                <Icon
-                  as={FaChartLine}
-                  color="orange.300"
-                  boxSize={8}
-                  style={{ filter: "drop-shadow(0px 0px 8px orange)" }}
-                />
-                <Text fontSize="lg" fontWeight="bold" color="whiteAlpha.800">
-                  Total Predicted Expenses:
-                </Text>
-                <Text
-                  fontSize="2xl"
-                  fontWeight="extrabold"
-                  color="orange.200"
-                  style={{ filter: "drop-shadow(0px 0px 6px orange)" }}
-                >
-                  ${totalPredictedExpenses?.toFixed(2) || "N/A"}
-                </Text>
-              </HStack>
+              {isMobile ? (
+                <VStack align="start">
+                  <Icon
+                    as={FaChartLine}
+                    color="orange.300"
+                    boxSize={8}
+                    className="dark:filter dark:drop-shadow-[0_0_8px_orange]"
+                  />
+                  <Text
+                    fontSize="lg"
+                    fontWeight="bold"
+                    className="text-gray-800 dark:text-white"
+                  >
+                    Total Predicted Expenses:
+                  </Text>
+                  <Text
+                    fontSize="2xl"
+                    fontWeight="extrabold"
+                    color="orange.200"
+                    className="dark:filter dark:drop-shadow-[0_0_6px_orange]"
+                  >
+                    ${totalPredictedExpenses?.toFixed(2) || "N/A"}
+                  </Text>
+                </VStack>
+              ) : (
+                <HStack justify="space-between" align="center">
+                  <Icon
+                    as={FaChartLine}
+                    color="orange.300"
+                    boxSize={8}
+                    className="dark:filter dark:drop-shadow-[0_0_8px_orange]"
+                  />
+                  <Text
+                    fontSize="lg"
+                    fontWeight="bold"
+                    className="text-gray-800 dark:text-white"
+                  >
+                    Total Predicted Expenses:
+                  </Text>
+                  <Text
+                    fontSize="2xl"
+                    fontWeight="extrabold"
+                    color="orange.200"
+                    className="dark:filter dark:drop-shadow-[0_0_6px_orange]"
+                  >
+                    ${totalPredictedExpenses?.toFixed(2) || "N/A"}
+                  </Text>
+                </HStack>
+              )}
             </Box>
 
             {Object.entries(predictedExpenses).map(([category, amount], i) => (
@@ -389,25 +451,55 @@ const MonthlyPrediction: React.FC = () => {
                   boxShadow: "0 12px 40px rgba(255, 69, 69, 0.4)",
                 }}
               >
-                <HStack justify="space-between" align="center">
-                  <Icon
-                    as={FaChartLine}
-                    color="red.300"
-                    boxSize={8}
-                    style={{ filter: "drop-shadow(0px 0px 8px red)" }}
-                  />
-                  <Text fontSize="lg" fontWeight="bold" color="whiteAlpha.800">
-                    Predicted {category} Expenses:
-                  </Text>
-                  <Text
-                    fontSize="2xl"
-                    fontWeight="extrabold"
-                    color="red.200"
-                    style={{ filter: "drop-shadow(0px 0px 6px red)" }}
-                  >
-                    ${amount?.toFixed(2) || "N/A"}
-                  </Text>
-                </HStack>
+                {isMobile ? (
+                  <VStack align="start">
+                    <Icon
+                      as={FaChartLine}
+                      color="red.300"
+                      boxSize={8}
+                      className="dark:filter dark:drop-shadow-[0_0_8px_red]"
+                    />
+                    <Text
+                      fontSize="lg"
+                      fontWeight="bold"
+                      className="text-gray-800 dark:text-white"
+                    >
+                      Predicted {category} Expenses:
+                    </Text>
+                    <Text
+                      fontSize="2xl"
+                      fontWeight="extrabold"
+                      color="red.200"
+                      className="dark:filter dark:drop-shadow-[0_0_6px_red]"
+                    >
+                      ${amount?.toFixed(2) || "N/A"}
+                    </Text>
+                  </VStack>
+                ) : (
+                  <HStack justify="space-between" align="center">
+                    <Icon
+                      as={FaChartLine}
+                      color="red.300"
+                      boxSize={8}
+                      className="dark:filter dark:drop-shadow-[0_0_8px_red]"
+                    />
+                    <Text
+                      fontSize="lg"
+                      fontWeight="bold"
+                      className="text-gray-800 dark:text-white"
+                    >
+                      Predicted {category} Expenses:
+                    </Text>
+                    <Text
+                      fontSize="2xl"
+                      fontWeight="extrabold"
+                      color="red.200"
+                      className="dark:filter dark:drop-shadow-[0_0_6px_red]"
+                    >
+                      ${amount?.toFixed(2) || "N/A"}
+                    </Text>
+                  </HStack>
+                )}
               </Box>
             ))}
           </VStack>

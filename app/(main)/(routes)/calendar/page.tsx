@@ -218,20 +218,14 @@ const CalendarPage = () => {
   const displayHours = Array.from({ length: 24 }, (_, i) => i);
 
   return (
-    <Box
-      color="white"
-      mx="auto"
-      mt="8"
-      borderRadius="lg"
-      bg="radial-gradient(circle at center, #202020 0%, #26282f 25%, #1f2236 50%, #202020 100%)"
-      boxShadow="xl"
-    >
+    <Box className="mx-auto mt-8  rounded-lg shadow-xl bg-white text-gray-800  dark:bg-[radial-gradient(circle_at_center,_#202020_0%,_#26282f_25%,_#1f2236_50%,_#202020_100%)] dark:text-white">
+      {" "}
       <VStack spacing={{ base: "4", md: "6" }} align="stretch">
         <Heading
           textAlign="center"
           size={{ base: "lg", md: "2xl" }}
           mb={{ base: "4", md: "6" }}
-          color="whiteAlpha.900"
+          className="text-gray-800 dark:text-white"
         >
           Event Calendar
         </Heading>
@@ -244,7 +238,12 @@ const CalendarPage = () => {
           wrap="wrap"
         >
           <Box bg="transparent" p="4" borderRadius="lg" boxShadow="md">
-            <Heading size="md" textAlign="center" mb="2" color="whiteAlpha.800">
+            <Heading
+              size="md"
+              textAlign="center"
+              mb="2"
+              className="text-gray-800 dark:text-white"
+            >
               Select Date
             </Heading>
             <DatePicker
@@ -266,7 +265,7 @@ const CalendarPage = () => {
                 size="md"
                 textAlign="center"
                 mb="2"
-                color="whiteAlpha.800"
+                className="text-gray-800 dark:text-white"
               >
                 Start Time
               </Heading>
@@ -288,7 +287,7 @@ const CalendarPage = () => {
                 size="md"
                 textAlign="center"
                 mb="2"
-                color="whiteAlpha.800"
+                className="text-gray-800 dark:text-white"
               >
                 End Time
               </Heading>
@@ -320,12 +319,7 @@ const CalendarPage = () => {
               placeholder="Event Title"
               value={eventTitle}
               onChange={(e) => setEventTitle(e.target.value)}
-              bg="gray.600"
-              color="white"
-              borderRadius="md"
-              _placeholder={{ color: "gray.400" }}
-              _hover={{ bg: "gray.500" }}
-              padding="6"
+              className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md"
             />
           </FormControl>
           <FormControl>
@@ -333,12 +327,7 @@ const CalendarPage = () => {
               placeholder="Description"
               value={eventDescription}
               onChange={(e) => setEventDescription(e.target.value)}
-              bg="gray.600"
-              color="white"
-              borderRadius="md"
-              _placeholder={{ color: "gray.400" }}
-              _hover={{ bg: "gray.500" }}
-              padding="6"
+              className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md"
             />
           </FormControl>
           <Checkbox
@@ -359,13 +348,8 @@ const CalendarPage = () => {
         >
           <Button
             onClick={onOpenColorPicker}
-            bg="gray.600"
-            color="white"
-            _hover={{ bg: "gray.500", boxShadow: "md" }}
-            size="lg"
+            className="bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white hover:bg-gray-400 dark:hover:bg-gray-500 shadow-md rounded-lg"
             w="full"
-            mt="4"
-            borderRadius="lg"
           >
             Choose Color
           </Button>
@@ -373,9 +357,11 @@ const CalendarPage = () => {
 
         <Modal isOpen={isColorPickerOpen} onClose={onCloseColorPicker}>
           <ModalOverlay />
-          <ModalContent bg="gray.800">
-            <ModalHeader color="white">Choose Event Color</ModalHeader>
-            <ModalCloseButton />
+          <ModalContent className="bg-white dark:bg-gray-800">
+            <ModalHeader className="text-gray-800 dark:text-white">
+              Choose Event Color
+            </ModalHeader>
+            <ModalCloseButton className="text-gray-800 dark:text-white" />
             <ModalBody>
               <SketchPicker
                 color={eventColor}
@@ -383,7 +369,10 @@ const CalendarPage = () => {
               />
             </ModalBody>
             <ModalFooter>
-              <Button colorScheme="whiteAlpha" onClick={onCloseColorPicker}>
+              <Button
+                className="bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white"
+                onClick={onCloseColorPicker}
+              >
                 Close
               </Button>
             </ModalFooter>
@@ -399,19 +388,35 @@ const CalendarPage = () => {
         >
           <Button
             onClick={handleAddEvent}
-            bg="gray.600"
+            bgGradient="linear(to-r, blue.500, cyan.400)"
             color="white"
-            _hover={{ bg: "gray.500", boxShadow: "md" }}
-            size="lg"
-            mt="4"
-            w="full"
-            borderRadius="lg"
+            width="full"
+            fontSize="lg"
+            fontWeight="bold"
+            py={6}
+            _hover={{
+              bgGradient: "linear(to-r, blue.600, cyan.500)",
+              transform: "scale(1.02)",
+              boxShadow: "xl",
+            }}
+            _active={{
+              bgGradient: "linear(to-r, blue.700, cyan.600)",
+              transform: "scale(0.98)",
+            }}
+            transition="transform 0.2s ease, box-shadow 0.2s ease"
+            borderRadius="md"
+            boxShadow="lg"
           >
             Add Event
           </Button>
         </VStack>
 
-        <Heading size="lg" mt="6" textAlign="center" color="whiteAlpha.900">
+        <Heading
+          size="lg"
+          mt="6"
+          textAlign="center"
+          className="text-gray-800 dark:text-white"
+        >
           Schedule for {format(selectedDate, "PPP")}
         </Heading>
         <VStack
@@ -438,9 +443,7 @@ const CalendarPage = () => {
             gap={{ base: 2, md: 3 }}
             w="100%"
             p={{ base: 4, md: 5 }}
-            borderRadius="lg"
-            boxShadow="2xl"
-            bg="gray.800"
+            className="bg-gray-100 dark:bg-gray-800  rounded-lg shadow-md"
           >
             {displayHours.map((hour) => (
               <GridItem
@@ -448,16 +451,12 @@ const CalendarPage = () => {
                 rowSpan={2}
                 p={4}
                 borderRadius="lg"
-                bg="gray.700"
-                color="white"
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                boxShadow="md"
-                _hover={{ transform: "scale(1.02)", bg: "gray.600" }}
-                transition="transform 0.2s ease-in-out, background-color 0.2s ease-in-out"
+                className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-md flex items-center justify-center shadow-sm"
               >
-                <Text fontWeight="bold" color="whiteAlpha.800">
+                <Text
+                  fontWeight="bold"
+                  className="text-gray-800 dark:text-white"
+                >
                   {hour % 12 === 0 ? 12 : hour % 12}:00{" "}
                   {hour >= 12 ? "PM" : "AM"}
                 </Text>
@@ -474,33 +473,25 @@ const CalendarPage = () => {
                     new Date(event.startDate),
                     new Date(event.endDate)
                   )}
-                  colSpan={1}
-                  bg={event.color || "#4A5568"}
-                  color="white"
-                  p={4}
-                  borderRadius="lg"
-                  boxShadow="lg"
-                  _hover={{ transform: "scale(1.03)", boxShadow: "xl" }}
-                  transition="transform 0.2s ease-in-out"
+                  className="p-4 rounded-lg shadow-lg transform transition-transform duration-200 ease-in-out"
+                  style={{
+                    backgroundColor: event.color || "#4A5568",
+                  }}
                 >
-                  <Heading size="sm" mb={1} color="whiteAlpha.900">
+                  <Heading size="sm" mb={1} className="text-white mb-1">
                     {event.title}
                   </Heading>
-                  <Text color="whiteAlpha.800" fontWeight="medium">
+                  <Text className="text-white text-opacity-80">
                     {format(new Date(event.startDate), "p")} -{" "}
                     {format(new Date(event.endDate), "p")}
                   </Text>
-                  <Text mt={1} fontSize="sm" color="whiteAlpha.700">
+                  <Text className="text-white text-opacity-60 mt-1 text-sm">
                     {event.description || "No description"}
                   </Text>
                   <IconButton
                     aria-label="Delete Event"
                     icon={<DeleteIcon />}
-                    colorScheme="red"
-                    size="sm"
-                    variant="ghost"
-                    mt={2}
-                    _hover={{ color: "red.300" }}
+                    className="text-red-500 dark:text-red-300 mt-2 hover:text-red-700 dark:hover:text-red-400"
                     onClick={() => {
                       setSelectedEventId(event._id as Id<"events">);
                       onOpenDeleteModal();
@@ -513,21 +504,25 @@ const CalendarPage = () => {
 
         <Modal isOpen={isDeleteModalOpen} onClose={onCloseDeleteModal}>
           <ModalOverlay />
-          <ModalContent bg="gray.800">
-            <ModalHeader color="white">Confirm Delete</ModalHeader>
-            <ModalCloseButton />
+          <ModalContent className="bg-white dark:bg-gray-800">
+            <ModalHeader className="text-gray-800 dark:text-white">
+              Confirm Delete
+            </ModalHeader>
+            <ModalCloseButton className="text-gray-800 dark:text-white" />
             <ModalBody>
-              <Text color="white">
+              <Text className="text-gray-800 dark:text-white">
                 Are you sure you want to delete this event?
               </Text>
             </ModalBody>
             <ModalFooter>
-              <Button colorScheme="red" mr={3} onClick={handleDeleteEvent}>
+              <Button
+                className="bg-red-500 text-white mr-3 hover:bg-red-600"
+                onClick={handleDeleteEvent}
+              >
                 Delete
               </Button>
               <Button
-                variant="ghost"
-                color="white"
+                className="bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white"
                 onClick={onCloseDeleteModal}
               >
                 Cancel

@@ -54,23 +54,14 @@ const HouseholdForm: React.FC<HouseholdFormProps> = ({
   const bgColor = useColorModeValue("#303030", "#303030");
 
   return (
-    <Box
-      bg={bgColor}
-      p={6}
-      borderRadius="lg"
-      boxShadow="2xl"
-      w="full"
-      maxW="400px"
-      color="whiteAlpha.900"
-      border="1px solid rgba(255, 255, 255, 0.1)"
-    >
-      <VStack spacing={4} align="stretch">
+    <Box p={6} borderRadius="lg" w="full" maxW="400px">
+      <VStack spacing={5} align="stretch">
         <FormControl>
           <FormLabel
             fontSize="sm"
             fontWeight="medium"
             htmlFor="numAdults"
-            color="whiteAlpha.800"
+            className="text-gray-700 dark:text-gray-300"
           >
             Number of Adults
           </FormLabel>
@@ -81,12 +72,13 @@ const HouseholdForm: React.FC<HouseholdFormProps> = ({
             size="md"
             value={numAdults}
             onChange={(e) => setNumAdults(Number(e.target.value))}
-            bg="whiteAlpha.100"
-            color="whiteAlpha.900"
-            _placeholder={{ color: "whiteAlpha.600" }}
+            className="bg-gray-50 dark:bg-[rgba(255,255,255,0.1)] text-gray-800 dark:text-white"
+            _placeholder={{ color: "gray.400 dark:gray.500" }}
             focusBorderColor="blue.400"
             borderRadius="md"
-            border="1px solid rgba(255, 255, 255, 0.2)"
+            border="1px solid"
+            borderColor="gray.300 dark:border-gray-500"
+            _hover={{ borderColor: "gray.400 dark:border-gray-400" }}
           />
         </FormControl>
 
@@ -95,7 +87,7 @@ const HouseholdForm: React.FC<HouseholdFormProps> = ({
             fontSize="sm"
             fontWeight="medium"
             htmlFor="numChildren"
-            color="whiteAlpha.800"
+            className="text-gray-700 dark:text-gray-300"
           >
             Number of Children
           </FormLabel>
@@ -106,21 +98,35 @@ const HouseholdForm: React.FC<HouseholdFormProps> = ({
             size="md"
             value={numChildren}
             onChange={(e) => setNumChildren(Number(e.target.value))}
-            bg="whiteAlpha.100"
-            color="whiteAlpha.900"
-            _placeholder={{ color: "whiteAlpha.600" }}
+            className="bg-gray-50 dark:bg-[rgba(255,255,255,0.1)] text-gray-800 dark:text-white"
+            _placeholder={{ color: "gray.400 dark:gray.500" }}
             focusBorderColor="blue.400"
             borderRadius="md"
-            border="1px solid rgba(255, 255, 255, 0.2)"
+            border="1px solid"
+            borderColor="gray.300 dark:border-gray-500"
+            _hover={{ borderColor: "gray.400 dark:border-gray-400" }}
           />
         </FormControl>
-
         <Button
-          colorScheme="green"
+          bgGradient="linear(to-r, green.400, green.500)"
+          color="white"
           onClick={handleSave}
           width="full"
+          fontSize="lg"
+          fontWeight="bold"
+          py={6}
+          _hover={{
+            bgGradient: "linear(to-r, green.500, green.600)",
+            transform: "scale(1.02)",
+            boxShadow: "xl",
+          }}
+          _active={{
+            bgGradient: "linear(to-r, green.600, green.700)",
+            transform: "scale(0.98)",
+          }}
+          transition="transform 0.2s ease, box-shadow 0.2s ease"
           borderRadius="md"
-          _hover={{ bg: "green.500" }}
+          boxShadow="lg"
         >
           Save Household Info
         </Button>

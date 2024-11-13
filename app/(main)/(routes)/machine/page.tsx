@@ -298,7 +298,6 @@ const FinancialHealthComponent = () => {
   const [expenseSuggestions, setExpenseSuggestions] = useState("");
   const [financialAdvice, setFinancialAdvice] = useState("");
   const isMobile = useBreakpointValue({ base: true, md: false }) ?? false;
-  const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
     if (fetchExpenses) {
@@ -605,32 +604,21 @@ const FinancialHealthComponent = () => {
     }
   }, [expenses]);
 
-  const bgColor = "#202020";
-  const borderColor = "#4a4a4a";
-  const shadowColor = "0 0 40px rgba(0, 0, 0, 0.8)";
-  const gradientBg = "linear(to-br, #3a3a3a, #262626)";
-
   return (
     <ChakraProvider>
       <VStack
         spacing={isMobile ? 8 : 16}
         align="stretch"
-        p={isMobile ? 6 : 12}
-        bg={bgColor}
-        color="#e0e1dd"
         minHeight="100vh"
         mx="auto"
-        boxShadow={shadowColor}
+        p={isMobile ? 6 : 12}
+        className="bg-gray-100 dark:bg-[#202020] text-gray-800 dark:text-[#e0e1dd] shadow-md"
       >
         <Heading
-          size={isMobile ? "xl" : "3xl"}
+          size={{ base: "lg", md: "2xl" }}
           textAlign="center"
           mb={isMobile ? 6 : 12}
-          color="#e0e1dd"
-          fontWeight="extrabold"
-          letterSpacing="wider"
-          textTransform="uppercase"
-          textShadow={`0 0 10px ${borderColor}, 0 0 20px ${borderColor}`}
+          className="text-gray-800 dark:text-white"
         >
           Financial Health Dashboard
         </Heading>
@@ -639,7 +627,6 @@ const FinancialHealthComponent = () => {
           defaultIndex={0}
           isFitted
           variant="soft-rounded"
-          colorScheme="gray"
           size={isMobile ? "sm" : "md"}
         >
           <TabList
@@ -647,33 +634,30 @@ const FinancialHealthComponent = () => {
             justifyContent="center"
             gap={isMobile ? 2 : 4}
             p={3}
-            bgGradient="linear(to-r, #262626, #3a3a3a)"
-            borderRadius="full"
-            boxShadow="0 0 20px #3a3a3a"
-            border={`1px solid ${borderColor}`}
+            className="bg-gradient-to-r from-gray-200 to-gray-300 dark:from-[#262626] dark:to-[#3a3a3a] rounded-full shadow-lg border border-gray-300 dark:border-[#3a3a3a]"
           >
             {headers.map(({ label, icon: Icon }, index) => (
               <Tooltip label={label} key={index} placement="top" hasArrow>
                 <Tab
-                  _selected={{
-                    color: "#e0e1dd",
-                    bgGradient: gradientBg,
-                    fontWeight: "bold",
-                    transform: "scale(1.1)",
-                    boxShadow: `0 0 20px ${borderColor}`,
-                  }}
-                  _hover={{
-                    bg: "#3a3a3a",
-                    boxShadow: "0 0 10px #3a3a3a",
-                    transform: "translateY(-2px)",
-                  }}
                   display="flex"
                   flexDirection="column"
                   alignItems="center"
                   justifyContent="center"
                   p={isMobile ? 3 : 4}
-                  borderRadius="lg"
-                  transition="all 0.3s ease"
+                  className="rounded-lg transition-all duration-300 ease-in-out font-semibold text-gray-700 dark:text-[#e0e1dd] hover:bg-gray-300 dark:hover:bg-[#3a3a3a]"
+                  sx={{
+                    "&.chakra-tabs__tab[aria-selected=true]": {
+                      color: "#e0e1dd",
+                      backgroundImage:
+                        "linear-gradient(to right, #4b5563, #374151)",
+                      fontWeight: "bold",
+                      transform: "scale(1.1)",
+                      boxShadow: "0 0 15px rgba(255, 255, 255, 0.3)",
+                    },
+                    "&:hover": {
+                      transform: "translateY(-2px)",
+                    },
+                  }}
                 >
                   <Icon size={isMobile ? 26 : 30} />
                   <Text mt={1} fontSize={isMobile ? "xs" : "sm"}>
@@ -720,10 +704,7 @@ const TabPanelContent: React.FC<{
   <TabPanel p={isMobile ? 0 : 4}>
     <Box
       transition="transform 0.3s ease, box-shadow 0.3s ease"
-      _hover={{
-        shadow: "0 0 25px #3a3a3a",
-        transform: "translateY(-5px)",
-      }}
+      className="hover:shadow-lg hover:translate-y-[-5px]"
     >
       {children}
     </Box>

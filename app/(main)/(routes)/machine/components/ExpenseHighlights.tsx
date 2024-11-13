@@ -320,7 +320,7 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
     <Box
       boxShadow="2xl"
       rounded="xl"
-      bgGradient="radial-gradient(circle at center, #303030 0%, #34373f 25%, #2f3246 50%, #303030 100%)"
+      className="bg-gray-100 dark:bg-[radial-gradient(circle_at_center,_#303030_0%,_#34373f_25%,_#2f3246_50%,_#303030_100%)]"
       transition="all 0.3s"
       _hover={{ boxShadow: "lg", transform: "scale(1.001)" }}
     >
@@ -330,35 +330,37 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
         criticalYears={criticalYears}
       />
 
-      <HStack spacing={4} mb={8} align="center">
-        <Box
-          bgGradient="linear(to-br, #3a5f7d, #4a81a0)"
-          p={3}
-          rounded="full"
-          boxShadow="0 4px 12px rgba(0, 0, 0, 0.3)"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          marginTop="3rem"
-          marginLeft="1rem"
-        >
-          <Icon as={AiOutlineDollar} color="white" boxSize={6} />
-        </Box>
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        mt="3rem"
+        mb="4rem"
+      >
+        <HStack spacing={4} align="center">
+          <Box
+            bgGradient="linear(to-br, #3a5f7d, #4a81a0)"
+            p={3}
+            rounded="full"
+            boxShadow="0 4px 12px rgba(0, 0, 0, 0.3)"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+          >
+            <Icon as={AiOutlineDollar} color="white" boxSize={6} />
+          </Box>
 
-        <Heading
-          size={headingSize}
-          color="whiteAlpha.900"
-          fontWeight="bold"
-          textShadow="1px 1px 5px rgba(0, 0, 0, 0.6)"
-          letterSpacing="wider"
-          marginTop="3rem"
-          style={{
-            filter: "brightness(1.2)",
-          }}
-        >
-          Expense Highlights
-        </Heading>
-      </HStack>
+          <Heading
+            size={headingSize}
+            className="text-gray-800 dark:text-white"
+            fontWeight="bold"
+            letterSpacing="wider"
+            textAlign="center"
+          >
+            Expense Highlights
+          </Heading>
+        </HStack>
+      </Box>
 
       <VStack align="start" spacing={10} w="100%">
         {/* Collapsible Weekly Highlights */}
@@ -387,7 +389,11 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
                   >
                     <Icon as={MdCalendarViewWeek} color="white" boxSize={6} />
                   </Box>
-                  <Heading size="lg" fontWeight="bold">
+                  <Heading
+                    size="lg"
+                    fontWeight="bold"
+                    className="text-gray-800 dark:text-white"
+                  >
                     Weekly Highlights
                   </Heading>
                 </HStack>
@@ -410,7 +416,7 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
                     w="100%"
                     p={6}
                     mb={6}
-                    bgGradient="linear(to-br, #1a202c, #2d3748)"
+                    className="bg-gray-100 dark:bg-gradient-to-br dark:from-gray-800 dark:to-gray-900"
                     rounded="2xl"
                     boxShadow="0 8px 24px rgba(0, 0, 0, 0.3)"
                     borderLeft="6px solid"
@@ -424,7 +430,7 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
                     <HStack justify="space-between" mb={3}>
                       <Heading
                         size="md"
-                        color="whiteAlpha.900"
+                        color={`${colorScheme.text}.300`}
                         fontWeight="bold"
                       >
                         {week.week}
@@ -477,7 +483,7 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
                         </Badge>
                       </Text>
 
-                      <Text color="whiteAlpha.800" fontSize="md">
+                      <Text color={`${colorScheme.text}.300`} fontSize="md">
                         Total Income:{" "}
                         <Badge
                           variant="outline"
@@ -559,7 +565,11 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
                   >
                     <Icon as={MdDateRange} color="white" boxSize={6} />
                   </Box>
-                  <Heading size="lg" fontWeight="bold">
+                  <Heading
+                    size="lg"
+                    fontWeight="bold"
+                    className="text-gray-800 dark:text-white"
+                  >
                     Monthly Highlights
                   </Heading>
                 </HStack>
@@ -582,7 +592,7 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
                     w="100%"
                     p={6}
                     mb={6}
-                    bgGradient="linear(to-br, #1a202c, #2d3748)"
+                    className="bg-gray-100 dark:bg-gradient-to-br dark:from-gray-800 dark:to-gray-900"
                     rounded="2xl"
                     boxShadow="0 8px 24px rgba(0, 0, 0, 0.3)"
                     borderLeft="6px solid"
@@ -596,7 +606,7 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
                     <HStack justify="space-between" mb={3}>
                       <Heading
                         size="md"
-                        color="whiteAlpha.900"
+                        color={`${colorScheme.text}.300`}
                         fontWeight="bold"
                       >
                         Month {month.month}
@@ -649,7 +659,7 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
                         </Badge>
                       </Text>
 
-                      <Text color="whiteAlpha.800" fontSize="md">
+                      <Text color={`${colorScheme.text}.300`} fontSize="md">
                         Total Income:{" "}
                         <Badge
                           variant="outline"
@@ -731,7 +741,11 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
                   >
                     <Icon as={MdOutlineDateRange} color="white" boxSize={6} />
                   </Box>
-                  <Heading size="lg" fontWeight="bold">
+                  <Heading
+                    size="lg"
+                    fontWeight="bold"
+                    className="text-gray-800 dark:text-white"
+                  >
                     Yearly Highlights
                   </Heading>
                 </HStack>
@@ -754,7 +768,7 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
                     w="100%"
                     p={6}
                     mb={6}
-                    bgGradient="linear(to-br, #1a202c, #2d3748)"
+                    className="bg-gray-100 dark:bg-gradient-to-br dark:from-gray-800 dark:to-gray-900"
                     rounded="2xl"
                     boxShadow="0 8px 24px rgba(0, 0, 0, 0.3)"
                     borderLeft="6px solid"
@@ -768,7 +782,7 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
                     <HStack justify="space-between" mb={3}>
                       <Heading
                         size="md"
-                        color="whiteAlpha.900"
+                        color={`${colorScheme.text}.300`}
                         fontWeight="bold"
                       >
                         Year {year.year}
@@ -821,7 +835,7 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
                         </Badge>
                       </Text>
 
-                      <Text color="whiteAlpha.800" fontSize="md">
+                      <Text color={`${colorScheme.text}.300`} fontSize="md">
                         Total Income:{" "}
                         <Badge
                           variant="outline"
@@ -921,9 +935,8 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
       <Box
         mt={8}
         p={6}
-        bgGradient="radial-gradient(circle at center, #303030 0%, #34373f 25%, #2f3246 50%, #303030 100%)" // Darker, more sophisticated gradient
+        className="bg-gray-100 dark:bg-[radial-gradient(circle_at_center,_#303030_0%,_#34373f_25%,_#2f3246_50%,_#303030_100%)]"
         rounded="2xl"
-        boxShadow="0px 6px 25px rgba(0, 0, 0, 0.4), 0px 0px 15px rgba(39, 48, 70, 0.5)"
       >
         <HStack spacing={4} mb={4} align="center">
           <Box
@@ -939,9 +952,8 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
           </Box>
           <Heading
             size="lg"
-            color="whiteAlpha.900"
+            className="text-gray-800 dark:text-white"
             fontWeight="bold"
-            textShadow="0px 0px 8px rgba(0, 0, 0, 0.4)"
           >
             Financial Advice
           </Heading>
@@ -953,7 +965,7 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
           advice.map((paragraph, index) => (
             <Text
               key={index}
-              color="whiteAlpha.800"
+              className="text-gray-800 dark:text-white"
               mb={3}
               fontSize="lg"
               lineHeight="1.8"

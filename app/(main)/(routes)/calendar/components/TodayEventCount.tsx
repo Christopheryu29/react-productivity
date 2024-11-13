@@ -101,7 +101,7 @@ const TodayEventCount: React.FC<TodayEventCountProps> = ({ selectedDate }) => {
         </Text>
       </HStack>
 
-      <Text fontSize="md" color="gray.300">
+      <Text fontSize="md" className="text-gray-800 dark:text-gray-300">
         Stay on top of your schedule and make the most of your day!
       </Text>
     </Box>

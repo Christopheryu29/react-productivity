@@ -296,27 +296,31 @@ const SavingsTargetPrediction = () => {
       <VStack
         spacing={6}
         p={10}
-        bgGradient="radial-gradient(circle at center, #303030 0%, #34373f 25%, #2f3246 50%, #303030 100%)"
         rounded="2xl"
         boxShadow="2xl"
         mx="auto"
         align="stretch"
         textAlign="center"
+        className="bg-gray-100 dark:bg-[radial-gradient(circle_at_center,_#303030_0%,_#34373f_25%,_#2f3246_50%,_#303030_100%)]"
       >
         <Heading
           letterSpacing="wide"
           size="lg"
-          color="whiteAlpha.900"
+          className="text-gray-800 dark:text-white"
           fontWeight="bold"
           mb={10}
           mt={4}
-          textShadow="1px 1px 8px rgba(0, 0, 0, 0.4)"
         >
           Savings Target Prediction
         </Heading>
 
-        <Box bg="gray.700" rounded="xl" p={6} shadow="md">
-          <Text fontSize="lg" color="gray.300">
+        <Box
+          className="bg-gray-100 dark:bg-gray-700"
+          rounded="xl"
+          p={6}
+          shadow="md"
+        >
+          <Text fontSize="lg" className="text-gray-800 dark:text-white">
             Current Savings this Year
           </Text>
           <Text fontSize="4xl" fontWeight="bold" color="green.400">
@@ -326,13 +330,17 @@ const SavingsTargetPrediction = () => {
 
         <FormControl
           isInvalid={inputError}
-          bg="gray.700"
+          className="bg-gray-100 dark:bg-gray-700"
           p={5}
           rounded="xl"
           shadow="md"
           w="100%"
         >
-          <FormLabel color="gray.300" fontSize="lg" fontWeight="medium">
+          <FormLabel
+            className="text-gray-800 dark:text-white"
+            fontSize="lg"
+            fontWeight="medium"
+          >
             Set {isDecember ? "Next Year's" : "Annual"} Savings Target
             <Tooltip
               label={`Your savings goal for ${targetYear}`}
@@ -347,9 +355,7 @@ const SavingsTargetPrediction = () => {
             value={savingsTarget}
             color="white"
             onChange={handleSavingsTargetChange}
-            bg="gray.600"
-            _placeholder={{ color: "gray.400" }}
-            focusBorderColor="teal.300"
+            className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md"
           />
           {inputError && (
             <FormErrorMessage>Invalid target amount.</FormErrorMessage>
@@ -388,14 +394,18 @@ const SavingsTargetPrediction = () => {
         {remainingSavings !== null && (
           <SlideFade in>
             <Box
-              bg="gray.700"
+              className="bg-gray-100 dark:bg-gray-700"
               p={5}
               rounded="xl"
               shadow="lg"
               w="100%"
               textAlign="center"
             >
-              <Text fontSize="lg" color="whiteAlpha.800" mb={1}>
+              <Text
+                fontSize="lg"
+                className="text-gray-800 dark:text-white"
+                mb={1}
+              >
                 <Icon as={FaPiggyBank} color="cyan.400" mr={2} />
                 Additional Savings Needed
               </Text>
@@ -405,7 +415,11 @@ const SavingsTargetPrediction = () => {
 
               <Divider borderColor="gray.600" my={3} />
 
-              <Text fontSize="lg" color="whiteAlpha.800" mb={1}>
+              <Text
+                fontSize="lg"
+                className="text-gray-800 dark:text-white"
+                mb={1}
+              >
                 <Icon as={FaCalendarAlt} color="cyan.400" mr={2} />
                 Suggested Monthly Savings
               </Text>
@@ -479,7 +493,7 @@ const SavingsTargetPrediction = () => {
         </SimpleGrid>
 
         <Box w="100%">
-          <Text fontSize="lg" color="white" mb={2}>
+          <Text fontSize="lg" className="text-gray-800 dark:text-white" mb={2}>
             Progress towards Goal
           </Text>
           <Progress
@@ -490,7 +504,12 @@ const SavingsTargetPrediction = () => {
             isAnimated
             rounded="full"
           />
-          <Text mt={3} fontSize="md" color="gray.300" textAlign="center">
+          <Text
+            mt={3}
+            fontSize="md"
+            className="text-gray-800 dark:text-white"
+            textAlign="center"
+          >
             You are{" "}
             <Text as="span" color="cyan.400" fontWeight="bold">
               {((currentSavings / savingsTarget) * 100).toFixed(2)}%

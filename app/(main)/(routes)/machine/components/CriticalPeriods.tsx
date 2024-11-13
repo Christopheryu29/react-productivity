@@ -49,14 +49,7 @@ const CriticalPeriods: React.FC<CriticalPeriodsProps> = ({
     <Box
       w="100%"
       p={8}
-      bgGradient={bgColor}
-      borderRadius="2xl"
-      boxShadow="0 0 30px rgba(0, 0, 0, 0.5)"
-      transition="all 0.3s ease"
-      _hover={{
-        transform: "scale(1.02)",
-        boxShadow: "0 0 40px rgba(0, 0, 0, 0.6)",
-      }}
+      className="rounded-2xl shadow-lg   dark:bg-[radial-gradient(circle at center, #303030 0%, #34373f 25%, #2f3246 50%, #303030 100%)] dark:text-white"
     >
       <Stack
         direction={{ base: "column", md: "row" }}
@@ -72,23 +65,12 @@ const CriticalPeriods: React.FC<CriticalPeriodsProps> = ({
         </Tooltip>
         <Heading
           size="lg"
-          color={textColor}
-          fontWeight="bold"
-          letterSpacing="wide"
-          textAlign={{ base: "center", md: "left" }}
-          textShadow="0px 3px 8px rgba(0, 0, 0, 0.4)"
+          className="font-bold text-gray-800 dark:text-gray-100 tracking-wide text-shadow-lg text-center md:text-left"
         >
           High Spending Alerts
         </Heading>
       </Stack>
-      <Text
-        color={textColor}
-        fontSize="md"
-        fontWeight="medium"
-        lineHeight={1.7}
-        textAlign="justify"
-        mb={6}
-      >
+      <Text className="text-gray-700 dark:text-gray-200 text-md font-medium text-justify leading-7 mb-6">
         Identifying these periods can empower you to better manage unexpected
         expenses and maintain budget stability. Review these alerts and make
         informed financial decisions.
@@ -108,12 +90,15 @@ const CriticalPeriods: React.FC<CriticalPeriodsProps> = ({
           <Box>
             <Flex align="center" mb={2}>
               <Icon as={BiTimeFive} color={iconColor} boxSize={7} mr={2} />
-              <Text fontWeight="bold" color={textColor} fontSize="lg">
-                ⏳ Significant Weeks:
+              <Text className="font-bold text-gray-800 dark:text-gray-100 text-lg">
+                Significant Weeks:
               </Text>
             </Flex>
             {criticalWeeks.map((week, index) => (
-              <Text key={index} color={textColor} fontSize="md" ml={8}>
+              <Text
+                key={index}
+                className="ml-8 text-gray-700 dark:text-gray-300 text-md"
+              >
                 • Week of {week.week}
               </Text>
             ))}
@@ -129,12 +114,15 @@ const CriticalPeriods: React.FC<CriticalPeriodsProps> = ({
                 boxSize={7}
                 mr={2}
               />
-              <Text fontWeight="bold" color={textColor} fontSize="lg">
-                🗓️ Significant Months:
+              <Text className="font-bold text-gray-800 dark:text-gray-100 text-lg">
+                Significant Months:
               </Text>
             </Flex>
             {criticalMonths.map((month, index) => (
-              <Text key={index} color={textColor} fontSize="md" ml={8}>
+              <Text
+                key={index}
+                className="ml-8 text-gray-700 dark:text-gray-300 text-md"
+              >
                 • {month.month}
               </Text>
             ))}
@@ -150,12 +138,15 @@ const CriticalPeriods: React.FC<CriticalPeriodsProps> = ({
                 boxSize={7}
                 mr={2}
               />
-              <Text fontWeight="bold" color={textColor} fontSize="lg">
-                📆 Significant Years:
+              <Text className="font-bold text-gray-800 dark:text-gray-100 text-lg">
+                Significant Years:
               </Text>
             </Flex>
             {criticalYears.map((year, index) => (
-              <Text key={index} color={textColor} fontSize="md" ml={8}>
+              <Text
+                key={index}
+                className="ml-8 text-gray-700 dark:text-gray-300 text-md"
+              >
                 • {year.year}
               </Text>
             ))}
@@ -166,7 +157,7 @@ const CriticalPeriods: React.FC<CriticalPeriodsProps> = ({
       {!hasCriticalPeriods && (
         <HStack mt={10} spacing={5} alignItems="center">
           <Icon as={FaCheckCircle} color={checkIconColor} boxSize={10} />
-          <Text color={checkIconColor} fontSize="lg" fontWeight="bold">
+          <Text className="text-green-600 dark:text-green-400 text-lg font-bold">
             Excellent! No significant spending spikes detected.
           </Text>
         </HStack>

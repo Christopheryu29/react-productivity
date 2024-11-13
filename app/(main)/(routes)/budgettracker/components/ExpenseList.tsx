@@ -133,15 +133,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
   };
 
   return (
-    <Box
-      boxShadow="lg"
-      p={5}
-      rounded="lg"
-      maxW={{ base: "100%", md: "80%" }}
-      mx="auto"
-      bg={bgColor}
-      color={textColor}
-    >
+    <Box className="p-3 rounded-lg mx-auto  text-gray-800 dark:text-white shadow-lg max-w-full md:max-w-4xl">
       {/* Header with Filters and Navigation */}
       <Flex justify="space-between" align="center" mb={4}>
         <Heading size="lg" fontWeight="bold" letterSpacing="wide">
@@ -149,7 +141,11 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
         </Heading>
 
         <HStack spacing={3}>
-          <Button size="sm" onClick={handlePreviousPeriod}>
+          <Button
+            size="sm"
+            onClick={handlePreviousPeriod}
+            className="transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full p-1"
+          >
             <FaChevronLeft />
           </Button>
 
@@ -161,18 +157,24 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
             onChange={(e) =>
               setFilter(e.target.value as "all" | "weekly" | "monthly")
             }
-            bg="white"
-            color="black"
-            border="1px"
-            borderColor="g ray.300"
-            _hover={{ borderColor: "gray.500" }}
+            className="bg-white dark:bg-gray-800 text-black dark:text-white border border-gray-300 dark:border-gray-600 rounded-md hover:border-gray-500 dark:hover:border-gray-500 transition-colors duration-200"
           >
-            <option value="all">All Expenses</option>
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly</option>
+            <option value="all" style={{ color: "black" }}>
+              All Expenses
+            </option>
+            <option value="weekly" style={{ color: "black" }}>
+              Weekly
+            </option>
+            <option value="monthly" style={{ color: "black" }}>
+              Monthly
+            </option>
           </Select>
 
-          <Button size="sm" onClick={handleNextPeriod}>
+          <Button
+            size="sm"
+            onClick={handleNextPeriod}
+            className="transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full p-1"
+          >
             <FaChevronRight />
           </Button>
         </HStack>
@@ -180,7 +182,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
 
       {/* Display Current Period */}
       {filter !== "all" && (
-        <Text fontWeight="bold" textAlign="center" mb={4}>
+        <Text fontWeight="bold" textAlign="center" mb={4} className="text-lg">
           {formatPeriod()}
         </Text>
       )}
@@ -190,26 +192,32 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
         <Table
           variant="simple"
           size="sm"
-          rounded="md"
-          boxShadow="md"
-          bg={tableBgColor}
+          className="rounded-md shadow-md  transition-colors duration-200"
         >
           <Thead>
-            <Tr bg={headerBgColor}>
-              <Th color={headerTextColor}>Amount</Th>
-              <Th color={headerTextColor}>Type</Th>
-              <Th color={headerTextColor}>Category</Th>
-              <Th color={headerTextColor}>Date</Th>
-              <Th color={headerTextColor}>Actions</Th>
+            <Tr className="bg-gray-100 dark:bg-gray-700">
+              <Th className="text-gray-700 dark:text-gray-300 font-medium">
+                Amount
+              </Th>
+              <Th className="text-gray-700 dark:text-gray-300 font-medium">
+                Type
+              </Th>
+              <Th className="text-gray-700 dark:text-gray-300 font-medium">
+                Category
+              </Th>
+              <Th className="text-gray-700 dark:text-gray-300 font-medium">
+                Date
+              </Th>
+              <Th className="text-gray-700 dark:text-gray-300 font-medium">
+                Actions
+              </Th>
             </Tr>
           </Thead>
           <Tbody>
             {filterExpenses(expenses).map((expense) => (
               <Tr
                 key={expense.id}
-                transition="background-color 0.2s ease-in-out"
-                _hover={{ bg: rowHoverColor }}
-                rounded="md"
+                className="transition-colors duration-200 hover:bg-gray-50 dark:hover:bg-gray-700"
               >
                 {/* Amount */}
                 <Td>
@@ -219,9 +227,11 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
                   >
                     <Text
                       fontWeight="bold"
-                      color={
-                        expense.type === "income" ? "green.500" : "red.500"
-                      }
+                      className={`font-semibold ${
+                        expense.type === "income"
+                          ? "text-green-500"
+                          : "text-red-500"
+                      }`}
                       fontSize="md"
                     >
                       ${expense.amount.toFixed(2)}
@@ -236,16 +246,18 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
                       as={
                         expense.type === "income" ? FaWallet : FaMoneyBillWave
                       }
-                      color={
-                        expense.type === "income" ? "green.500" : "red.500"
-                      }
+                      className={`text-lg ${
+                        expense.type === "income"
+                          ? "text-green-500"
+                          : "text-red-500"
+                      }`}
                     />
                     <Badge
-                      colorScheme={expense.type === "income" ? "green" : "red"}
-                      variant="solid"
-                      rounded="full"
-                      px={3}
-                      py={1}
+                      className={`px-3 py-1 rounded-full text-white font-medium ${
+                        expense.type === "income"
+                          ? "bg-green-500"
+                          : "bg-red-500"
+                      }`}
                     >
                       {expense.type.charAt(0).toUpperCase() +
                         expense.type.slice(1)}
@@ -255,21 +267,14 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
 
                 {/* Category */}
                 <Td>
-                  <Badge
-                    colorScheme="blackAlpha"
-                    variant="subtle"
-                    rounded="full"
-                    px={3}
-                    py={1}
-                    fontSize="sm"
-                  >
+                  <Badge className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-300 px-3 py-1 rounded-full font-sm font-medium">
                     {expense.category}
                   </Badge>
                 </Td>
 
                 {/* Date */}
                 <Td>
-                  <Text color="gray.600" fontSize="sm">
+                  <Text className="text-gray-600 dark:text-gray-400 text-sm">
                     {new Date(expense.date).toLocaleDateString(undefined, {
                       year: "numeric",
                       month: "short",
@@ -281,38 +286,14 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
                 {/* Actions */}
                 <Td>
                   <HStack spacing={3}>
-                    {/*
-                    <Tooltip label="Edit" aria-label="Edit">
-                      <Button
-                        size="sm"
-                        colorScheme="blue"
-                        onClick={() =>
-                          onEdit(
-                            expense.id,
-                            expense.amount,
-                            expense.type,
-                            expense.category,
-                            expense.date
-                          )
-                        }
-                        variant="ghost"
-                        _hover={{ bg: "blue.100", transform: "scale(1.05)" }}
-                        leftIcon={<FaEdit />}
-                      >
-                        Edit
-                      </Button>
-                    </Tooltip>
-                    */}
                     <Tooltip label="Delete" aria-label="Delete">
                       <Button
                         size="sm"
-                        colorScheme="red"
-                        onClick={() => onDelete(expense.id)}
                         variant="ghost"
-                        _hover={{ bg: "red.100", transform: "scale(1.05)" }}
-                        leftIcon={<FaTrash />}
+                        onClick={() => onDelete(expense.id)}
+                        className="text-red-500 hover:bg-red-100 dark:hover:bg-red-600 dark:text-red-300 rounded-full p-1 transition-transform transform hover:scale-105"
                       >
-                        Delete
+                        <FaTrash />
                       </Button>
                     </Tooltip>
                   </HStack>

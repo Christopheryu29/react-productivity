@@ -16,26 +16,83 @@ const StatCards: React.FC<StatCardsProps> = ({
   totalExpenses,
   currentBalance,
 }) => (
-  <StatGroup mb={6} gap={4}>
-    <Stat p={5} shadow="md" rounded="md">
-      <StatLabel color={"white"}>Number of Adults</StatLabel>
-      <StatNumber color={"white"}>{numAdults}</StatNumber>
+  <StatGroup
+    mt={6}
+    mb={6}
+    gap={4}
+    display="flex"
+    justifyContent="center"
+    flexWrap="wrap"
+  >
+    <Stat
+      p={6}
+      minH="120px" // Set a minimum height to make all cards uniform
+      shadow="lg"
+      rounded="lg"
+      className="bg-white dark:bg-[hsla(240,3%,12%,1)] text-gray-800 dark:text-white transform hover:scale-105"
+    >
+      <StatLabel className="text-gray-600 dark:text-gray-400 font-semibold">
+        Number of Adults
+      </StatLabel>
+      <StatNumber className="text-gray-900 dark:text-gray-100 font-bold text-xl">
+        {numAdults}
+      </StatNumber>
     </Stat>
-    <Stat p={5} shadow="md" rounded="md">
-      <StatLabel color={"white"}>Number of Children</StatLabel>
-      <StatNumber color={"white"}>{numChildren}</StatNumber>
+    <Stat
+      p={6}
+      minH="120px"
+      shadow="lg"
+      rounded="lg"
+      className="bg-white dark:bg-[hsla(240,3%,12%,1)] text-gray-800 dark:text-white transform hover:scale-105"
+    >
+      <StatLabel className="text-gray-600 dark:text-gray-400 font-semibold">
+        Number of Children
+      </StatLabel>
+      <StatNumber className="text-gray-900 dark:text-gray-100 font-bold text-xl">
+        {numChildren}
+      </StatNumber>
     </Stat>
-    <Stat p={5} shadow="md" rounded="md">
-      <StatLabel color={"white"}>Total Income</StatLabel>
-      <StatNumber color={"white"}>${totalIncome.toFixed(2)}</StatNumber>
+    <Stat
+      p={6}
+      minH="120px"
+      shadow="lg"
+      rounded="lg"
+      className="bg-white dark:bg-[hsla(240,3%,12%,1)] text-gray-800 dark:text-white transform hover:scale-105"
+    >
+      <StatLabel className="text-gray-600 dark:text-gray-400 font-semibold">
+        Total Income
+      </StatLabel>
+      <StatNumber className="text-green-500 dark:text-green-300 font-bold text-xl">
+        ${totalIncome.toFixed(2)}
+      </StatNumber>
     </Stat>
-    <Stat p={5} shadow="md" rounded="md">
-      <StatLabel color={"white"}>Total Expenses</StatLabel>
-      <StatNumber color={"white"}>${totalExpenses.toFixed(2)}</StatNumber>
+    <Stat
+      p={6}
+      minH="120px"
+      shadow="lg"
+      rounded="lg"
+      className="bg-white dark:bg-[hsla(240,3%,12%,1)] text-gray-800 dark:text-white transform hover:scale-105"
+    >
+      <StatLabel className="text-gray-600 dark:text-gray-400 font-semibold">
+        Total Expenses
+      </StatLabel>
+      <StatNumber className="text-red-500 dark:text-red-300 font-bold text-xl">
+        ${totalExpenses.toFixed(2)}
+      </StatNumber>
     </Stat>
-    <Stat p={5} shadow="md" rounded="md">
-      <StatLabel color={"white"}>Current Balance</StatLabel>
-      <StatNumber color={"white"}>${currentBalance.toFixed(2)}</StatNumber>
+    <Stat
+      p={6}
+      minH="120px"
+      shadow="lg"
+      rounded="lg"
+      className="bg-white dark:bg-[hsla(240,3%,12%,1)] text-gray-800 dark:text-white transform hover:scale-105"
+    >
+      <StatLabel className="text-gray-600 dark:text-gray-400 font-semibold">
+        Current Balance
+      </StatLabel>
+      <StatNumber className="text-blue-500 dark:text-blue-300 font-bold text-xl">
+        ${currentBalance.toFixed(2)}
+      </StatNumber>
     </Stat>
   </StatGroup>
 );

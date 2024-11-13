@@ -47,14 +47,14 @@ const YearlySummary: React.FC<YearlySummaryProps> = ({ yearlyTotals }) => {
   );
 
   return (
-    <Box boxShadow="lg" p={[3, 6]} rounded="lg" overflowX="auto">
+    <Box p={[3, 6]} rounded="lg" overflowX="auto">
       <Heading size="md" mb={4} color="white">
         <Badge colorScheme="purple">Yearly Summary</Badge>
       </Heading>
 
       {/* Line Chart for Yearly Trends */}
       <Box mb={6} mt={6}>
-        <Heading size="sm" color="white" mb={2}>
+        <Heading size="sm" className="text-gray-800 dark:text-white" mb={2}>
           Yearly Income vs Expenses (Line Chart)
         </Heading>
         <YearlySummaryLineChart yearlyTotals={sortedYearlyTotals} />
@@ -70,7 +70,7 @@ const YearlySummary: React.FC<YearlySummaryProps> = ({ yearlyTotals }) => {
           <Thead>
             <Tr>
               <Th
-                color="white"
+                className="text-gray-800 dark:text-white"
                 px={[2, 4]}
                 py={4}
                 textAlign="center"
@@ -79,7 +79,7 @@ const YearlySummary: React.FC<YearlySummaryProps> = ({ yearlyTotals }) => {
                 Year
               </Th>
               <Th
-                color="white"
+                className="text-gray-800 dark:text-white"
                 px={[2, 4]}
                 py={4}
                 textAlign="center"
@@ -88,7 +88,7 @@ const YearlySummary: React.FC<YearlySummaryProps> = ({ yearlyTotals }) => {
                 Total Income
               </Th>
               <Th
-                color="white"
+                className="text-gray-800 dark:text-white"
                 px={[2, 4]}
                 py={4}
                 textAlign="center"
@@ -150,11 +150,11 @@ const YearlySummary: React.FC<YearlySummaryProps> = ({ yearlyTotals }) => {
                   <Tr
                     onClick={() => toggleExpand(total.year)}
                     cursor="pointer"
-                    _hover={{ bg: "gray.700" }}
+                    className="hover:bg-gray-200 dark:hover:bg-gray-700"
                     width="100%"
                   >
                     <Td
-                      color="white"
+                      className="text-gray-800 dark:text-white"
                       px={[2, 4]}
                       py={3}
                       textAlign="center"
@@ -163,7 +163,7 @@ const YearlySummary: React.FC<YearlySummaryProps> = ({ yearlyTotals }) => {
                       {total.year}
                     </Td>
                     <Td
-                      color="white"
+                      className="text-gray-800 dark:text-white"
                       px={[2, 4]}
                       py={3}
                       textAlign="center"
@@ -172,7 +172,7 @@ const YearlySummary: React.FC<YearlySummaryProps> = ({ yearlyTotals }) => {
                       ${total.totalIncome.toFixed(2)}
                     </Td>
                     <Td
-                      color="white"
+                      className="text-gray-800 dark:text-white"
                       px={[2, 4]}
                       py={3}
                       textAlign="center"
@@ -187,7 +187,7 @@ const YearlySummary: React.FC<YearlySummaryProps> = ({ yearlyTotals }) => {
                       <Tr>
                         <Td
                           colSpan={3}
-                          color="white"
+                          className="text-gray-800 dark:text-red-500"
                           px={[2, 4]}
                           py={2}
                           textAlign="center"
@@ -209,22 +209,32 @@ const YearlySummary: React.FC<YearlySummaryProps> = ({ yearlyTotals }) => {
                             borderColor="green.500"
                             overflowX="auto"
                           >
-                            <Heading size="sm" color="white" mb={2}>
+                            <Heading
+                              size="sm"
+                              className="text-gray-800 dark:text-white"
+                              mb={2}
+                            >
                               Income Breakdown
                             </Heading>
                             <Table size="sm" width="100%">
                               <Thead>
                                 <Tr>
-                                  <Th color="white">Category</Th>
-                                  <Th color="white">Amount ($)</Th>
+                                  <Th className="text-gray-800 dark:text-white">
+                                    Category
+                                  </Th>
+                                  <Th className="text-gray-800 dark:text-white">
+                                    Amount ($)
+                                  </Th>
                                 </Tr>
                               </Thead>
                               <Tbody>
                                 {Object.entries(total.incomeByCategory).map(
                                   ([category, amount], i) => (
                                     <Tr key={i}>
-                                      <Td color="white">{category}</Td>
-                                      <Td color="white">
+                                      <Td className="text-gray-800 dark:text-white">
+                                        {category}
+                                      </Td>
+                                      <Td className="text-gray-800 dark:text-white">
                                         ${amount.toFixed(2)}
                                       </Td>
                                     </Tr>
@@ -246,22 +256,32 @@ const YearlySummary: React.FC<YearlySummaryProps> = ({ yearlyTotals }) => {
                             borderColor="red.500"
                             overflowX="auto"
                           >
-                            <Heading size="sm" color="white" mb={2}>
+                            <Heading
+                              size="sm"
+                              className="text-gray-800 dark:text-white"
+                              mb={2}
+                            >
                               Expenses Breakdown
                             </Heading>
                             <Table size="sm" width="100%">
                               <Thead>
                                 <Tr>
-                                  <Th color="white">Category</Th>
-                                  <Th color="white">Amount ($)</Th>
+                                  <Th className="text-gray-800 dark:text-white">
+                                    Category
+                                  </Th>
+                                  <Th className="text-gray-800 dark:text-white">
+                                    Amount ($)
+                                  </Th>
                                 </Tr>
                               </Thead>
                               <Tbody>
                                 {Object.entries(total.expensesByCategory).map(
                                   ([category, amount], i) => (
                                     <Tr key={i}>
-                                      <Td color="white">{category}</Td>
-                                      <Td color="white">
+                                      <Td className="text-gray-800 dark:text-white">
+                                        {category}
+                                      </Td>
+                                      <Td className="text-gray-800 dark:text-white">
                                         ${amount.toFixed(2)}
                                       </Td>
                                     </Tr>
@@ -276,7 +296,11 @@ const YearlySummary: React.FC<YearlySummaryProps> = ({ yearlyTotals }) => {
                       <Tr>
                         <Td colSpan={3} px={[2, 4]} py={2}>
                           <Box mt={4} mb={4} w="100%">
-                            <Heading size="sm" color="white" mb={2}>
+                            <Heading
+                              size="sm"
+                              className="text-gray-800 dark:text-white"
+                              mb={2}
+                            >
                               Expenses Breakdown (Pie Chart)
                             </Heading>
                             <Pie data={pieData} />
@@ -287,7 +311,11 @@ const YearlySummary: React.FC<YearlySummaryProps> = ({ yearlyTotals }) => {
                       <Tr>
                         <Td colSpan={3} px={[2, 4]} py={2}>
                           <Box mt={4} mb={4} w="100%">
-                            <Heading size="sm" color="white" mb={2}>
+                            <Heading
+                              size="sm"
+                              className="text-gray-800 dark:text-white"
+                              mb={2}
+                            >
                               Income vs Expenses (Bar Chart)
                             </Heading>
                             <Bar data={barData} />

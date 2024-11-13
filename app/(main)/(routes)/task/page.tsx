@@ -83,33 +83,30 @@ const TaskPage: React.FC = () => {
       maxW={{ base: "container.sm", md: "container.lg", xl: "container.xl" }}
       height={"stretch"}
       p={{ base: 4, md: 6, xl: 8 }}
-      bg="202020"
+      className="rounded-lg shadow-lg"
       borderRadius={{ base: "lg", md: "xl" }}
       boxShadow="lg"
     >
       <Heading
-        color="white"
-        mb={8}
-        textAlign="center"
-        fontSize={{ base: "2xl", md: "3xl" }}
+        size={{ base: "lg", md: "2xl" }}
+        className="text-gray-800 dark:text-white mb-8 text-center "
       >
         Task Management
       </Heading>
       <VStack
         as="form"
-        color="white"
         onSubmit={
           handleSubmit as unknown as React.FormEventHandler<HTMLDivElement>
         }
         spacing={6}
         align="stretch"
-        bg="radial-gradient(circle at center, #303030 0%, #34373f 25%, #2f3246 50%, #303030 100%)"
-        p={6}
-        borderRadius="lg"
-        boxShadow="md"
+        className="bg-gray-100 dark:bg-[radial-gradient(circle_at_center,_#303030_0%,_#34373f_25%,_#2f3246_50%,_#303030_100%)] p-6 rounded-lg shadow-md"
       >
         <FormControl isRequired>
-          <FormLabel htmlFor="title" fontWeight="bold" color="gray.300">
+          <FormLabel
+            htmlFor="title"
+            className="text-gray-600 dark:text-gray-300 font-bold"
+          >
             Title
           </FormLabel>
           <Input
@@ -117,21 +114,18 @@ const TaskPage: React.FC = () => {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Title"
-            bg="gray.600"
-            color="white"
-            _placeholder={{ color: "gray.400" }}
+            className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-md"
           />
         </FormControl>
 
         <FormControl>
-          <FormLabel color="gray.300" fontWeight="bold">
+          <FormLabel className="text-gray-600 dark:text-gray-300 font-bold">
             Status
           </FormLabel>
           <Select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            bg="gray.600"
-            color="white"
+            className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white rounded-md"
           >
             <option value="backlog" style={{ color: "black" }}>
               Backlog
@@ -152,14 +146,13 @@ const TaskPage: React.FC = () => {
         </FormControl>
 
         <FormControl>
-          <FormLabel color="gray.300" fontWeight="bold">
+          <FormLabel className="text-gray-600 dark:text-gray-300 font-bold">
             Label
           </FormLabel>
           <Select
             value={label}
             onChange={(e) => setLabel(e.target.value)}
-            bg="gray.600"
-            color="white"
+            className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white rounded-md"
           >
             <option value="bug" style={{ color: "black" }}>
               Bug
@@ -174,16 +167,13 @@ const TaskPage: React.FC = () => {
         </FormControl>
 
         <FormControl>
-          <FormLabel color="gray.300" fontWeight="bold">
+          <FormLabel className="text-gray-600 dark:text-gray-300 font-bold">
             Priority
           </FormLabel>
           <Select
             value={priority}
             onChange={(e) => setPriority(e.target.value)}
-            bg="gray.600"
-            color="white"
-            _hover={{ bg: "gray.500" }}
-            focusBorderColor="blue.400"
+            className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white rounded-md"
           >
             <option value="low" style={{ color: "black" }}>
               Low
@@ -223,16 +213,9 @@ const TaskPage: React.FC = () => {
         </Button>
       </VStack>
 
-      <Box color="white" mt={8}>
-        <Text fontSize="lg" mb={4} fontWeight="bold">
-          Task List
-        </Text>
-        <Box
-          bg="radial-gradient(circle at center, #303030 0%, #34373f 25%, #2f3246 50%, #303030 100%)"
-          p={4}
-          borderRadius="lg"
-          boxShadow="md"
-        >
+      <Box className="text-gray-800 dark:text-white mt-8">
+        <Text className="text-lg font-bold mb-4">Task List</Text>
+        <Box className="bg-gray-100 dark:bg-[radial-gradient(circle_at_center,_#303030_0%,_#34373f_25%,_#2f3246_50%,_#303030_100%)] p-4 rounded-lg shadow-md">
           <DataTable data={tasks} columns={columns} />
         </Box>
       </Box>

@@ -82,44 +82,52 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
   const bgColor = useColorModeValue("#303030", "#303030");
 
   return (
-    <Box
-      bg={bgColor}
-      p={6}
-      borderRadius="lg"
-      boxShadow="2xl"
-      w="full"
-      maxW="400px"
-      color="whiteAlpha.900"
-    >
+    <Box p={6} borderRadius="lg" w="full" maxW="400px">
       <VStack spacing={4}>
         <FormControl>
-          <FormLabel htmlFor="amount">Amount</FormLabel>
+          <FormLabel
+            htmlFor="amount"
+            fontSize="sm"
+            fontWeight="medium"
+            className="text-gray-700 dark:text-gray-300"
+          >
+            Amount
+          </FormLabel>
           <Input
             id="amount"
-            placeholder="Amount"
+            placeholder="Enter amount"
             type="number"
             value={newExpense}
             onChange={(e) => setNewExpense(Number(e.target.value))}
-            bg="whiteAlpha.200"
-            color="whiteAlpha.900"
-            _placeholder={{ color: "whiteAlpha.600" }}
+            className="bg-gray-50 dark:bg-[rgba(255,255,255,0.1)] text-gray-800 dark:text-white"
+            _placeholder={{ color: "gray.400 dark:gray.500" }}
+            border="1px solid"
+            borderColor="gray.300 dark:border-gray-500"
             focusBorderColor="blue.400"
+            _hover={{ borderColor: "gray.400 dark:border-gray-400" }}
           />
         </FormControl>
 
         <FormControl>
-          <FormLabel htmlFor="type">Type</FormLabel>
+          <FormLabel
+            htmlFor="type"
+            fontSize="sm"
+            fontWeight="medium"
+            className="text-gray-700 dark:text-gray-300"
+          >
+            Type
+          </FormLabel>
           <Select
             id="type"
-            placeholder="Select Type"
             value={newExpenseType}
             onChange={(e) =>
               setNewExpenseType(e.target.value as "income" | "expense")
             }
-            bg="whiteAlpha.200"
-            color="whiteAlpha.900"
-            _placeholder={{ color: "whiteAlpha.600" }}
+            className="bg-gray-50 dark:bg-[rgba(255,255,255,0.1)] text-gray-800 dark:text-white"
+            border="1px solid"
+            borderColor="gray.300 dark:border-gray-500"
             focusBorderColor="blue.400"
+            _hover={{ borderColor: "gray.400 dark:border-gray-400" }}
           >
             <option value="income" style={{ color: "black" }}>
               Income
@@ -131,16 +139,24 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
         </FormControl>
 
         <FormControl>
-          <FormLabel htmlFor="category">Category</FormLabel>
+          <FormLabel
+            htmlFor="category"
+            fontSize="sm"
+            fontWeight="medium"
+            className="text-gray-700 dark:text-gray-300"
+          >
+            Category
+          </FormLabel>
           <Select
             id="category"
             placeholder="Select Category"
             value={newCategory}
             onChange={(e) => setNewCategory(e.target.value)}
-            bg="whiteAlpha.200"
-            color="whiteAlpha.900"
-            _placeholder={{ color: "whiteAlpha.600" }}
+            className="bg-gray-50 dark:bg-[rgba(255,255,255,0.1)] text-gray-800 dark:text-white"
+            border="1px solid"
+            borderColor="gray.300 dark:border-gray-500"
             focusBorderColor="blue.400"
+            _hover={{ borderColor: "gray.400 dark:border-gray-400" }}
           >
             {newExpenseType === "income" ? (
               <>
@@ -183,7 +199,12 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
         </FormControl>
 
         <FormControl>
-          <FormLabel htmlFor="date" fontWeight="bold" fontSize="sm">
+          <FormLabel
+            htmlFor="date"
+            fontSize="sm"
+            fontWeight="medium"
+            className="text-gray-700 dark:text-gray-300"
+          >
             Selected Date
           </FormLabel>
           <DatePicker
@@ -191,26 +212,37 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
             onChange={(date: Date | null) => setSelectedDate(date)}
             dateFormat="yyyy-MM-dd"
             showPopperArrow={false}
-            popperContainer={({ children }) => (
-              <div style={{ zIndex: 1000, position: "relative" }}>
-                {children}
-              </div>
-            )}
-            portalId="date-picker-portal" // Ensures DatePicker is rendered within a portal
             className="chakra-datepicker"
             customInput={
               <Input
-                bg="transparent"
-                color="white"
-                _placeholder={{ color: "gray.400" }}
-                focusBorderColor="blue.400"
+                className="bg-transparent text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 border-gray-300 dark:border-gray-500 focus:border-blue-400"
                 placeholder="Select Date"
               />
             }
           />
         </FormControl>
 
-        <Button colorScheme="blue" onClick={handleAddExpense} width="full">
+        <Button
+          bgGradient="linear(to-r, blue.500, cyan.400)"
+          color="white"
+          onClick={handleAddExpense}
+          width="full"
+          fontSize="lg"
+          fontWeight="bold"
+          py={6}
+          _hover={{
+            bgGradient: "linear(to-r, blue.600, cyan.500)",
+            transform: "scale(1.02)",
+            boxShadow: "xl",
+          }}
+          _active={{
+            bgGradient: "linear(to-r, blue.700, cyan.600)",
+            transform: "scale(0.98)",
+          }}
+          transition="transform 0.2s ease, box-shadow 0.2s ease"
+          borderRadius="md"
+          boxShadow="lg"
+        >
           Add Expense
         </Button>
       </VStack>

@@ -68,18 +68,11 @@ function TodoApp() {
   );
 
   return (
-    <Flex
-      direction="column"
-      p="6"
-      minH="100vh"
-      align="center"
-      bgGradient="linear(to-b, #202020, #2c2c2c)"
-    >
+    <Flex direction="column" p="6" minH="100vh" align="center">
       <Flex justify="center" align="center" mb="8">
         <Heading
-          size="2xl"
-          color="white"
-          textShadow="1px 1px 5px rgba(0, 0, 0, 0.6)"
+          size={{ base: "lg", md: "2xl" }}
+          className="text-gray-800 dark:text-white"
         >
           Todo List
         </Heading>
@@ -92,17 +85,7 @@ function TodoApp() {
           placeholder="Add a new task..."
           value={newTodo}
           onChange={(e) => setNewTodo(e.target.value)}
-          size="lg"
-          borderColor="gray.600"
-          rounded="lg"
-          shadow="md"
-          bg="gray.700"
-          color="whiteAlpha.900"
-          _placeholder={{ color: "gray.400" }}
-          _focus={{
-            borderColor: "cyan.500",
-            boxShadow: "0px 0px 10px rgba(56, 189, 248, 0.5)",
-          }}
+          className="text-gray-800 dark:text-white"
         />
         <IconButton
           icon={<AddIcon />}
@@ -130,15 +113,10 @@ function TodoApp() {
               <Flex
                 align="center"
                 p="4"
-                bg="gray.800"
-                shadow="lg"
-                rounded="lg"
+                className="bg-gray-200 dark:bg-gray-800 shadow-lg rounded-lg border border-gray-300 dark:border-gray-700"
                 w="full"
-                borderWidth="1px"
-                borderColor="gray.700"
                 _hover={{
                   transform: "scale(1.02)",
-                  bg: "gray.700",
                   boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)",
                 }}
                 transition="all 0.2s ease"
@@ -153,10 +131,12 @@ function TodoApp() {
                 <Text
                   flex="1"
                   fontSize="lg"
-                  color={todo.isCompleted ? "gray.500" : "whiteAlpha.900"}
-                  as={todo.isCompleted ? "s" : undefined}
+                  className={`${
+                    todo.isCompleted
+                      ? "text-gray-500 line-through opacity-70"
+                      : "text-gray-800 dark:text-white"
+                  }`}
                   noOfLines={1}
-                  opacity={todo.isCompleted ? 0.7 : 1}
                   transition="opacity 0.2s"
                 >
                   {todo.text}
@@ -168,11 +148,7 @@ function TodoApp() {
                   onClick={() => handleDeleteTodo(todo._id)}
                   aria-label="Delete todo"
                   variant="ghost"
-                  _hover={{
-                    color: "red.400",
-                    transform: "scale(1.1)",
-                  }}
-                  transition="all 0.2s"
+                  className="hover:text-red-400 transform transition-all duration-200 ease-in-out"
                 />
               </Flex>
             </ScaleFade>
@@ -180,7 +156,7 @@ function TodoApp() {
         </VStack>
       ) : (
         <Box mt="8" textAlign="center">
-          <Text fontSize="lg" color="gray.400" fontWeight="medium">
+          <Text fontSize="lg" className="text-gray-500 font-medium">
             No todos found. Add some!
           </Text>
         </Box>
@@ -189,7 +165,7 @@ function TodoApp() {
       <Divider mt="8" mb="6" w="full" maxW="lg" borderColor="gray.600" />
 
       <Flex justify="center">
-        <Text fontSize="md" color="gray.400" fontStyle="italic">
+        <Text fontSize="md" className="text-gray-500 italic">
           Stay organized. Keep track of your tasks.
         </Text>
       </Flex>

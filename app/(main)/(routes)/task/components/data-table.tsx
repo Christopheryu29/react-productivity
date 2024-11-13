@@ -74,19 +74,19 @@ export function DataTable<TData, TValue>({
         <DataTableToolbar table={table} />
       </div>
 
-      <div className="rounded-lg border border-gray-700 max-h-[70vh] overflow-auto">
-        <Table className="w-full text-white ">
+      <div className="rounded-lg border border-gray-200 max-h-[70vh] overflow-auto">
+        <Table className="w-full text-gray-800 dark:text-white">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
-                className="bg-gray-700 text-xs md:text-sm uppercase text-gray-400"
+                className="bg-gray-200 dark:bg-gray-700 text-xs md:text-sm uppercase text-gray-600 dark:text-gray-400"
               >
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
                     colSpan={header.colSpan}
-                    className="px-2 py-2 md:px-4 md:py-2"
+                    className="px-2 py-2 md:px-4 md:py-2 text-gray-800 dark:text-white"
                   >
                     {header.isPlaceholder
                       ? null
@@ -106,7 +106,7 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="hover:bg-gray-700 transition-colors duration-150"
+                  className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
