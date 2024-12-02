@@ -31,14 +31,6 @@ import { api } from "@/convex/_generated/api";
 import * as tf from "@tensorflow/tfjs";
 import { FaPiggyBank, FaCalendarAlt, FaChartPie } from "react-icons/fa";
 
-// Define the structure for user financial data
-interface FinancialData {
-  month: string;
-  totalIncome: number;
-  totalExpenses: number;
-  expensesByCategory?: Record<string, number>;
-}
-
 const SavingsTargetPrediction = () => {
   const [savingsTarget, setSavingsTarget] = useState<number>(0);
   const [currentSavings, setCurrentSavings] = useState<number>(0);
@@ -53,9 +45,7 @@ const SavingsTargetPrediction = () => {
   const [isBehindTarget, setIsBehindTarget] = useState<boolean>(false);
   const [predictionResult, setPredictionResult] = useState<string>("");
   const [spendingAnalysis, setSpendingAnalysis] = useState<string[]>([]);
-  const [financialHealthScore, setFinancialHealthScore] = useState<
-    number | null
-  >(null);
+
   const isMobile = useBreakpointValue({ base: true, md: false });
 
   const toast = useToast();
@@ -65,7 +55,6 @@ const SavingsTargetPrediction = () => {
   const isDecember = currentMonth === 11;
   const targetYear = isDecember ? currentYear + 1 : currentYear;
 
-  // Fetch financial data and user savings target from the backend
   const userExpenses = useQuery(api.expense.getExpenses) || [];
   const userSavingsTarget = useQuery(api.target.getSavingsTarget, {
     year: targetYear,
@@ -73,7 +62,6 @@ const SavingsTargetPrediction = () => {
 
   const setSavingsTargetMutation = useMutation(api.target.setSavingsTarget);
 
-  // Map the financial data
   const userFinancialData =
     userExpenses?.map((expense) => ({
       month: new Date(expense.date).toLocaleString("default", {
@@ -101,9 +89,8 @@ const SavingsTargetPrediction = () => {
   };
 
   const calculateMonthsLeft = () => {
-    const currentMonthIndex = currentMonth; // 0 = January, 11 = December
-    // Calculate months remaining in the current year
-    setMonthsLeft(11 - currentMonthIndex); // 11 represents December
+    const currentMonthIndex = currentMonth;
+    setMonthsLeft(11 - currentMonthIndex);
   };
 
   useEffect(() => {
@@ -193,20 +180,17 @@ const SavingsTargetPrediction = () => {
   };
 
   const calculateAdvancedPrediction = async () => {
-    // Process monthly data into training sets
     const monthsPassed = userFinancialData.length;
     const monthlyNetSavings = userFinancialData.map(
       (data) => data.totalIncome - data.totalExpenses
     );
 
-    // Normalize the data to scale within a range (e.g., -1 to 1)
     const minSavings = Math.min(...monthlyNetSavings);
     const maxSavings = Math.max(...monthlyNetSavings);
     const normalizedSavings = monthlyNetSavings.map(
       (savings) => (savings - minSavings) / (maxSavings - minSavings)
     );
 
-    // Prepare input (months) and output (normalized net savings) tensors
     const xValues = Array.from({ length: monthsPassed }, (_, i) => i + 1);
     const xTensor = tf.tensor2d(xValues, [xValues.length, 1]);
     const yTensor = tf.tensor2d(normalizedSavings, [
@@ -214,7 +198,6 @@ const SavingsTargetPrediction = () => {
       1,
     ]);
 
-    // Build a more complex model with additional layers and dropout regularization
     const model = tf.sequential();
     model.add(
       tf.layers.dense({ units: 64, activation: "relu", inputShape: [1] })
@@ -224,10 +207,8 @@ const SavingsTargetPrediction = () => {
     model.add(tf.layers.dense({ units: 1 }));
     model.compile({ optimizer: "adam", loss: "meanSquaredError" });
 
-    // Train the model
     await model.fit(xTensor, yTensor, { epochs: 200, validationSplit: 0.2 });
 
-    // Predict for the upcoming months
     const nextMonth = monthsPassed + 1;
     const predictionTensor = tf.tensor2d([nextMonth], [1, 1]);
     const normalizedPrediction = model.predict(predictionTensor) as tf.Tensor;
@@ -235,10 +216,8 @@ const SavingsTargetPrediction = () => {
       normalizedPrediction.dataSync()[0] * (maxSavings - minSavings) +
       minSavings;
 
-    // Calculate projected total savings
     const projectedSavings = predictedSavings + currentSavings;
 
-    // Refined messages based on projected savings compared to target
     const difference = projectedSavings - savingsTarget;
 
     if (difference >= 0) {
@@ -274,7 +253,6 @@ const SavingsTargetPrediction = () => {
       setIsBehindTarget(true);
     }
 
-    // Clean up tensors
     xTensor.dispose();
     yTensor.dispose();
     predictionTensor.dispose();
@@ -365,10 +343,10 @@ const SavingsTargetPrediction = () => {
         <Button
           bgGradient="linear(to-r, teal.400, cyan.500)"
           color="white"
-          size={isMobile ? "md" : "lg"} // Adjust size based on screen size
-          fontSize={isMobile ? "sm" : "md"} // Smaller font size for mobile
-          px={isMobile ? 4 : 6} // Smaller padding on mobile
-          py={isMobile ? 3 : 4} // Adjust padding for mobile
+          size={isMobile ? "md" : "lg"}
+          fontSize={isMobile ? "sm" : "md"}
+          px={isMobile ? 4 : 6}
+          py={isMobile ? 3 : 4}
           _hover={{
             bgGradient: "linear(to-r, teal.500, cyan.600)",
             boxShadow:

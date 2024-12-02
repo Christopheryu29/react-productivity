@@ -26,7 +26,7 @@ const StatCards: React.FC<StatCardsProps> = ({
   >
     <Stat
       p={6}
-      minH="120px" // Set a minimum height to make all cards uniform
+      minH="120px"
       shadow="lg"
       rounded="lg"
       className="bg-white dark:bg-[hsla(240,3%,12%,1)] text-gray-800 dark:text-white transform hover:scale-105"

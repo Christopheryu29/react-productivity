@@ -16,7 +16,6 @@ import {
   Select,
   Heading,
   Flex,
-  useColorModeValue,
 } from "@chakra-ui/react";
 import {
   FaTrash,
@@ -24,7 +23,6 @@ import {
   FaWallet,
   FaChevronLeft,
   FaChevronRight,
-  FaEdit,
 } from "react-icons/fa";
 import {
   addWeeks,
@@ -44,7 +42,7 @@ interface Expense {
   id: number;
   amount: number;
   type: "income" | "expense";
-  date: string; // ISO 8601 formatted date string
+  date: string;
   category: string;
 }
 
@@ -60,25 +58,13 @@ interface ExpenseListProps {
   onDelete: (id: number) => void;
 }
 
-const ExpenseList: React.FC<ExpenseListProps> = ({
-  expenses,
-  onEdit,
-  onDelete,
-}) => {
+const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete }) => {
   const [filter, setFilter] = useState<"all" | "weekly" | "monthly">("all");
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
 
-  const bgColor = useColorModeValue("white", "gray.900");
-  const textColor = useColorModeValue("black", "white");
-  const tableBgColor = useColorModeValue("gray.50", "gray.800");
-  const headerBgColor = useColorModeValue("black", "white");
-  const headerTextColor = useColorModeValue("white", "black");
-  const rowHoverColor = useColorModeValue("gray.100", "gray.700");
-
-  // Filter and sort expenses based on the selected filter (weekly, monthly, or all)
   const filterExpenses = (expenses: Expense[]) => {
     const filteredExpenses = expenses.filter((expense) => {
-      const expenseDate = parseISO(expense.date); // Parse the ISO string to Date object
+      const expenseDate = parseISO(expense.date);
 
       if (filter === "weekly") {
         const startOfThisWeek = startOfDay(startOfWeek(currentDate));
@@ -92,10 +78,9 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
         return expenseDate >= startOfThisMonth && expenseDate <= endOfThisMonth;
       }
 
-      return true; // Return all expenses for "all" filter
+      return true;
     });
 
-    // Sort expenses by date (earliest first)
     return filteredExpenses.sort(
       (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
     );
@@ -129,12 +114,11 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
         year: "numeric",
       })}`;
     }
-    return ""; // No specific period formatting for "all"
+    return "";
   };
 
   return (
     <Box className="p-3 rounded-lg mx-auto  text-gray-800 dark:text-white shadow-lg max-w-full md:max-w-4xl">
-      {/* Header with Filters and Navigation */}
       <Flex justify="space-between" align="center" mb={4}>
         <Heading size="lg" fontWeight="bold" letterSpacing="wide">
           Expenses Overview
@@ -180,14 +164,12 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
         </HStack>
       </Flex>
 
-      {/* Display Current Period */}
       {filter !== "all" && (
         <Text fontWeight="bold" textAlign="center" mb={4} className="text-lg">
           {formatPeriod()}
         </Text>
       )}
 
-      {/* Table with improved styles */}
       <Box overflowX="auto">
         <Table
           variant="simple"
@@ -219,7 +201,6 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
                 key={expense.id}
                 className="transition-colors duration-200 hover:bg-gray-50 dark:hover:bg-gray-700"
               >
-                {/* Amount */}
                 <Td>
                   <Tooltip
                     label={`$${expense.amount.toFixed(2)}`}
@@ -239,7 +220,6 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
                   </Tooltip>
                 </Td>
 
-                {/* Type */}
                 <Td>
                   <HStack spacing={2}>
                     <Icon
@@ -265,14 +245,12 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
                   </HStack>
                 </Td>
 
-                {/* Category */}
                 <Td>
                   <Badge className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-300 px-3 py-1 rounded-full font-sm font-medium">
                     {expense.category}
                   </Badge>
                 </Td>
 
-                {/* Date */}
                 <Td>
                   <Text className="text-gray-600 dark:text-gray-400 text-sm">
                     {new Date(expense.date).toLocaleDateString(undefined, {
@@ -283,7 +261,6 @@ const ExpenseList: React.FC<ExpenseListProps> = ({
                   </Text>
                 </Td>
 
-                {/* Actions */}
                 <Td>
                   <HStack spacing={3}>
                     <Tooltip label="Delete" aria-label="Delete">

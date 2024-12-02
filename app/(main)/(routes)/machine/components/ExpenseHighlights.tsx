@@ -29,11 +29,10 @@ import {
   MdDateRange,
   MdOutlineDateRange,
 } from "react-icons/md";
-import { FaLightbulb } from "react-icons/fa"; // Icon for financial advice
-import { AiOutlineDollar } from "react-icons/ai"; // Icon for totals
+import { FaLightbulb } from "react-icons/fa";
+import { AiOutlineDollar } from "react-icons/ai";
 import CriticalPeriods from "./CriticalPeriods";
 
-// Define interfaces for WeeklyTotals and MonthlyTotals
 interface WeeklyTotals {
   week: string;
   totalIncome: number;
@@ -68,12 +67,10 @@ interface ExpenseHighlightsProps {
   ) => string[];
 }
 
-// Function to calculate the percentage of expenses relative to income
 const calculateExpensePercentage = (expenses: number, income: number) => {
   return ((expenses / income) * 100).toFixed(1);
 };
 
-// Function to determine color scheme based on spending percentage
 const getColorScheme = (expensePercentage: number) => {
   if (expensePercentage <= 70) {
     return { bg: "green.50", text: "green.800", badge: "green" };
@@ -84,7 +81,6 @@ const getColorScheme = (expensePercentage: number) => {
   }
 };
 
-// Function to evaluate expenses and provide suggestions
 const evaluateExpenses = (data: {
   totalIncome: number;
   totalExpenses: number;
@@ -96,7 +92,6 @@ const evaluateExpenses = (data: {
   const suggestions: string[] = [];
   const total_expense_percentage = (totalExpenses / totalIncome) * 100;
 
-  // Threshold check
   const thresholds = {
     housing: 0.3,
     food: 0.15,
@@ -107,7 +102,6 @@ const evaluateExpenses = (data: {
     taxes: 0.25,
   };
 
-  // Evaluate expenses for each category
   Object.entries(expensesByCategory).forEach(([category, amount]) => {
     if (thresholds[category as keyof typeof thresholds]) {
       const recommendedPercentage =
@@ -124,7 +118,6 @@ const evaluateExpenses = (data: {
     }
   });
 
-  // Provide overall expense feedback
   if (total_expense_percentage > 80) {
     suggestions.push(
       "Your overall expenses exceed 80% of your income. Aim to reduce your costs or increase your income to improve your financial health."
@@ -150,18 +143,14 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
   const [advice, setAdvice] = useState<string[]>([]);
   const [loadingAdvice, setLoadingAdvice] = useState(false);
 
-  // Responsive heading size
   const headingSize = useBreakpointValue({ base: "md", md: "lg" });
 
-  // Sort weeks by year and week number
   const sortedWeeks = [...allWeeks].sort((a, b) => {
-    // Extract week number and year from `week` strings like "Week 35 2024"
     const weekA = parseInt(a.week.match(/Week (\d+)/)?.[1] || "0", 10);
     const yearA = parseInt(a.week.match(/(\d{4})/)?.[1] || "0", 10);
     const weekB = parseInt(b.week.match(/Week (\d+)/)?.[1] || "0", 10);
     const yearB = parseInt(b.week.match(/(\d{4})/)?.[1] || "0", 10);
 
-    // Sort by year first, then by week number
     if (yearA === yearB) {
       return weekA - weekB;
     }
@@ -176,7 +165,6 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
     (a, b) => Number(a.year) - Number(b.year)
   );
 
-  // Generate Evaluation Summaries based on sorted data
   const weeklyEvaluations = sortedWeeks.map((week) =>
     evaluateExpenses({
       totalIncome: week.totalIncome,
@@ -219,7 +207,6 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
     let query =
       "You are an expert financial advisor. Please review the following financial data and provide actionable advice for improving financial health by reducing high expenses and increasing savings. Focus on areas with the highest expenses and deviations from ideal spending habits.\n\n";
 
-    // Weekly Overview
     query += "Weekly Overview:\n";
     allWeeks.forEach((week, index) => {
       const expenseCategories = Object.entries(week.expensesByCategory)
@@ -233,7 +220,6 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
       ).toFixed(1)}% of income). Breakdown: [${expenseCategories}]\n`;
     });
 
-    // Monthly Overview
     query += "\nMonthly Overview:\n";
     allMonths.forEach((month, index) => {
       const expenseCategories = Object.entries(month.expensesByCategory)
@@ -247,7 +233,6 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
       ).toFixed(1)}% of income). Breakdown: [${expenseCategories}]\n`;
     });
 
-    // Yearly Overview
     query += "\nYearly Overview:\n";
     allYears.forEach((year, index) => {
       const expenseCategories = Object.entries(year.expensesByCategory)
@@ -261,7 +246,6 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
       ).toFixed(1)}% of income). Breakdown: [${expenseCategories}]\n`;
     });
 
-    // Add questions for the AI to address
     query += `The user would like to know:
       1. Which expense categories are significantly higher than expected, and what are the potential reasons for this?
       2. Are there specific weeks, months, or years where spending is exceptionally high? If so, please provide strategies to reduce these expenses.
@@ -274,7 +258,6 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
     return query;
   };
 
-  // Function to fetch advice from OpenAI
   const fetchAdvice = async () => {
     setLoadingAdvice(true);
     const query = generateFinancialQuery();
@@ -363,7 +346,6 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
       </Box>
 
       <VStack align="start" spacing={10} w="100%">
-        {/* Collapsible Weekly Highlights */}
         <Accordion allowMultiple w="100%">
           <AccordionItem border="none">
             <h2>
@@ -504,7 +486,6 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
                         marginTop="1rem"
                       />
 
-                      {/* Display category warnings with icons */}
                       {getCategoryWarnings(
                         week.expensesByCategory,
                         week.totalIncome,
@@ -521,7 +502,6 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
                         </HStack>
                       ))}
 
-                      {/* Display weekly evaluations with bullet points and icons */}
                       {weeklyEvaluations[index].map((evaluation, i) => (
                         <HStack
                           key={i}
@@ -540,7 +520,6 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
             </AccordionPanel>
           </AccordionItem>
 
-          {/* Collapsible Monthly Highlights */}
           <AccordionItem border="none" mt={6}>
             <h2>
               <AccordionButton
@@ -680,7 +659,6 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
                         marginTop="1rem"
                       />
 
-                      {/* Corrected category warnings for monthly data */}
                       {getCategoryWarnings(
                         month.expensesByCategory,
                         month.totalIncome,
@@ -697,7 +675,6 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
                         </HStack>
                       ))}
 
-                      {/* Monthly evaluations */}
                       {monthlyEvaluations[index].map((evaluation, i) => (
                         <HStack
                           key={i}
@@ -716,7 +693,6 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
             </AccordionPanel>
           </AccordionItem>
 
-          {/* Collapsible Yearly Highlights */}
           <AccordionItem border="none" mt={6}>
             <h2>
               <AccordionButton
@@ -856,7 +832,6 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
                         marginTop="1rem"
                       />
 
-                      {/* Corrected category warnings for yearly data */}
                       {getCategoryWarnings(
                         year.expensesByCategory,
                         year.totalIncome,
@@ -873,7 +848,6 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
                         </HStack>
                       ))}
 
-                      {/* Yearly evaluations */}
                       {yearlyEvaluations[index].map((evaluation, i) => (
                         <HStack
                           key={i}
@@ -894,7 +868,6 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
         </Accordion>
       </VStack>
 
-      {/* Button to fetch AI-generated advice */}
       <VStack
         spacing="4"
         align="stretch"
@@ -911,7 +884,7 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
           loadingText="Fetching Advice"
           size="lg"
           rounded="full"
-          bgGradient="linear(to-r, #3a3d5e, #4a81a0)" // Enhanced gradient with deep blues
+          bgGradient="linear(to-r, #3a3d5e, #4a81a0)"
           color="white"
           fontWeight="bold"
           fontSize="xl"
@@ -931,7 +904,6 @@ const ExpenseHighlights: React.FC<ExpenseHighlightsProps> = ({
         </Button>
       </VStack>
 
-      {/* Display AI-generated advice */}
       <Box
         mt={8}
         p={6}

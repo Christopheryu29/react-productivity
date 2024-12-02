@@ -69,7 +69,6 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="p-4 rounded-lg shadow-lg">
-      {/* Wrapped DataTableToolbar in a div with styling */}
       <div className="flex flex-wrap gap-2 justify-between items-center mb-4">
         <DataTableToolbar table={table} />
       </div>

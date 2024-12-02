@@ -37,7 +37,6 @@ const CriticalPeriods: React.FC<CriticalPeriodsProps> = ({
     "radial-gradient(circle at center, #303030 0%, #34373f 25%, #2f3246 50%, #303030 100%)"
   );
 
-  const textColor = useColorModeValue("#cdd1e0", "#e1e4f0");
   const iconColor = useColorModeValue("#ffb74d", "#ffcc80");
   const checkIconColor = useColorModeValue("#4caf50", "#66bb6a");
   const dividerColor = useColorModeValue(

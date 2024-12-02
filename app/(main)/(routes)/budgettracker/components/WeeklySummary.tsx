@@ -128,7 +128,6 @@ const WeeklySummary: React.FC<WeeklySummaryProps> = ({ weeklyTotals }) => {
               );
               const isExpanded = expandedWeek === total.week;
 
-              // Prepare data for charts
               const pieData = {
                 labels: Object.keys(total.expensesByCategory),
                 datasets: [

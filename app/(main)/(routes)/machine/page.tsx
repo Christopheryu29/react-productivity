@@ -1,32 +1,18 @@
-"use client"; // Import necessary libraries
+"use client";
 import React, { useEffect, useState } from "react";
 import * as tf from "@tensorflow/tfjs";
 import {
   Box,
-  Button,
   Text,
   VStack,
   useToast,
   ChakraProvider,
   Heading,
-  CircularProgress,
-  Table,
-  Thead,
-  Tr,
-  Th,
-  Tbody,
-  Td,
-  Accordion,
-  AccordionItem,
-  AccordionButton,
-  AccordionIcon,
-  AccordionPanel,
   Tabs,
   TabList,
   Tab,
   TabPanels,
   TabPanel,
-  useColorModeValue,
   useBreakpointValue,
 } from "@chakra-ui/react";
 import { useAction, useQuery } from "convex/react";
@@ -312,7 +298,6 @@ const FinancialHealthComponent = () => {
     }
   }, [fetchExpenses]);
 
-  // Calculate weekly and monthly totals whenever expenses are updated
   useEffect(() => {
     if (expenses.length > 0) {
       setWeeklyTotals(calculateWeeklyTotals(expenses));
@@ -345,13 +330,10 @@ const FinancialHealthComponent = () => {
       median_family_income,
     } = data;
 
-    // Calculate expense to income ratio
     const expenseRatio = total_cost / median_family_income;
 
-    // Additional financial metrics might consider number of dependents
-    const dependentFactor = 1 + 0.3 * numChildren; // Increasing the threshold by 30% per child
+    const dependentFactor = 1 + 0.3 * numChildren;
 
-    // Define thresholds for scoring based on adjusted expense ratio
     let score: string;
     if (expenseRatio < 0.5 * dependentFactor) {
       score = "Excellent";
@@ -379,15 +361,14 @@ const FinancialHealthComponent = () => {
       median_family_income,
     } = data;
 
-    // Define thresholds as percentages of median income
     const thresholds = {
-      housing: 0.3, // Housing should not exceed 30% of income
-      food: 0.15, // Food should not exceed 15% of income
+      housing: 0.3,
+      food: 0.15,
       transportation: 0.15,
       healthcare: 0.1,
       other_necessities: 0.1,
-      childcare: 0.1, // Adjust based on typical childcare costs in your area
-      taxes: 0.25, // Taxes are generally a fixed percentage but can be adjusted
+      childcare: 0.1,
+      taxes: 0.25,
     };
 
     if (housing_cost > thresholds.housing * median_family_income) {
@@ -498,13 +479,11 @@ const FinancialHealthComponent = () => {
 
       const adviceResult = await getAdvice({ query: adviceQuery });
 
-      // Check if `adviceResult` is `null` or empty
       if (!adviceResult) {
         setFinancialAdvice("No advice available at this moment.");
         return;
       }
 
-      // Process the response to remove '**' and format lines
       const formattedAdvice = adviceResult
         .split("\n")
         .map((line) => line.replace(/\*\*/g, "").trim())

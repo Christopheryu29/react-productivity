@@ -1,5 +1,3 @@
-// components/TodayEventCount.tsx
-
 "use client";
 
 import React from "react";
@@ -26,7 +24,6 @@ interface TodayEventCountProps {
 }
 
 const TodayEventCount: React.FC<TodayEventCountProps> = ({ selectedDate }) => {
-  // Fetch all events from the API
   const events = useQuery(api.events.getEventsForDateRange, {
     startDate: format(
       startOfDay(new Date("2020-01-01")),
@@ -38,7 +35,6 @@ const TodayEventCount: React.FC<TodayEventCountProps> = ({ selectedDate }) => {
     ),
   });
 
-  // Check if events are still loading or not fetched
   if (!events) {
     return (
       <Box
@@ -56,7 +52,6 @@ const TodayEventCount: React.FC<TodayEventCountProps> = ({ selectedDate }) => {
     );
   }
 
-  // Filter events for the selected day
   const todaysEvents = events.filter((event: Event) =>
     isSameDay(new Date(event.startDate), selectedDate)
   );
@@ -78,13 +73,13 @@ const TodayEventCount: React.FC<TodayEventCountProps> = ({ selectedDate }) => {
         align="center"
       >
         <Box
-          bg="rgba(0, 191, 255, 0.1)" // Soft cyan background for icon
+          bg="rgba(0, 191, 255, 0.1)"
           p={2}
           borderRadius="full"
           display="flex"
           alignItems="center"
           justifyContent="center"
-          boxShadow="0px 2px 8px rgba(0, 191, 255, 0.3)" // Subtle shadow for depth
+          boxShadow="0px 2px 8px rgba(0, 191, 255, 0.3)"
         >
           <CalendarIcon boxSize={5} color="cyan.400" />
         </Box>
@@ -93,8 +88,8 @@ const TodayEventCount: React.FC<TodayEventCountProps> = ({ selectedDate }) => {
           fontSize={{ base: "lg", md: "xl" }}
           fontWeight="extrabold"
           color="cyan.400"
-          textShadow="1px 1px 5px rgba(0, 191, 255, 0.4)" // Soft text shadow for glow effect
-          letterSpacing="wider" // Adds a modern, spacious feel
+          textShadow="1px 1px 5px rgba(0, 191, 255, 0.4)"
+          letterSpacing="wider"
         >
           {todaysEvents.length} {todaysEvents.length === 1 ? "Event" : "Events"}{" "}
           Today

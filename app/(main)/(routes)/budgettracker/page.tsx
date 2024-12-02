@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Pie } from "react-chartjs-2";
-import { Line } from "react-chartjs-2";
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -20,45 +19,23 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import {
   Box,
-  Button,
-  FormControl,
-  FormLabel,
-  Input,
-  Select,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
   Heading,
   Text,
   VStack,
-  HStack,
   useToast,
   Container,
   Stat,
   StatLabel,
   StatNumber,
-  StatGroup,
   Divider,
   Flex,
   Icon,
-  Badge,
-  useColorModeValue,
-  useToken,
 } from "@chakra-ui/react";
-import { FaEdit, FaHome, FaMoneyBillWave, FaTrash } from "react-icons/fa";
+import { FaHome, FaMoneyBillWave } from "react-icons/fa";
 import StatCards from "./components/StatCards";
 import ExpenseForm from "./components/ExpenseForm";
-import ExpenseBreakdownBarChart from "./components/charts/ExpenseBreakdownBarChart";
 import WeeklySummary from "./components/WeeklySummary";
 import MonthlySummary from "./components/MonthlySummary";
-import {
-  WeeklySummaryLineChart,
-  MonthlySummaryLineChart,
-  YearlySummaryLineChart,
-} from "./components/charts/LineChart";
 import YearlySummary from "./components/YearlySummary";
 import ExpenseList from "./components/ExpenseList";
 import HouseholdForm from "./components/HouseholdForm";
@@ -103,8 +80,8 @@ interface YearlyTotals {
   year: string;
   totalIncome: number;
   totalExpenses: number;
-  incomeByCategory: Record<string, number>; // Add this field
-  expensesByCategory: Record<string, number>; // Add this field
+  incomeByCategory: Record<string, number>;
+  expensesByCategory: Record<string, number>;
 }
 
 interface CategoryTotals {
@@ -140,8 +117,8 @@ interface YearlyTotalsAggregate {
   [key: string]: {
     totalIncome: number;
     totalExpenses: number;
-    incomeByCategory: Record<string, number>; // Add this line
-    expensesByCategory: Record<string, number>; // Add this line
+    incomeByCategory: Record<string, number>;
+    expensesByCategory: Record<string, number>;
   };
 }
 
@@ -164,19 +141,9 @@ const BudgetTrackerPage: React.FC = () => {
   const fetchExpenses = useQuery(api.expense.getExpenses);
   const deleteExpenseMutation = useMutation(api.expense.deleteExpense);
   const updateExpenseMutation = useMutation(api.expense.updateExpense);
-  // Import the mutation from your generated API
-  const setHouseholdMutation = useMutation(api.household.setHousehold);
-  const categoryColors = {
-    housing_cost: "#FF6384",
-    food_cost: "#36A2EB",
-    transportation_cost: "#FFCE56",
-    healthcare_cost: "#4BC0C0",
-    other_necessities_cost: "#9966FF",
-    childcare_cost: "#FF9F40",
-    taxes: "#C9CBCF",
-  };
 
-  // Function to handle saving the household data
+  const setHouseholdMutation = useMutation(api.household.setHousehold);
+
   const saveHousehold = async (numAdults: number, numChildren: number) => {
     try {
       await setHouseholdMutation({
@@ -232,7 +199,6 @@ const BudgetTrackerPage: React.FC = () => {
     const lastWeeklyReset = localStorage.getItem("lastWeeklyReset");
     const lastYearlyReset = localStorage.getItem("lastYearlyReset");
 
-    // Reset Monthly
     if (
       !lastMonthlyReset ||
       new Date(lastMonthlyReset).getMonth() !== now.getMonth()
@@ -241,7 +207,6 @@ const BudgetTrackerPage: React.FC = () => {
       localStorage.setItem("lastMonthlyReset", now.toISOString());
     }
 
-    // Reset Weekly
     if (
       !lastWeeklyReset ||
       getWeekNumber(new Date(lastWeeklyReset)) !== getWeekNumber(now)
@@ -250,7 +215,6 @@ const BudgetTrackerPage: React.FC = () => {
       localStorage.setItem("lastWeeklyReset", now.toISOString());
     }
 
-    // Reset Yearly
     if (
       !lastYearlyReset ||
       new Date(lastYearlyReset).getFullYear() !== now.getFullYear()
@@ -260,7 +224,6 @@ const BudgetTrackerPage: React.FC = () => {
     }
   }, []);
 
-  // Monthly Reset
   const resetMonthlyTotals = () => {
     const now = new Date();
     const monthYear = `${now.getMonth() + 1}-${now.getFullYear()}`;
@@ -272,15 +235,14 @@ const BudgetTrackerPage: React.FC = () => {
       .filter((exp) => exp.type === "expense")
       .reduce((acc, exp) => acc + exp.amount, 0);
 
-    // Add incomeByCategory and expensesByCategory as empty objects
     const newMonthlyTotals = [
       ...monthlyTotals,
       {
         month: monthYear,
         totalIncome,
         totalExpenses,
-        incomeByCategory: {}, // Include these properties
-        expensesByCategory: {}, // Include these properties
+        incomeByCategory: {},
+        expensesByCategory: {},
       },
     ];
 
@@ -288,8 +250,6 @@ const BudgetTrackerPage: React.FC = () => {
     setExpenses([]);
   };
 
-  // Weekly Reset
-  // Weekly Reset
   const resetWeeklyTotals = () => {
     const now = new Date();
     const weekYear = `Week-${getWeekNumber(now)}-${now.getFullYear()}`;
@@ -301,24 +261,22 @@ const BudgetTrackerPage: React.FC = () => {
       .filter((exp) => exp.type === "expense")
       .reduce((acc, exp) => acc + exp.amount, 0);
 
-    // Make sure to include incomeByCategory and expensesByCategory as empty objects
     const newWeeklyTotals: WeeklyTotals = {
       week: weekYear,
       totalIncome,
       totalExpenses,
-      incomeByCategory: {}, // Include these properties to match WeeklyTotals type
-      expensesByCategory: {}, // Include these properties to match WeeklyTotals type
+      incomeByCategory: {},
+      expensesByCategory: {},
     };
 
     setWeeklyTotals([...weeklyTotals, newWeeklyTotals]);
     setExpenses([]);
   };
 
-  // Yearly Reset
   const resetYearlyTotals = () => {
     const now = new Date();
-    const year1 = now.getFullYear(); // This is a number
-    const yearString = year1.toString(); // Convert to string
+    const year1 = now.getFullYear();
+    const yearString = year1.toString();
 
     const totalIncome = expenses
       .filter((exp) => exp.type === "income")
@@ -333,8 +291,8 @@ const BudgetTrackerPage: React.FC = () => {
         year: yearString,
         totalIncome,
         totalExpenses,
-        incomeByCategory: {}, // Add this line
-        expensesByCategory: {}, // Add this line
+        incomeByCategory: {},
+        expensesByCategory: {},
       },
     ];
     setYearlyTotals(newYearlyTotals);
@@ -358,11 +316,10 @@ const BudgetTrackerPage: React.FC = () => {
         id: editingId,
         amount: editAmount,
         category: editCategory,
-        // Add any other fields that need to be updated
       });
-      setEditingId(null); // Clear the editing state
-      setEditAmount(0); // Reset amount
-      setEditCategory(""); // Reset category
+      setEditingId(null);
+      setEditAmount(0);
+      setEditCategory("");
       toast({
         title: "Expense Updated",
         description: "The expense has been updated successfully.",
@@ -384,51 +341,15 @@ const BudgetTrackerPage: React.FC = () => {
 
   const currentBalance = totalIncome - totalExpenses;
 
-  const combinedData = {
-    labels: ["Income", "Expenses"],
-    datasets: [
-      {
-        data: [
-          expenses
-            .filter((e) => e.type === "income")
-            .reduce((acc, e) => acc + e.amount, 0),
-          expenses
-            .filter((e) => e.type === "expense")
-            .reduce((acc, e) => acc + e.amount, 0),
-        ],
-        backgroundColor: ["#68D391", "#FC8181", "#63B3ED"],
-        borderColor: ["#2F855A", "#C53030", "#3182CE"],
-        borderWidth: 1,
-      },
-    ],
-  };
-  const chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        display: true,
-      },
-      tooltip: {
-        callbacks: {
-          label: (context: any) => `${context.label}: ${context.raw}`,
-        },
-      },
-    },
-  };
-
   useEffect(() => {
-    console.log("Expenses Updated:", expenses); // Log expenses to see what data you have
-
-    // Calculate weekly, monthly, and yearly totals
     const newWeeklyTotals = calculateWeeklyTotals(expenses);
     const newMonthlyTotals = calculateMonthlyTotals(expenses);
     const newYearlyTotals = calculateYearlyTotals(expenses);
 
-    // Set state for weekly, monthly, and yearly totals
     setWeeklyTotals(newWeeklyTotals);
     setMonthlyTotals(newMonthlyTotals);
     setYearlyTotals(newYearlyTotals);
-  }, [expenses]); // Recalculate whenever expenses update
+  }, [expenses]);
 
   const calculateMonthlyTotals = (expenses: Expense[]): MonthlyTotals[] => {
     const totals = expenses.reduce<MonthlyTotalsAggregate>((acc, curr) => {
@@ -473,7 +394,7 @@ const BudgetTrackerPage: React.FC = () => {
       const weekNumber = Math.ceil(
         (pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7
       );
-      return `Week ${weekNumber} ${date.getFullYear()}`; // Use week number and year as the key
+      return `Week ${weekNumber} ${date.getFullYear()}`;
     };
 
     const totals = expenses.reduce<WeeklyTotalsAggregate>((acc, curr) => {
@@ -515,8 +436,8 @@ const BudgetTrackerPage: React.FC = () => {
         acc[year] = {
           totalIncome: 0,
           totalExpenses: 0,
-          incomeByCategory: {}, // Add this line
-          expensesByCategory: {}, // Add this line
+          incomeByCategory: {},
+          expensesByCategory: {},
         };
       }
 
@@ -537,12 +458,10 @@ const BudgetTrackerPage: React.FC = () => {
       year,
       totalIncome: totals[year].totalIncome,
       totalExpenses: totals[year].totalExpenses,
-      incomeByCategory: totals[year].incomeByCategory, // Include this field
-      expensesByCategory: totals[year].expensesByCategory, // Include this field
+      incomeByCategory: totals[year].incomeByCategory,
+      expensesByCategory: totals[year].expensesByCategory,
     }));
   };
-
-  const userId = "your-user-id"; // This should be dynamically obtained from your auth context
 
   const householdData = useQuery(api.household.getHouseholdByUserId);
 
@@ -604,8 +523,8 @@ const BudgetTrackerPage: React.FC = () => {
       ...prevExpenses,
       {
         ...newExpense,
-        id: Date.now(), // Add a unique ID
-        date: new Date().toISOString(), // Add the current date
+        id: Date.now(),
+        date: new Date().toISOString(),
       },
     ]);
   };
@@ -615,12 +534,11 @@ const BudgetTrackerPage: React.FC = () => {
     amount: number,
     type: "income" | "expense",
     category: string,
-    date: string // Add date here
+    date: string
   ) => {
     setEditingId(id);
     setEditAmount(amount);
     setEditCategory(category);
-    // You can add `setEditDate(date)` here if you want to handle the date.
   };
 
   return (
@@ -650,7 +568,6 @@ const BudgetTrackerPage: React.FC = () => {
         align="center"
         justify="center"
       >
-        {/* Household Information Section */}
         <Flex
           flex="1"
           height="650px"
@@ -712,7 +629,6 @@ const BudgetTrackerPage: React.FC = () => {
           </Box>
         </Flex>
 
-        {/* Add New Expense Section */}
         <Flex
           flex="1"
           height="650px"
@@ -760,7 +676,6 @@ const BudgetTrackerPage: React.FC = () => {
       </Flex>
 
       <VStack spacing={6} align="stretch">
-        {/* Weekly Summary */}
         <WeeklySummary weeklyTotals={weeklyTotals} />
         <MonthlySummary monthlyTotals={monthlyTotals} />
         <YearlySummary yearlyTotals={yearlyTotals} />

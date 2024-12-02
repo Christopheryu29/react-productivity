@@ -32,7 +32,6 @@ const getMaxExpenseCategory = (expensesByCategory: Record<string, number>) => {
   );
 };
 
-// Helper function to convert month strings into a comparable date object
 const parseMonthString = (monthString: string) => {
   const [month, year] = monthString.split(" ");
   const monthMap: Record<string, number> = {
@@ -53,15 +52,12 @@ const parseMonthString = (monthString: string) => {
 };
 
 const MonthlySummary: React.FC<MonthlySummaryProps> = ({ monthlyTotals }) => {
-  // State to manage which month is expanded
   const [expandedMonth, setExpandedMonth] = useState<string | null>(null);
 
-  // Toggle the expansion of a row
   const toggleExpand = (month: string) => {
     setExpandedMonth(expandedMonth === month ? null : month);
   };
 
-  // Sort monthlyTotals by the parsed date
   const sortedMonthlyTotals = [...monthlyTotals].sort((a, b) => {
     return (
       parseMonthString(a.month).getTime() - parseMonthString(b.month).getTime()
@@ -74,7 +70,6 @@ const MonthlySummary: React.FC<MonthlySummaryProps> = ({ monthlyTotals }) => {
         <Badge colorScheme="green">Monthly Summary</Badge>
       </Heading>
 
-      {/* Line Chart for Monthly Trends */}
       <Box mb={6} mt={6}>
         <Heading size="sm" className="text-gray-800 dark:text-white" mb={2}>
           Monthly Income vs Expenses (Line Chart)
@@ -121,15 +116,12 @@ const MonthlySummary: React.FC<MonthlySummaryProps> = ({ monthlyTotals }) => {
           </Thead>
           <Tbody>
             {sortedMonthlyTotals.map((total, index) => {
-              // Find the category with the highest expense
               const [maxCategory, maxAmount] = getMaxExpenseCategory(
                 total.expensesByCategory
               );
 
-              // Check if this row is expanded
               const isExpanded = expandedMonth === total.month;
 
-              // Prepare data for charts
               const pieData = {
                 labels: Object.keys(total.expensesByCategory),
                 datasets: [
@@ -203,7 +195,6 @@ const MonthlySummary: React.FC<MonthlySummaryProps> = ({ monthlyTotals }) => {
                   </Tr>
                   {isExpanded && (
                     <>
-                      {/* Display the most significant expense */}
                       <Tr>
                         <Td
                           colSpan={3}
@@ -218,7 +209,7 @@ const MonthlySummary: React.FC<MonthlySummaryProps> = ({ monthlyTotals }) => {
                           </Text>
                         </Td>
                       </Tr>
-                      {/* Income by Category */}
+
                       <Tr>
                         <Td colSpan={3} px={[2, 4]} py={2}>
                           <Box
@@ -265,7 +256,7 @@ const MonthlySummary: React.FC<MonthlySummaryProps> = ({ monthlyTotals }) => {
                           </Box>
                         </Td>
                       </Tr>
-                      {/* Expenses by Category */}
+
                       <Tr>
                         <Td colSpan={3} px={[2, 4]} py={2}>
                           <Box
@@ -312,7 +303,7 @@ const MonthlySummary: React.FC<MonthlySummaryProps> = ({ monthlyTotals }) => {
                           </Box>
                         </Td>
                       </Tr>
-                      {/* Pie Chart for Expenses Breakdown */}
+
                       <Tr>
                         <Td colSpan={3} px={[2, 4]} py={2}>
                           <Box mt={4} mb={4} w="100%">
@@ -327,7 +318,7 @@ const MonthlySummary: React.FC<MonthlySummaryProps> = ({ monthlyTotals }) => {
                           </Box>
                         </Td>
                       </Tr>
-                      {/* Bar Chart for Income vs. Expenses */}
+
                       <Tr>
                         <Td colSpan={3} px={[2, 4]} py={2}>
                           <Box mt={4} mb={4} w="100%">

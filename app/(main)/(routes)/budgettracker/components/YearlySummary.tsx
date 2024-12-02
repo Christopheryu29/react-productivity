@@ -18,8 +18,8 @@ interface YearlyTotals {
   year: string;
   totalIncome: number;
   totalExpenses: number;
-  incomeByCategory: Record<string, number>; // Add this field
-  expensesByCategory: Record<string, number>; // Add this field
+  incomeByCategory: Record<string, number>;
+  expensesByCategory: Record<string, number>;
 }
 
 interface YearlySummaryProps {
@@ -33,15 +33,12 @@ const getMaxExpenseCategory = (expensesByCategory: Record<string, number>) => {
 };
 
 const YearlySummary: React.FC<YearlySummaryProps> = ({ yearlyTotals }) => {
-  // State to manage which year is expanded
   const [expandedYear, setExpandedYear] = useState<string | null>(null);
 
-  // Toggle the expansion of a row
   const toggleExpand = (year: string) => {
     setExpandedYear(expandedYear === year ? null : year);
   };
 
-  // Sort yearlyTotals by the year in ascending order
   const sortedYearlyTotals = [...yearlyTotals].sort((a, b) =>
     a.year.localeCompare(b.year)
   );
@@ -52,7 +49,6 @@ const YearlySummary: React.FC<YearlySummaryProps> = ({ yearlyTotals }) => {
         <Badge colorScheme="purple">Yearly Summary</Badge>
       </Heading>
 
-      {/* Line Chart for Yearly Trends */}
       <Box mb={6} mt={6}>
         <Heading size="sm" className="text-gray-800 dark:text-white" mb={2}>
           Yearly Income vs Expenses (Line Chart)
@@ -100,15 +96,12 @@ const YearlySummary: React.FC<YearlySummaryProps> = ({ yearlyTotals }) => {
           </Thead>
           <Tbody>
             {sortedYearlyTotals.map((total, index) => {
-              // Find the category with the highest expense
               const [maxCategory, maxAmount] = getMaxExpenseCategory(
                 total.expensesByCategory
               );
 
-              // Check if this row is expanded
               const isExpanded = expandedYear === total.year;
 
-              // Prepare data for charts
               const pieData = {
                 labels: Object.keys(total.expensesByCategory),
                 datasets: [
@@ -183,7 +176,6 @@ const YearlySummary: React.FC<YearlySummaryProps> = ({ yearlyTotals }) => {
                   </Tr>
                   {isExpanded && (
                     <>
-                      {/* Display the most significant expense */}
                       <Tr>
                         <Td
                           colSpan={3}
@@ -198,7 +190,7 @@ const YearlySummary: React.FC<YearlySummaryProps> = ({ yearlyTotals }) => {
                           </Text>
                         </Td>
                       </Tr>
-                      {/* Income by Category */}
+
                       <Tr>
                         <Td colSpan={3} px={[2, 4]} py={2}>
                           <Box
@@ -245,7 +237,7 @@ const YearlySummary: React.FC<YearlySummaryProps> = ({ yearlyTotals }) => {
                           </Box>
                         </Td>
                       </Tr>
-                      {/* Expenses by Category */}
+
                       <Tr>
                         <Td colSpan={3} px={[2, 4]} py={2}>
                           <Box
@@ -292,7 +284,7 @@ const YearlySummary: React.FC<YearlySummaryProps> = ({ yearlyTotals }) => {
                           </Box>
                         </Td>
                       </Tr>
-                      {/* Pie Chart for Expenses Breakdown */}
+
                       <Tr>
                         <Td colSpan={3} px={[2, 4]} py={2}>
                           <Box mt={4} mb={4} w="100%">
@@ -307,7 +299,7 @@ const YearlySummary: React.FC<YearlySummaryProps> = ({ yearlyTotals }) => {
                           </Box>
                         </Td>
                       </Tr>
-                      {/* Bar Chart for Income vs. Expenses */}
+
                       <Tr>
                         <Td colSpan={3} px={[2, 4]} py={2}>
                           <Box mt={4} mb={4} w="100%">

@@ -2,7 +2,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
-// Mutation to add an event
 export const addEvent = mutation({
   args: {
     title: v.string(),
@@ -11,20 +10,17 @@ export const addEvent = mutation({
     description: v.optional(v.string()),
     isAllDay: v.boolean(),
     color: v.optional(v.string()),
-    recurringDay: v.optional(v.string()), // Accept the recurringDay argument
+    recurringDay: v.optional(v.string()),
   },
   handler: async (
     ctx,
     { title, startDate, endDate, description, isAllDay, color, recurringDay }
   ) => {
-    // Get the authenticated user's identity
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
       throw new Error("Not authenticated");
     }
     const userId = identity.subject;
-
-    // Insert the event with the authenticated userId
     return await ctx.db.insert("events", {
       title,
       userId,
@@ -33,17 +29,15 @@ export const addEvent = mutation({
       description,
       isAllDay,
       color,
-      completed: false, // Assumes a 'completed' field is present
-      recurringDay, // Store the recurringDay in the event
+      completed: false,
+      recurringDay,
     });
   },
 });
 
-// Query to get events within a specified date range for the logged-in user
 export const getEventsForDateRange = query({
   args: { startDate: v.string(), endDate: v.string() },
   handler: async (ctx, { startDate, endDate }) => {
-    // Get the authenticated user's identity
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
       throw new Error("Not authenticated");
@@ -63,7 +57,6 @@ export const getEventsForDateRange = query({
   },
 });
 
-// Mutation to toggle event completion
 export const toggleCompletion = mutation({
   args: {
     eventId: v.id("events"),
@@ -74,7 +67,6 @@ export const toggleCompletion = mutation({
   },
 });
 
-// Mutation to delete an event
 export const deleteEvent = mutation({
   args: {
     eventId: v.id("events"),

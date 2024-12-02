@@ -24,8 +24,8 @@ export default defineSchema({
   events: defineTable({
     title: v.string(),
     userId: v.string(),
-    startDate: v.string(), // Changed to string to store ISO date strings
-    endDate: v.string(), // Changed to string to store ISO date strings
+    startDate: v.string(),
+    endDate: v.string(),
     description: v.optional(v.string()),
     isAllDay: v.boolean(),
     completed: v.boolean(),
@@ -36,36 +36,35 @@ export default defineSchema({
     .index("by_date_range", ["startDate", "endDate"])
     .index("by_user_and_date", ["userId", "startDate"]),
 
-  // Schema definition in your schema file
   expenses: defineTable({
-    id: v.number(), // Use number for unique identifier
-    userId: v.string(), // Add userId field to associate each entry with a specific user
+    id: v.number(),
+    userId: v.string(),
     amount: v.number(),
-    type: v.string(), // 'income' or 'expense'
-    date: v.string(), // ISO date string
+    type: v.string(),
+    date: v.string(),
     category: v.string(),
   })
-    .index("by_user_and_date", ["userId", "date"]) // Add index on userId for efficient querying
+    .index("by_user_and_date", ["userId", "date"])
     .index("by_type_and_date", ["type", "date"])
     .index("by_category_and_date", ["category", "date"]),
 
   task: defineTable({
-    id: v.string(), // Task ID as a string
-    userId: v.string(), // Add userId to link task to a specific user
+    id: v.string(),
+    userId: v.string(),
     title: v.string(),
-    status: v.string(), // 'in progress', 'completed', etc.
-    label: v.string(), // 'documentation', 'urgent', etc.
-    priority: v.string(), // 'low', 'medium', 'high'
+    status: v.string(),
+    label: v.string(),
+    priority: v.string(),
   })
     .index("by_status", ["status"])
     .index("by_priority", ["priority"])
     .index("by_user", ["userId"]),
 
   household: defineTable({
-    userId: v.string(), // Unique identifier for the user
-    numAdults: v.number(), // Number of adults
-    numChildren: v.number(), // Number of children
-    lastUpdated: v.string(), // Date when the last update was made
+    userId: v.string(),
+    numAdults: v.number(),
+    numChildren: v.number(),
+    lastUpdated: v.string(),
   }).index("by_user", ["userId"]),
 
   financial: defineTable({
@@ -78,13 +77,13 @@ export default defineSchema({
     childcareCost: v.number(),
     taxes: v.number(),
     totalExpenses: v.number(),
-    medianFamilyIncome: v.number(), // You can dynamically calculate or update this as needed
+    medianFamilyIncome: v.number(),
   }).index("by_user", ["userId"]),
 
   target: defineTable({
-    userId: v.string(), // Unique identifier for the user
-    targetAmount: v.number(), // The user's target savings for the year
-    year: v.number(), // The year for which the target applies
-    createdAt: v.string(), // ISO date when the target was created
+    userId: v.string(),
+    targetAmount: v.number(),
+    year: v.number(),
+    createdAt: v.string(),
   }).index("by_user", ["userId"]),
 });

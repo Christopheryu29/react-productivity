@@ -6,7 +6,6 @@ import {
   Box,
   Heading,
   Container,
-  VStack,
   useToast,
   Spinner,
   Grid,
@@ -14,11 +13,10 @@ import {
   Divider,
   Stack,
   Text,
-  Button,
   useBreakpointValue,
 } from "@chakra-ui/react";
-import { DataTable } from "../task/components/data-table"; // Adjust the import path as needed
-import { columns } from "../task/components/columns"; // Adjust the import path as needed
+import { DataTable } from "../task/components/data-table";
+import { columns } from "../task/components/columns";
 import WeeklySummary from "../budgettracker/components/WeeklySummary";
 import ExpenseForm from "../budgettracker/components/ExpenseForm";
 import TodayEventCount from "../calendar/components/TodayEventCount";
@@ -131,7 +129,6 @@ const calculateMonthlyTotals = (expenses: Expense[]): MonthlyTotals[] => {
   return Object.values(totals);
 };
 
-// Component to display the current date and time
 const CurrentDateTime: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -267,9 +264,8 @@ const HomePage: React.FC = () => {
     }
   }, [expenses]);
 
-  // Extract critical periods based on high expenses (similar logic to ExpenseHighlights)
   const isCriticalPeriod = (totalExpenses: number, totalIncome: number) => {
-    return totalExpenses / totalIncome > 0.8; // Example threshold for critical periods
+    return totalExpenses / totalIncome > 0.8;
   };
 
   let criticalWeeks = weeklyTotals.filter((week) =>
@@ -284,7 +280,6 @@ const HomePage: React.FC = () => {
     isCriticalPeriod(year.totalExpenses, year.totalIncome)
   );
 
-  // Sort high-spend weeks by year and week number
   criticalWeeks = criticalWeeks.sort((a, b) => {
     const weekA = parseInt(a.week.match(/Week (\d+)/)?.[1] || "0", 10);
     const yearA = parseInt(a.week.match(/(\d{4})/)?.[1] || "0", 10);
@@ -293,7 +288,6 @@ const HomePage: React.FC = () => {
     return yearA === yearB ? weekA - weekB : yearA - yearB;
   });
 
-  // Sort high-spend months by year and month
   criticalMonths = criticalMonths.sort((a, b) => {
     const dateA = new Date(a.month);
     const dateB = new Date(b.month);
@@ -338,7 +332,6 @@ const HomePage: React.FC = () => {
 
   return (
     <Container maxW="container.xl" p={isMobile ? 4 : 8} minH="100vh">
-      {/* Header with Date and Time */}
       <Box
         textAlign="center"
         p={isMobile ? 6 : 10}
@@ -348,7 +341,6 @@ const HomePage: React.FC = () => {
         <Heading
           size={isMobile ? "xl" : "2xl"}
           className="text-gray-800 dark:text-white mb-3 font-extrabold"
-          textShadow="0px 3px 8px rgba(0, 0, 0, 0.4)"
         >
           {new Date().toLocaleDateString(undefined, {
             weekday: "long",
@@ -368,9 +360,7 @@ const HomePage: React.FC = () => {
         </Text>
       </Box>
 
-      {/* Main Content Layout */}
       {isMobile ? (
-        // Stack layout for mobile view
         <Stack spacing={6}>
           <Box className="bg-white dark:bg-[rgba(40,40,55,0.85)] text-gray-800 dark:text-white rounded-xl shadow-md p-4">
             <Heading
@@ -411,9 +401,7 @@ const HomePage: React.FC = () => {
           </Box>
         </Stack>
       ) : (
-        // Grid layout for desktop view
         <Grid templateColumns="1fr 2fr" gap={6} flex="1">
-          {/* Left Column: Expense Form and Critical Periods */}
           <GridItem>
             <Box className="bg-white dark:bg-[rgba(40,40,55,0.85)] text-gray-800 dark:text-white rounded-xl shadow-md p-6 mb-6">
               <Heading
@@ -434,7 +422,6 @@ const HomePage: React.FC = () => {
             </Box>
           </GridItem>
 
-          {/* Right Column: Today’s Events and Weekly Summary */}
           <GridItem>
             <Box className="bg-white dark:bg-[rgba(40,40,55,0.85)] text-gray-800 dark:text-white text-center p-8 rounded-xl shadow-lg">
               <Heading
@@ -461,7 +448,6 @@ const HomePage: React.FC = () => {
 
       <Divider my={8} borderColor="rgba(255, 255, 255, 0.1)" />
 
-      {/* Task Overview */}
       <Stack spacing={isMobile ? 6 : 8} flex="1 0 auto">
         <Heading
           className="text-gray-800 dark:text-white font-semibold"
@@ -477,7 +463,7 @@ const HomePage: React.FC = () => {
               "radial-gradient(circle at center, #303030 0%, #34373f 25%, #2f3246 50%, #303030 100%)",
           }}
         >
-          <div className="bg-white dark:bg-transparent rounded-xl shadow-lg">
+          <div className="overflow-auto bg-white dark:bg-transparent rounded-xl shadow-lg">
             <DataTable data={tasks} columns={columns} />
           </div>
         </Box>

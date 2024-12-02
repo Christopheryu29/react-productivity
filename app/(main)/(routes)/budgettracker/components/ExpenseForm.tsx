@@ -1,4 +1,3 @@
-// components/ExpenseForm.tsx
 "use client";
 
 import React, { useState } from "react";
@@ -16,7 +15,7 @@ import {
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css"; // Import the date picker styles
+import "react-datepicker/dist/react-datepicker.css";
 
 interface ExpenseFormProps {
   onAddExpense: (newExpense: {
@@ -33,13 +32,12 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
     "expense"
   );
   const [newCategory, setNewCategory] = useState<string>("");
-  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date()); // Default to the current date
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
 
   const addExpenseMutation = useMutation(api.expense.createExpense);
   const toast = useToast();
 
   const handleAddExpense = async () => {
-    // Validate inputs before proceeding
     if (newExpense <= 0 || !newCategory || !selectedDate) {
       toast({
         title: "Invalid Input",
@@ -52,7 +50,6 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
       return;
     }
 
-    // Prepare the new entry
     const newEntry = {
       amount: newExpense,
       type: newExpenseType,
@@ -60,10 +57,8 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
       date: selectedDate.toISOString(),
     };
 
-    // Attempt to add expense via mutation without any error handling
-    addExpenseMutation(newEntry); // Do not await if you don't want to handle errors synchronously
+    addExpenseMutation(newEntry);
 
-    // Always proceed with the success actions
     onAddExpense(newEntry);
     toast({
       title: "Expense Added",
@@ -73,7 +68,6 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
       isClosable: true,
     });
 
-    // Reset form fields after success actions
     setNewExpense(0);
     setNewCategory("");
     setSelectedDate(new Date());

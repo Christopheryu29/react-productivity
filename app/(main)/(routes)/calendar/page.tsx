@@ -52,7 +52,6 @@ const CalendarPage = () => {
   );
   const toast = useToast();
 
-  const { isOpen, onOpen, onClose } = useDisclosure();
   const {
     isOpen: isColorPickerOpen,
     onOpen: onOpenColorPicker,
@@ -79,7 +78,7 @@ const CalendarPage = () => {
     if (date) {
       setSelectedDate(date);
       setStartTime(new Date(date.getTime()));
-      setEndTime(new Date(date.getTime() + 3600000)); // Default end time 1 hour after start
+      setEndTime(new Date(date.getTime() + 3600000));
     }
   };
 
@@ -173,13 +172,13 @@ const CalendarPage = () => {
 
   const calculateGridRowSpan = (startDate: Date, endDate: Date) => {
     const totalMinutes = differenceInMinutes(endDate, startDate);
-    return Math.max(1, Math.ceil(totalMinutes / 30)); // 30-minute intervals
+    return Math.max(1, Math.ceil(totalMinutes / 30));
   };
 
   const calculateRowStart = (startTime: Date) => {
     const hours = startTime.getHours();
     const minutes = startTime.getMinutes();
-    return hours * 2 + Math.floor(minutes / 30); // 30-minute intervals
+    return hours * 2 + Math.floor(minutes / 30);
   };
 
   const filteredEvents = events?.flatMap((event) => {

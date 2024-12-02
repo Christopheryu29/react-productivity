@@ -1,4 +1,3 @@
-// app/(main)/(routes)/todo/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -7,7 +6,6 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import {
   Box,
-  Button,
   Checkbox,
   Flex,
   Heading,
@@ -18,7 +16,6 @@ import {
   IconButton,
   Divider,
   ScaleFade,
-  useColorModeValue,
 } from "@chakra-ui/react";
 import { DeleteIcon, AddIcon } from "@chakra-ui/icons";
 
@@ -59,13 +56,6 @@ function TodoApp() {
       isClosable: true,
     });
   };
-
-  const cardBg = useColorModeValue("gray.800", "gray.900");
-  const textColor = useColorModeValue("white", "whiteAlpha.900");
-  const placeholderColor = useColorModeValue(
-    "whiteAlpha.600",
-    "whiteAlpha.600"
-  );
 
   return (
     <Flex direction="column" p="6" minH="100vh" align="center">

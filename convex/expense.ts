@@ -1,7 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
-// Mutation to add a new expense
 export const createExpense = mutation({
   args: {
     amount: v.number(),
@@ -10,19 +9,18 @@ export const createExpense = mutation({
     category: v.string(),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity(); // Retrieve user identity
+    const identity = await ctx.auth.getUserIdentity();
 
     if (!identity) {
       throw new Error("Not authenticated");
     }
 
-    const userId = identity.subject; // Get the user ID from the authenticated user
-    const newExpenseId = Date.now(); // Generate a unique ID for the expense
+    const userId = identity.subject;
+    const newExpenseId = Date.now();
 
-    // Insert the expense with the userId included
     return await ctx.db.insert("expenses", {
       id: newExpenseId,
-      userId, // Add userId here
+      userId,
       amount: args.amount,
       type: args.type,
       date: args.date,
@@ -31,7 +29,6 @@ export const createExpense = mutation({
   },
 });
 
-// Query to get all expenses for the authenticated user
 export const getExpenses = query({
   args: {},
   handler: async (ctx) => {
@@ -45,12 +42,11 @@ export const getExpenses = query({
 
     return await ctx.db
       .query("expenses")
-      .filter((q) => q.eq(q.field("userId"), userId)) // Filter by userId
+      .filter((q) => q.eq(q.field("userId"), userId))
       .collect();
   },
 });
 
-// Mutation to delete an expense by ID for the authenticated user
 export const deleteExpense = mutation({
   args: { id: v.number() },
   handler: async (ctx, args) => {
@@ -77,7 +73,6 @@ export const deleteExpense = mutation({
   },
 });
 
-// Mutation to update an expense for the authenticated user
 export const updateExpense = mutation({
   args: {
     id: v.number(),

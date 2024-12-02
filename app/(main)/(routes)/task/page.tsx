@@ -1,11 +1,8 @@
-// task/page.tsx
-"use client";
 "use client";
 import React, { useEffect, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { DataTable } from "./components/data-table";
-import { UserNav } from "./components/user-nav";
 import { columns } from "./components/columns";
 import {
   Box,
@@ -16,10 +13,7 @@ import {
   Select,
   VStack,
   Heading,
-  useToast,
-  Spinner,
   Container,
-  Stack,
   Text,
 } from "@chakra-ui/react";
 
@@ -41,16 +35,12 @@ const TaskPage: React.FC = () => {
 
   const fetchedTasks = useQuery(api.task.getTasks);
   const createTaskMutation = useMutation(api.task.createTask);
-  const toast = useToast();
-  const handleDeleteFromUI = (taskId: string) => {
-    setTasks(tasks.filter((t) => t.id !== taskId));
-  };
 
   useEffect(() => {
     if (fetchedTasks) {
       const mappedTasks = fetchedTasks.map((task) => ({
         ...task,
-        id: task._id, // Map _id to id for consistency
+        id: task._id,
       }));
       setTasks(mappedTasks);
       setLoading(false);
@@ -68,9 +58,9 @@ const TaskPage: React.FC = () => {
         priority,
       });
       setTitle("");
-      setStatus("backlog"); // Reset to default value
-      setLabel("bug"); // Reset to default value
-      setPriority("low"); // Reset to default value
+      setStatus("backlog");
+      setLabel("bug");
+      setPriority("low");
     } catch (error) {
       console.error("Failed to create task:", error);
     }

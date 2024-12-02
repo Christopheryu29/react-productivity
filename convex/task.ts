@@ -2,7 +2,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
-// Mutation to create a new task with userId
 export const createTask = mutation({
   args: {
     id: v.string(),
@@ -17,12 +16,11 @@ export const createTask = mutation({
       throw new Error("Not authenticated");
     }
 
-    const userId = identity.subject; // Retrieve userId from authenticated identity
+    const userId = identity.subject;
 
-    // Insert the task with userId included
     return await ctx.db.insert("task", {
       id: args.id,
-      userId, // Add userId to associate the task with the user
+      userId,
       title: args.title,
       status: args.status,
       label: args.label,
@@ -31,7 +29,6 @@ export const createTask = mutation({
   },
 });
 
-// Query to get tasks specific to the authenticated user
 export const getTasks = query({
   args: {},
   handler: async (ctx) => {
@@ -40,9 +37,8 @@ export const getTasks = query({
       throw new Error("Not authenticated");
     }
 
-    const userId = identity.subject; // Retrieve userId
+    const userId = identity.subject;
 
-    // Fetch tasks that belong to the authenticated user
     return await ctx.db
       .query("task")
       .filter((q) => q.eq(q.field("userId"), userId))
@@ -50,7 +46,6 @@ export const getTasks = query({
   },
 });
 
-// Mutation to update a task's status
 export const updateTaskStatus = mutation({
   args: { id: v.id("task"), status: v.string() },
   handler: async (ctx, args) => {
@@ -60,10 +55,9 @@ export const updateTaskStatus = mutation({
   },
 });
 
-// Mutation to delete a task by ID
 export const deleteTask = mutation({
   args: {
-    id: v.id("task"), // Convex's Id<"task"> type
+    id: v.id("task"),
   },
   handler: async (ctx, args) => {
     console.log("Attempting to delete task with ID:", args.id);
@@ -78,11 +72,10 @@ export const deleteTask = mutation({
   },
 });
 
-// Mutation to update a task with userId as a context
 export const updateTask = mutation({
   args: {
-    id: v.id("task"), // Convex ID for the task
-    title: v.string(), // Updated title
+    id: v.id("task"),
+    title: v.string(),
     status: v.string(),
     label: v.string(),
     priority: v.string(),
