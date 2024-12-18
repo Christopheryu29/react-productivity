@@ -454,14 +454,14 @@ const SavingsTargetPrediction = () => {
                 📊 December Spending Insights
               </Heading>
               <Text
-                fontSize="lg"
+                fontSize="md"
+                mt={6}
                 color="gray.700"
                 _dark={{ color: "gray.300" }}
-                lineHeight="1.8"
-                mb={4}
+                lineHeight="1.6"
               >
-                December tends to be a high-spending month due to holidays and
-                year-end expenses. Here's a breakdown of your spending trends:
+                Use this breakdown to identify areas where you can reduce
+                spending and plan your budget effectively for 2025.
               </Text>
 
               {userExpenses.length > 0 ? (
