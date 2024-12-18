@@ -30,6 +30,8 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import * as tf from "@tensorflow/tfjs";
 import { FaPiggyBank, FaCalendarAlt, FaChartPie } from "react-icons/fa";
+import { Line } from "react-chartjs-2";
+import { CSVLink } from "react-csv";
 
 const SavingsTargetPrediction = () => {
   const [savingsTarget, setSavingsTarget] = useState<number>(0);
@@ -74,6 +76,28 @@ const SavingsTargetPrediction = () => {
         ? { [expense.category]: expense.amount }
         : {},
     })) || [];
+
+  const monthlySavings = userExpenses.reduce((savings, expense) => {
+    const month = new Date(expense.date).getMonth();
+    savings[month] =
+      (savings[month] || 0) +
+      (expense.type === "income" ? expense.amount : -expense.amount);
+    return savings;
+  }, Array(12).fill(0));
+  // Simplify line chart to display savings per month
+  const lineChartData = {
+    labels: monthlySavings.map((_, index) => `Month ${index + 1}`),
+    datasets: [
+      {
+        label: "Monthly Savings",
+        data: monthlySavings,
+        fill: false,
+        borderColor: "rgba(75,192,192,1)",
+        pointBackgroundColor: "cyan",
+        tension: 0.1,
+      },
+    ],
+  };
 
   const calculateCurrentSavings = () => {
     if (!userFinancialData || userFinancialData.length === 0) return;
@@ -258,6 +282,39 @@ const SavingsTargetPrediction = () => {
     predictionTensor.dispose();
   };
 
+  const csvHeaders = [
+    { label: "Month", key: "month" },
+    { label: "Income", key: "totalIncome" },
+    { label: "Expenses", key: "totalExpenses" },
+    { label: "Net Savings", key: "netSavings" },
+    { label: "Cumulative Savings", key: "cumulativeSavings" },
+    { label: "Expense Category", key: "topCategory" },
+  ];
+
+  let cumulativeSavings = 0;
+
+  const csvData = userFinancialData.map((data) => {
+    const netSavings = data.totalIncome - data.totalExpenses;
+    cumulativeSavings += netSavings;
+
+    // Example logic for top expense category (adjust based on your data structure)
+    const categories = data.expensesByCategory || {};
+    const topCategoryEntry = Object.entries(categories).reduce(
+      (max, entry) => (entry[1] > max[1] ? entry : max),
+      ["None", 0]
+    );
+    const [topCategory, topCategoryExpense] = topCategoryEntry;
+
+    return {
+      month: data.month,
+      totalIncome: data.totalIncome,
+      totalExpenses: data.totalExpenses,
+      netSavings,
+      cumulativeSavings,
+      topCategory,
+    };
+  });
+
   if (isLoading) {
     return (
       <ChakraProvider>
@@ -291,7 +348,201 @@ const SavingsTargetPrediction = () => {
         >
           Savings Target Prediction
         </Heading>
+        {/* December-Specific Enhancements */}
+        {isDecember && (
+          <>
+            {/* Transition Alert */}
+            <Alert
+              status="info"
+              rounded="lg"
+              shadow="lg"
+              mb={6}
+              className="bg-gray-100 dark:bg-gray-700"
+              color="white"
+              px={6}
+              py={5}
+            >
+              <AlertIcon boxSize="2rem" mr={4} color="white" />
+              <Flex direction="column" flex="1">
+                <AlertTitle
+                  fontWeight="bold"
+                  fontSize="lg"
+                  mb={1}
+                  textTransform="uppercase"
+                  letterSpacing="wide"
+                >
+                  🎯 Transition to Next Year
+                </AlertTitle>
+                <AlertDescription fontSize="md" lineHeight="1.6">
+                  <Text>
+                    You are setting a savings target for <strong>2025</strong>.
+                    Reflect on your progress this year, celebrate your
+                    achievements, and start preparing for a financially stronger
+                    new year. 💪
+                  </Text>
+                </AlertDescription>
+              </Flex>
+            </Alert>
 
+            {/* Current Year's Summary */}
+            <Box
+              className="bg-gray-100 dark:bg-gray-700"
+              rounded="xl"
+              p={6}
+              shadow="md"
+              textAlign="center"
+              mb={6}
+            >
+              <Heading
+                size="md"
+                className="text-gray-800 dark:text-white"
+                mb={4}
+              >
+                2024 Savings Summary
+              </Heading>
+              <Text
+                fontSize="lg"
+                className="text-gray-800 dark:text-white"
+                mb={2}
+              >
+                Total Savings Achieved This Year
+              </Text>
+              <Text fontSize="3xl" fontWeight="bold" color="teal.300">
+                ${currentSavings.toFixed(2)}
+              </Text>
+              <Divider borderColor="gray.600" my={3} />
+              <Text
+                fontSize="lg"
+                className="text-gray-800 dark:text-white"
+                mb={2}
+              >
+                Percentage of Target Achieved
+              </Text>
+              <Text fontSize="2xl" fontWeight="bold" color="cyan.400">
+                {((currentSavings / savingsTarget) * 100).toFixed(2)}%
+              </Text>
+              <Box mt={6}>
+                <Heading size="md" mb={6}>
+                  Monthly Trend Analysis
+                </Heading>
+                <Line data={lineChartData} />
+              </Box>
+              <Divider borderColor="gray.600" my={3} />
+              <Text fontSize="lg" className="text-gray-800 dark:text-white">
+                Use this summary to guide your 2025 planning.
+              </Text>
+            </Box>
+
+            {/* Spending Trends */}
+            <Box
+              bgGradient="linear(to-br, blue.50, blue.100, blue.200)"
+              _dark={{ bgGradient: "linear(to-br, gray.800, gray.900)" }}
+              rounded="xl"
+              p={8}
+              shadow="lg"
+              textAlign="center"
+              mb={6}
+            >
+              <Heading
+                size="md"
+                color="gray.800"
+                _dark={{ color: "white" }}
+                fontWeight="bold"
+                letterSpacing="wide"
+                mb={4}
+              >
+                📊 December Spending Insights
+              </Heading>
+              <Text
+                fontSize="lg"
+                color="gray.700"
+                _dark={{ color: "gray.300" }}
+                lineHeight="1.8"
+                mb={4}
+              >
+                December tends to be a high-spending month due to holidays and
+                year-end expenses. Here's a breakdown of your spending trends:
+              </Text>
+
+              {userExpenses.length > 0 ? (
+                <>
+                  {/* Spending Breakdown */}
+                  <Box
+                    maxH="200px"
+                    overflowY="auto"
+                    bg="white"
+                    _dark={{ bg: "gray.800" }}
+                    p={4}
+                    rounded="lg"
+                    shadow="md"
+                    border="1px solid"
+                    borderColor="gray.200"
+                  >
+                    {Object.entries(
+                      userExpenses
+                        .filter((expense) => {
+                          const expenseDate = new Date(expense.date);
+                          return expenseDate.getMonth() === 11; // December
+                        })
+                        .reduce<Record<string, number>>((acc, expense) => {
+                          if (expense.type === "expense" && expense.category) {
+                            acc[expense.category] =
+                              (acc[expense.category] || 0) + expense.amount;
+                          }
+                          return acc;
+                        }, {})
+                    ).map(([category, amount]) => (
+                      <Flex
+                        key={category}
+                        justifyContent="space-between"
+                        alignItems="center"
+                        mb={2}
+                      >
+                        <Text
+                          fontSize="sm"
+                          fontWeight="medium"
+                          color="gray.800"
+                          _dark={{ color: "gray.200" }}
+                        >
+                          {category}
+                        </Text>
+                        <Text
+                          fontSize="md"
+                          fontWeight="bold"
+                          color="blue.600"
+                          _dark={{ color: "blue.300" }}
+                        >
+                          ${amount.toFixed(2)}
+                        </Text>
+                      </Flex>
+                    ))}
+                  </Box>
+                </>
+              ) : (
+                <Text
+                  fontSize="md"
+                  color="gray.500"
+                  _dark={{ color: "gray.400" }}
+                  mt={4}
+                >
+                  No expenses recorded for December yet.
+                </Text>
+              )}
+
+              <Text
+                fontSize="md"
+                mt={6}
+                color="gray.700"
+                _dark={{ color: "gray.300" }}
+                lineHeight="1.6"
+              >
+                Use this breakdown to identify areas where you can reduce
+                spending and plan your budget effectively for{" "}
+                <strong>2025</strong>.
+              </Text>
+            </Box>
+          </>
+        )}
         <Box
           className="bg-gray-100 dark:bg-gray-700"
           rounded="xl"
@@ -385,25 +636,49 @@ const SavingsTargetPrediction = () => {
                 mb={1}
               >
                 <Icon as={FaPiggyBank} color="cyan.400" mr={2} />
-                Additional Savings Needed
+                {isDecember
+                  ? "Additional Savings Needed for Next Year"
+                  : "Additional Savings Needed"}
               </Text>
               <Text fontSize="3xl" fontWeight="bold" color="cyan.300" mb={4}>
-                ${remainingSavings.toFixed(2)}
+                {isDecember
+                  ? `$${savingsTarget.toFixed(2)}`
+                  : `$${remainingSavings.toFixed(2)}`}
               </Text>
 
-              <Divider borderColor="gray.600" my={3} />
+              {!isDecember ? (
+                <>
+                  <Divider borderColor="gray.600" my={3} />
 
-              <Text
-                fontSize="lg"
-                className="text-gray-800 dark:text-white"
-                mb={1}
-              >
-                <Icon as={FaCalendarAlt} color="cyan.400" mr={2} />
-                Suggested Monthly Savings
-              </Text>
-              <Text fontSize="2xl" fontWeight="bold" color="teal.300">
-                ${monthlySuggestion?.toFixed(2)} for {monthsLeft} months
-              </Text>
+                  <Text
+                    fontSize="lg"
+                    className="text-gray-800 dark:text-white"
+                    mb={1}
+                  >
+                    <Icon as={FaCalendarAlt} color="cyan.400" mr={2} />
+                    Suggested Monthly Savings
+                  </Text>
+                  <Text fontSize="2xl" fontWeight="bold" color="teal.300">
+                    ${monthlySuggestion?.toFixed(2)} for {monthsLeft} months
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <Divider borderColor="gray.600" my={3} />
+
+                  <Text
+                    fontSize="lg"
+                    className="text-gray-800 dark:text-white"
+                    mb={1}
+                  >
+                    <Icon as={FaCalendarAlt} color="cyan.400" mr={2} />
+                    Suggested Monthly Savings for Next Year
+                  </Text>
+                  <Text fontSize="2xl" fontWeight="bold" color="teal.300">
+                    ${(savingsTarget / 12).toFixed(2)} for 12 months
+                  </Text>
+                </>
+              )}
             </Box>
           </SlideFade>
         )}
@@ -494,6 +769,19 @@ const SavingsTargetPrediction = () => {
             </Text>{" "}
             towards your goal. Blue color represents your savings progress.
           </Text>
+        </Box>
+        <Box mb={6}>
+          <Heading size="md" mb={4}>
+            Exportable Reports
+          </Heading>
+          <CSVLink
+            data={csvData}
+            headers={csvHeaders}
+            filename="financial_summary.csv"
+            className="btn btn-primary"
+          >
+            Download Financial Summary as CSV
+          </CSVLink>
         </Box>
       </VStack>
     </ChakraProvider>

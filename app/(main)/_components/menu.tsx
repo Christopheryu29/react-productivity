@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
@@ -20,23 +20,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 interface MenuProps {
   documentId: Id<"documents">;
-};
+}
 
-export const Menu = ({
-  documentId
-}: MenuProps) => {
+export const Menu = ({ documentId }: MenuProps) => {
   const router = useRouter();
   const { user } = useUser();
 
   const archive = useMutation(api.documents.archive);
 
   const onArchive = () => {
-    const promise = archive({ id: documentId })
+    const promise = archive({ id: documentId });
 
     toast.promise(promise, {
       loading: "Moving to trash...",
       success: "Note moved to trash!",
-      error: "Failed to archive note."
+      error: "Failed to archive note.",
     });
 
     router.push("/documents");
@@ -45,14 +43,18 @@ export const Menu = ({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button size="sm" variant="ghost">
+        <Button
+          size="sm"
+          variant="ghost"
+          className="text-gray-800 dark:text-white"
+        >
           <MoreHorizontal className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent 
-        className="w-60" 
-        align="end" 
-        alignOffset={8} 
+      <DropdownMenuContent
+        className="w-60"
+        align="end"
+        alignOffset={8}
         forceMount
       >
         <DropdownMenuItem onClick={onArchive}>
@@ -69,7 +71,5 @@ export const Menu = ({
 };
 
 Menu.Skeleton = function MenuSkeleton() {
-  return (
-    <Skeleton className="h-10 w-10" />
-  )
-}
+  return <Skeleton className="h-10 w-10 text-gray-800 dark:text-white" />;
+};

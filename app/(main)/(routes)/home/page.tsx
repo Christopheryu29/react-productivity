@@ -22,6 +22,30 @@ import ExpenseForm from "../budgettracker/components/ExpenseForm";
 import TodayEventCount from "../calendar/components/TodayEventCount";
 import CriticalPeriods from "../machine/components/CriticalPeriods";
 
+const CurrentTime: React.FC = () => {
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(interval); // Clear interval on component unmount
+  }, []);
+
+  return (
+    <Text
+      fontSize={useBreakpointValue({ base: "2xl", md: "3xl" })}
+      className="text-gray-700 dark:text-gray-300 font-medium"
+    >
+      {currentTime.toLocaleTimeString(undefined, {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit", // Include seconds here
+      })}
+    </Text>
+  );
+};
+
 interface Task {
   id: string;
   title: string;
@@ -349,15 +373,7 @@ const HomePage: React.FC = () => {
             day: "numeric",
           })}
         </Heading>
-        <Text
-          fontSize={isMobile ? "2xl" : "3xl"}
-          className="text-gray-700 dark:text-gray-300 font-medium"
-        >
-          {new Date().toLocaleTimeString(undefined, {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </Text>
+        <CurrentTime />
       </Box>
 
       {isMobile ? (
@@ -365,11 +381,16 @@ const HomePage: React.FC = () => {
           <Box className="bg-white dark:bg-[rgba(40,40,55,0.85)] text-gray-800 dark:text-white rounded-xl shadow-md p-4">
             <Heading
               size="md"
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
               className="text-gray-800 dark:text-white mb-3 font-semibold"
             >
               Add New Expense
             </Heading>
-            <ExpenseForm onAddExpense={handleAddExpense} />
+            <Box display="flex" justifyContent="center" alignItems="center">
+              <ExpenseForm onAddExpense={handleAddExpense} />
+            </Box>
           </Box>
 
           <Box className="bg-white dark:bg-[rgba(40,40,55,0.85)] rounded-xl shadow-md">

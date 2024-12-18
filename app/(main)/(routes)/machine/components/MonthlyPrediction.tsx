@@ -108,7 +108,7 @@ const MonthlyPrediction: React.FC = () => {
   };
 
   const denormalizeValue = (value: number, min: number, max: number) => {
-    return value * (max - min) + min;
+    return Math.max(0, value * (max - min) + min); // Clamp negative results
   };
 
   const initializeModel = useCallback(async () => {
